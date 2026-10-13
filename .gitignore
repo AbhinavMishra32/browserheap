@@ -1,0 +1,8 @@
+node_modules
+dist
+bench/results
+bench/others/node_modules
+bench/others/.venv
+bench/o/data
+.DS_Store
+bench/others/.playwright-mcp
