@@ -1,0 +1,12 @@
+Linux 6.1.158+ x86_64
+8
+               total        used        free      shared  buff/cache   available
+Mem:            7955         275        7769           1          88        7680
+Swap:              0           0           0
+Google Chrome 155.0.8059.79 
+/opt/ms-playwright:
+chromium_headless_shell-1243
+ffmpeg-1011
+
+/root/.agent-browser/browsers:
+chrome-155.0.8059.79
