@@ -1,0 +1,456 @@
+<title>agent-tabs Memory Benchmark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: one lab-report column — headline result, the chart, then the exact numbers and how they were measured. */
+:root {
+  --bg: #f7f8f9;
+  --surface: #ffffff;
+  --ink: #101418;
+  --ink-2: #4a525b;
+  --ink-3: #7b838c;
+  --rule: #e2e5e9;
+  --grid: #eceef1;
+  --accent: #2a78d6;
+  --accent-soft: #e6f0fb;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111417; --surface: #171b1f; --ink: #f2f4f6; --ink-2: #b4bbc3; --ink-3: #848c95;
+    --rule: #2a3037; --grid: #222830; --accent: #3987e5; --accent-soft: #16263a;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111417; --surface: #171b1f; --ink: #f2f4f6; --ink-2: #b4bbc3; --ink-3: #848c95;
+  --rule: #2a3037; --grid: #222830; --accent: #3987e5; --accent-soft: #16263a;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.page { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: grid; gap: 40px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 6vw, 60px); line-height: 1.02; letter-spacing: -0.01em; margin: 10px 0 14px; text-wrap: balance; }
+h1 .hl { color: var(--accent); }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 22px; margin: 0 0 4px; text-wrap: balance; }
+.lede { font-size: 18px; color: var(--ink-2); max-width: 62ch; margin: 0; }
+.muted { color: var(--ink-3); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat { padding: 16px 16px 16px 0; display: grid; gap: 2px; align-content: start; }
+.stat + .stat { padding-left: 16px; border-left: 1px solid var(--rule); }
+.stat .value { font-family: var(--font-display); font-weight: 700; font-size: 32px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat .value small { font-size: 16px; font-weight: 600; color: var(--ink-2); margin-left: 2px; }
+.stat .label { font-size: 13px; color: var(--ink-2); }
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { padding-left: 0; border-left: 0; }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); margin: 0; padding: 0; list-style: none; }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend .key { width: 14px; height: 3px; border-radius: 2px; }
+.legend li.ours { color: var(--ink); font-weight: 600; }
+.legend li.ours .key { height: 4px; }
+.chart-wrap { position: relative; }
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg.chart text { font-family: var(--font-mono); font-size: 11px; fill: var(--ink-3); }
+svg.chart .end-label { font-family: var(--font-body); font-size: 12px; fill: var(--ink-2); }
+svg.chart .end-label.ours { fill: var(--ink); font-weight: 600; }
+.tooltip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 6px 20px rgb(0 0 0 / 0.12); min-width: 210px; z-index: 2; }
+.tooltip .t-head { font-weight: 600; margin-bottom: 6px; }
+.tooltip .t-site { color: var(--ink-3); font-family: var(--font-mono); font-size: 11px; display: block; font-weight: 400; }
+.tooltip .t-row { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; }
+.tooltip .t-row .dot { width: 8px; height: 8px; border-radius: 50%; }
+.tooltip .t-row .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.tooltip .t-row.ours { font-weight: 600; }
+.caption { font-size: 13px; color: var(--ink-3); margin: 12px 0 0; max-width: 75ch; }
+
+.growth { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.growth li { display: grid; grid-template-columns: 150px minmax(0, 1fr) 96px; gap: 12px; align-items: center; font-size: 14px; }
+.growth .bar-track { height: 14px; }
+.growth .bar { height: 100%; border-radius: 0 4px 4px 0; min-width: 3px; }
+.growth .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.growth li.ours { font-weight: 600; }
+@media (max-width: 520px) { .growth li { grid-template-columns: 110px minmax(0, 1fr) 80px; font-size: 13px; } }
+
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); }
+th { position: sticky; top: 0; background: var(--surface); font-weight: 600; color: var(--ink-2); font-size: 12px; border-bottom: 1px solid var(--rule); }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.site { font-family: var(--font-body); color: var(--ink-2); max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+td.ours, th.ours { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+td.blocked { color: var(--ink-3); }
+td.blocked::after { content: "†"; margin-left: 2px; }
+tr.summary td { border-top: 1px solid var(--rule); font-weight: 600; color: var(--ink); }
+tr.summary td.site { font-family: var(--font-body); }
+
+.method { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
+.method h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+.method p, .method ul { margin: 0; color: var(--ink-2); font-size: 14px; }
+.method ul { padding-left: 18px; }
+.method code { font-family: var(--font-mono); font-size: 12.5px; }
+@media (max-width: 720px) { .method { grid-template-columns: minmax(0, 1fr); } }
+
+.post { display: grid; gap: 10px; }
+.post pre { margin: 0; white-space: pre-wrap; font-family: var(--font-body); font-size: 15px; line-height: 1.5; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; color: var(--ink); }
+.post button { justify-self: start; font: 600 13px var(--font-body); color: var(--surface); background: var(--ink); border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+.post button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<main class="page">
+  <header>
+    <div class="eyebrow">agent-tabs · memory benchmark · 15 Oct 2026</div>
+    <h1>30 tabs in <span class="hl" id="h-ours">556 MB</span>. The others need 3.5–4.5 GB.</h1>
+    <p class="lede">Six agent browser tools opened the same 30 real websites as tabs, one after another, on the same clean E2B machine. We measured the browser's memory after every tab. agent-tabs barely grows; every other tool grows by about one Chrome tab's worth each time.</p>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Headline numbers"></section>
+
+  <section class="panel" aria-labelledby="chart-title">
+    <div class="panel-head">
+      <div>
+        <h2 id="chart-title">Browser memory as tabs open</h2>
+        <div class="muted" style="font-size:13px">MB, all of the browser's processes together (Linux PSS), after each tab loads</div>
+      </div>
+      <ul class="legend" id="legend"></ul>
+    </div>
+    <div class="chart-wrap" id="chart-wrap">
+      <svg class="chart" id="chart" role="img" aria-label="Line chart of browser memory from 1 to 30 tabs for six tools"></svg>
+      <div class="tooltip" id="tooltip" hidden></div>
+    </div>
+    <p class="caption">agent-tabs keeps 2 tabs live and puts the rest to sleep, so its line moves with whichever 2 pages are open (the bump at tabs 11–13 is The Verge, TechCrunch and npm, heavy pages, being the live ones). The other tools keep every tab running.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="growth-title">
+    <div class="panel-head">
+      <div>
+        <h2 id="growth-title">Memory each extra tab adds</h2>
+        <div class="muted" style="font-size:13px">Slope of a straight-line fit through tabs 1–30, MB per tab</div>
+      </div>
+    </div>
+    <ul class="growth" id="growth"></ul>
+  </section>
+
+  <section aria-labelledby="table-title" style="display:grid;gap:12px">
+    <div>
+      <h2 id="table-title">Every number</h2>
+      <p class="muted" style="margin:0;font-size:14px">MB after each tab. † the site showed a bot wall or didn't load in that tool (it still counts as an open tab). These are the same sites in every tool: Stack Overflow, Reuters, NYT, YouTube, Amazon, Reddit, IMDb, OpenAI and a few news sites block headless browsers.</p>
+    </div>
+    <div class="table-scroll">
+      <table id="table"></table>
+    </div>
+  </section>
+
+  <section aria-labelledby="method-title" style="display:grid;gap:16px">
+    <h2 id="method-title">How it was measured</h2>
+    <div class="method">
+      <div>
+        <h3>The machine</h3>
+        <p>One E2B sandbox for all six tools, run one after another: <span id="machine"></span>. Each tool started fresh and was closed before the next.</p>
+      </div>
+      <div>
+        <h3>The measure</h3>
+        <p>The sum of PSS (proportional set size) from <code>/proc/&lt;pid&gt;/smaps_rollup</code> over every browser process the tool started. PSS counts memory shared between processes once, split between them. The tool's own Node or Python process is left out, which favours the others.</p>
+      </div>
+      <div>
+        <h3>The tools, with their default settings</h3>
+        <ul id="versions"></ul>
+      </div>
+      <div>
+        <h3>What a tab is</h3>
+        <p>Each tool opens a site the way an agent would through its own interface (a new tab per site), waits for the page, and reads its text. A page "worked" when it showed more than 200 characters. Then the next site opens; no tab is ever closed.</p>
+      </div>
+      <div>
+        <h3>What agent-tabs does</h3>
+        <p>2 tabs live at a time; the others sleep as a saved URL, title, scroll position and text, and wake when the agent uses them again (<span id="wake"></span> to wake the first tab at the end of this run). It also blocks ads and trackers. Tabs with unsent typing never sleep.</p>
+      </div>
+      <div>
+        <h3>Fairness notes</h3>
+        <p>The sandbox runs as root, where Chrome only starts without its sandbox; agent-browser, Stagehand and Playwright turn it off themselves, and Playwright MCP and browser-use were given their own switch for it. One run per tool. Raw results: <code>bench/launch/e2b-30-tabs/</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="post" aria-labelledby="post-title">
+    <h2 id="post-title">Post copy</h2>
+    <pre id="post-text"></pre>
+    <button type="button" id="copy">Copy post</button>
+  </section>
+</main>
+
+<script>
+const DATA = {"runs":[{"browser":"agent-browser","tabs":30,"worked":23,"idleMb":0,"finalMb":3473,"loadSeconds":119,"measuredAt":"2026-10-15T06:04:30.085Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":519,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":608,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":626,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":801,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":917,"worked":true},{"url":"https://arxiv.org/abs/1706.03762","totalMb":979,"worked":true},{"url":"https://www.bbc.com/news","totalMb":1078,"worked":true},{"url":"https://docs.python.org/3/","totalMb":1117,"worked":true},{"url":"https://react.dev/","totalMb":1172,"worked":true},{"url":"https://nodejs.org/en","totalMb":1271,"worked":true},{"url":"https://www.theverge.com/","totalMb":1410,"worked":true},{"url":"https://techcrunch.com/","totalMb":1606,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":1772,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":1922,"worked":true},{"url":"https://www.apple.com/","totalMb":2334,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2438,"worked":false},{"url":"https://lightpanda.io/","totalMb":2476,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2540,"worked":true},{"url":"https://www.reuters.com/","totalMb":2377,"worked":false},{"url":"https://vercel.com/","totalMb":2546,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2444,"worked":false},{"url":"https://www.youtube.com/","totalMb":2642,"worked":false},{"url":"https://www.amazon.com/","totalMb":2777,"worked":true},{"url":"https://www.reddit.com/r/programming/","totalMb":2772,"worked":true},{"url":"https://www.imdb.com/","totalMb":2723,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":2792,"worked":true},{"url":"https://www.wired.com/","totalMb":3141,"worked":true},{"url":"https://openai.com/","totalMb":3630,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":3652,"worked":true},{"url":"https://medium.com/","totalMb":3456,"worked":false}]},{"browser":"agent-tabs --live 2","blocked":{"ads":99,"media":515},"tabs":30,"worked":22,"idleMb":113,"finalMb":556,"loadSeconds":24,"wake":{"ms":230,"worked":true,"totalMb":298},"measuredAt":"2026-10-15T06:01:17.463Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":210,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":278,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":247,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":345,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":372,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":269,"worked":true},{"url":"https://www.bbc.com/news","totalMb":325,"worked":true},{"url":"https://docs.python.org/3/","totalMb":338,"worked":true},{"url":"https://react.dev/","totalMb":287,"worked":true},{"url":"https://nodejs.org/en","totalMb":267,"worked":true},{"url":"https://www.theverge.com/","totalMb":475,"worked":true},{"url":"https://techcrunch.com/","totalMb":666,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":718,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":315,"worked":true},{"url":"https://www.apple.com/","totalMb":308,"worked":true},{"url":"https://edition.cnn.com/","totalMb":290,"worked":false},{"url":"https://lightpanda.io/","totalMb":301,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":338,"worked":true},{"url":"https://www.reuters.com/","totalMb":298,"worked":false},{"url":"https://vercel.com/","totalMb":323,"worked":true},{"url":"https://www.nytimes.com/","totalMb":366,"worked":false},{"url":"https://www.youtube.com/","totalMb":272,"worked":false},{"url":"https://www.amazon.com/","totalMb":444,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":273,"worked":true},{"url":"https://www.imdb.com/","totalMb":245,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":340,"worked":true},{"url":"https://www.wired.com/","totalMb":549,"worked":true},{"url":"https://openai.com/","totalMb":472,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":376,"worked":true},{"url":"https://medium.com/","totalMb":423,"worked":true}]},{"browser":"browser-use","tabs":30,"worked":22,"idleMb":406,"finalMb":4230,"loadSeconds":40,"measuredAt":"2026-10-15T06:07:28.023250+00:00","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":523,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":590,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":620,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":771,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":809,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":892,"worked":true},{"url":"https://www.bbc.com/news","totalMb":1008,"worked":true},{"url":"https://docs.python.org/3/","totalMb":1054,"worked":true},{"url":"https://react.dev/","totalMb":1163,"worked":true},{"url":"https://nodejs.org/en","totalMb":1237,"worked":true},{"url":"https://www.theverge.com/","totalMb":1812,"worked":true},{"url":"https://techcrunch.com/","totalMb":1959,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":2160,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":2217,"worked":true},{"url":"https://www.apple.com/","totalMb":2291,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2297,"worked":false},{"url":"https://lightpanda.io/","totalMb":2285,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2503,"worked":true},{"url":"https://www.reuters.com/","totalMb":2553,"worked":false},{"url":"https://vercel.com/","totalMb":2637,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2784,"worked":false},{"url":"https://www.youtube.com/","totalMb":3025,"worked":false},{"url":"https://www.amazon.com/","totalMb":3067,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":3095,"worked":true},{"url":"https://www.imdb.com/","totalMb":3122,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":3348,"worked":true},{"url":"https://www.wired.com/","totalMb":3919,"worked":true},{"url":"https://openai.com/","totalMb":3878,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":4078,"worked":true},{"url":"https://medium.com/","totalMb":4082,"worked":true}]},{"browser":"chrome-shell","blocked":null,"tabs":30,"worked":21,"idleMb":113,"finalMb":3661,"loadSeconds":60,"wake":null,"measuredAt":"2026-10-15T06:02:24.356Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":166,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":290,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":323,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":465,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":509,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":578,"worked":true},{"url":"https://www.bbc.com/news","totalMb":752,"worked":true},{"url":"https://docs.python.org/3/","totalMb":785,"worked":true},{"url":"https://react.dev/","totalMb":848,"worked":true},{"url":"https://nodejs.org/en","totalMb":905,"worked":true},{"url":"https://www.theverge.com/","totalMb":1285,"worked":false,"error":"page.goto: Timeout 30000ms exceeded."},{"url":"https://techcrunch.com/","totalMb":1598,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":1509,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":1579,"worked":true},{"url":"https://www.apple.com/","totalMb":1754,"worked":true},{"url":"https://edition.cnn.com/","totalMb":1754,"worked":false},{"url":"https://lightpanda.io/","totalMb":1839,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2091,"worked":true},{"url":"https://www.reuters.com/","totalMb":2119,"worked":false},{"url":"https://vercel.com/","totalMb":2202,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2254,"worked":false},{"url":"https://www.youtube.com/","totalMb":2486,"worked":false},{"url":"https://www.amazon.com/","totalMb":2561,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":2590,"worked":true},{"url":"https://www.imdb.com/","totalMb":2603,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":2847,"worked":true},{"url":"https://www.wired.com/","totalMb":3361,"worked":true},{"url":"https://openai.com/","totalMb":3405,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":3531,"worked":true},{"url":"https://medium.com/","totalMb":3593,"worked":true}]},{"browser":"playwright-mcp","tabs":30,"worked":22,"idleMb":0,"finalMb":4510,"loadSeconds":87,"measuredAt":"2026-10-15T06:06:05.149Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":425,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":498,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":531,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":703,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":746,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":834,"worked":true},{"url":"https://www.bbc.com/news","totalMb":967,"worked":true},{"url":"https://docs.python.org/3/","totalMb":990,"worked":true},{"url":"https://react.dev/","totalMb":1055,"worked":true},{"url":"https://nodejs.org/en","totalMb":1140,"worked":true},{"url":"https://www.theverge.com/","totalMb":1948,"worked":true},{"url":"https://techcrunch.com/","totalMb":2350,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":2466,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":2844,"worked":true},{"url":"https://www.apple.com/","totalMb":3024,"worked":true},{"url":"https://edition.cnn.com/","totalMb":3037,"worked":false},{"url":"https://lightpanda.io/","totalMb":3034,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":3080,"worked":true},{"url":"https://www.reuters.com/","totalMb":3027,"worked":false},{"url":"https://vercel.com/","totalMb":3088,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2982,"worked":false},{"url":"https://www.youtube.com/","totalMb":3173,"worked":false},{"url":"https://www.amazon.com/","totalMb":3180,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":3183,"worked":true},{"url":"https://www.imdb.com/","totalMb":3178,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":3575,"worked":true},{"url":"https://www.wired.com/","totalMb":4203,"worked":true},{"url":"https://openai.com/","totalMb":4268,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":4516,"worked":true},{"url":"https://medium.com/","totalMb":4556,"worked":true}]},{"browser":"stagehand","tabs":30,"worked":21,"idleMb":396,"finalMb":4017,"loadSeconds":27,"measuredAt":"2026-10-15T06:06:38.619Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":423,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":535,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":564,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":706,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":718,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":778,"worked":true},{"url":"https://www.bbc.com/news","totalMb":846,"worked":true},{"url":"https://docs.python.org/3/","totalMb":859,"worked":true},{"url":"https://react.dev/","totalMb":948,"worked":true},{"url":"https://nodejs.org/en","totalMb":1022,"worked":true},{"url":"https://www.theverge.com/","totalMb":1152,"worked":true},{"url":"https://techcrunch.com/","totalMb":1306,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":1424,"worked":false},{"url":"https://www.rust-lang.org/","totalMb":1807,"worked":true},{"url":"https://www.apple.com/","totalMb":2083,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2145,"worked":false},{"url":"https://lightpanda.io/","totalMb":2200,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2338,"worked":true},{"url":"https://www.reuters.com/","totalMb":2462,"worked":false},{"url":"https://vercel.com/","totalMb":2548,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2586,"worked":false},{"url":"https://www.youtube.com/","totalMb":2728,"worked":false},{"url":"https://www.amazon.com/","totalMb":2748,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":2759,"worked":true},{"url":"https://www.imdb.com/","totalMb":2771,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":2913,"worked":true},{"url":"https://www.wired.com/","totalMb":3120,"worked":true},{"url":"https://openai.com/","totalMb":3243,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":3681,"worked":true},{"url":"https://medium.com/","totalMb":3971,"worked":true}]}],"machine":"Linux 6.1 x86_64, 8 vCPUs, 8 GB memory, Google Chrome 155.0.8059.79 and Playwright's Chromium headless shell (build 1243), 15 October 2026","versions":["agent-tabs: Playwright's Chromium headless shell (playwright-core 1.63.0), 2 tabs live, ads and trackers blocked","agent-browser 0.39.1: its own Chrome 155","Stagehand 4.2.1: local Chrome, headless","browser-use 0.13.11: BrowserSession, headless","Playwright MCP 0.0.83: --headless --isolated","Headless Chrome: Playwright's Chromium headless shell, every tab live (what agent-tabs runs on, without sleeping or blocking)"]};
+
+const TOOLS = [
+  { id: "agent-tabs --live 2", name: "agent-tabs", color: "var(--s1)", ours: true },
+  { id: "agent-browser", name: "agent-browser", color: "var(--s2)" },
+  { id: "chrome-shell", name: "Headless Chrome", color: "var(--s3)" },
+  { id: "stagehand", name: "Stagehand", color: "var(--s4)" },
+  { id: "browser-use", name: "browser-use", color: "var(--s5)" },
+  { id: "playwright-mcp", name: "Playwright MCP", color: "var(--s6)" },
+];
+
+const runs = {};
+for (const run of DATA.runs) {
+  runs[run.browser] = run;
+}
+const tabCount = 30;
+
+function formatMb(mb) {
+  return mb.toLocaleString("en-US") + " MB";
+}
+
+function siteName(url) {
+  const host = new URL(url).hostname.replace(/^www\./, "").replace(/^edition\./, "");
+  return host;
+}
+
+function slope(values) {
+  const n = values.length;
+  let meanX = 0;
+  let meanY = 0;
+  for (let i = 0; i < n; i++) {
+    meanX += (i + 1) / n;
+    meanY += values[i] / n;
+  }
+  let top = 0;
+  let bottom = 0;
+  for (let i = 0; i < n; i++) {
+    top += (i + 1 - meanX) * (values[i] - meanY);
+    bottom += (i + 1 - meanX) ** 2;
+  }
+  return top / bottom;
+}
+
+const ours = runs["agent-tabs --live 2"];
+const others = TOOLS.filter((tool) => !tool.ours).map((tool) => runs[tool.id]);
+const otherFinal = others.map((run) => run.finalMb);
+const otherSlopes = others.map((run) => slope(run.perTab.map((tab) => tab.totalMb)));
+const lowRatio = Math.min(...otherFinal) / ours.finalMb;
+const highRatio = Math.max(...otherFinal) / ours.finalMb;
+
+// Headline tiles.
+document.getElementById("h-ours").textContent = formatMb(ours.finalMb);
+const stats = [
+  { value: ours.finalMb.toLocaleString("en-US"), unit: "MB", label: "agent-tabs with 30 tabs open, after the pages settle" },
+  { value: slope(ours.perTab.map((tab) => tab.totalMb)).toFixed(0), unit: "MB", label: `per extra tab, against ${Math.round(Math.min(...otherSlopes))}–${Math.round(Math.max(...otherSlopes))} MB for the others` },
+  { value: `${lowRatio.toFixed(1)}–${highRatio.toFixed(1)}`, unit: "×", label: "less memory than the other five tools at 30 tabs" },
+  { value: ours.wake.ms, unit: "ms", label: "to wake a sleeping tab when the agent goes back to it" },
+];
+const statsEl = document.getElementById("stats");
+for (const stat of stats) {
+  const div = document.createElement("div");
+  div.className = "stat";
+  div.innerHTML = `<div class="value">${stat.value}<small>${stat.unit}</small></div><div class="label">${stat.label}</div>`;
+  statsEl.append(div);
+}
+
+// Legend.
+const legend = document.getElementById("legend");
+for (const tool of TOOLS) {
+  const li = document.createElement("li");
+  if (tool.ours) li.className = "ours";
+  li.innerHTML = `<span class="key" style="background:${tool.color}"></span>${tool.name}`;
+  legend.append(li);
+}
+
+// The chart.
+const svg = document.getElementById("chart");
+const W = 900;
+const H = 440;
+const pad = { left: 56, right: 132, top: 12, bottom: 36 };
+const maxMb = 5000;
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+const plotW = W - pad.left - pad.right;
+const plotH = H - pad.top - pad.bottom;
+const x = (tab) => pad.left + ((tab - 1) / (tabCount - 1)) * plotW;
+const y = (mb) => pad.top + plotH - (mb / maxMb) * plotH;
+const NS = "http://www.w3.org/2000/svg";
+
+function add(tag, attrs, parent = svg) {
+  const el = document.createElementNS(NS, tag);
+  for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+  parent.append(el);
+  return el;
+}
+
+for (let mb = 0; mb <= maxMb; mb += 1000) {
+  add("line", { x1: pad.left, x2: pad.left + plotW, y1: y(mb), y2: y(mb), stroke: mb === 0 ? "var(--ink-3)" : "var(--grid)", "stroke-width": 1 });
+  const label = add("text", { x: pad.left - 8, y: y(mb) + 4, "text-anchor": "end" });
+  label.textContent = mb === 0 ? "0" : mb.toLocaleString("en-US");
+}
+for (const tab of [1, 5, 10, 15, 20, 25, 30]) {
+  const label = add("text", { x: x(tab), y: H - pad.bottom + 18, "text-anchor": "middle" });
+  label.textContent = tab;
+}
+const xTitle = add("text", { x: pad.left + plotW / 2, y: H - 2, "text-anchor": "middle" });
+xTitle.textContent = "tabs open";
+
+// Others first, ours on top.
+const drawOrder = [...TOOLS.filter((tool) => !tool.ours), ...TOOLS.filter((tool) => tool.ours)];
+for (const tool of drawOrder) {
+  const values = runs[tool.id].perTab.map((tab) => tab.totalMb);
+  let d = "";
+  values.forEach((mb, i) => {
+    d += `${i === 0 ? "M" : "L"}${x(i + 1).toFixed(1)},${y(mb).toFixed(1)}`;
+  });
+  add("path", { d, fill: "none", stroke: tool.color, "stroke-width": tool.ours ? 3 : 2, "stroke-linejoin": "round", "stroke-linecap": "round" });
+  add("circle", { cx: x(tabCount), cy: y(values[tabCount - 1]), r: tool.ours ? 4.5 : 3.5, fill: tool.color, stroke: "var(--surface)", "stroke-width": 2 });
+}
+
+// End labels, nudged apart so none overlap.
+const ends = TOOLS.map((tool) => ({ tool, mb: runs[tool.id].perTab[tabCount - 1].totalMb }));
+ends.sort((a, b) => b.mb - a.mb);
+let lastY = -Infinity;
+for (const end of ends) {
+  end.labelY = Math.max(y(end.mb) + 4, lastY + 15);
+  lastY = end.labelY;
+}
+for (const end of ends) {
+  const label = add("text", { x: x(tabCount) + 10, y: end.labelY, class: end.tool.ours ? "end-label ours" : "end-label" });
+  label.textContent = `${end.tool.name} ${end.mb.toLocaleString("en-US")}`;
+}
+
+// Hover: a crosshair and every tool's number at that tab.
+const crosshair = add("line", { y1: pad.top, y2: pad.top + plotH, stroke: "var(--ink-3)", "stroke-width": 1, "stroke-dasharray": "3 3", visibility: "hidden" });
+const hoverDots = TOOLS.map((tool) => add("circle", { r: 4, fill: tool.color, stroke: "var(--surface)", "stroke-width": 2, visibility: "hidden" }));
+const hitArea = add("rect", { x: pad.left - 10, y: pad.top, width: plotW + 20, height: plotH, fill: "transparent" });
+const tooltip = document.getElementById("tooltip");
+const wrap = document.getElementById("chart-wrap");
+
+function showTab(tab) {
+  crosshair.setAttribute("x1", x(tab));
+  crosshair.setAttribute("x2", x(tab));
+  crosshair.setAttribute("visibility", "visible");
+  const rows = [];
+  TOOLS.forEach((tool, i) => {
+    const entry = runs[tool.id].perTab[tab - 1];
+    hoverDots[i].setAttribute("cx", x(tab));
+    hoverDots[i].setAttribute("cy", y(entry.totalMb));
+    hoverDots[i].setAttribute("visibility", "visible");
+    rows.push({ tool, entry });
+  });
+  rows.sort((a, b) => b.entry.totalMb - a.entry.totalMb);
+  const url = ours.perTab[tab - 1].url;
+  let html = `<div class="t-head">${tab} tab${tab === 1 ? "" : "s"} open<span class="t-site">+ ${siteName(url)}</span></div>`;
+  for (const row of rows) {
+    html += `<div class="t-row${row.tool.ours ? " ours" : ""}"><span class="dot" style="background:${row.tool.color}"></span><span>${row.tool.name}</span><span class="v">${formatMb(row.entry.totalMb)}${row.entry.worked ? "" : " †"}</span></div>`;
+  }
+  tooltip.innerHTML = html;
+  tooltip.hidden = false;
+  const box = svg.getBoundingClientRect();
+  const scale = box.width / W;
+  const px = x(tab) * scale;
+  const left = px > box.width / 2 ? px - tooltip.offsetWidth - 14 : px + 14;
+  tooltip.style.left = `${Math.max(0, left)}px`;
+  tooltip.style.top = `${pad.top * scale}px`;
+}
+
+function hide() {
+  crosshair.setAttribute("visibility", "hidden");
+  for (const dot of hoverDots) dot.setAttribute("visibility", "hidden");
+  tooltip.hidden = true;
+}
+
+function tabAt(event) {
+  const box = svg.getBoundingClientRect();
+  const svgX = ((event.clientX - box.left) / box.width) * W;
+  const tab = Math.round(((svgX - pad.left) / plotW) * (tabCount - 1)) + 1;
+  return Math.min(tabCount, Math.max(1, tab));
+}
+hitArea.addEventListener("pointermove", (event) => showTab(tabAt(event)));
+hitArea.addEventListener("pointerleave", hide);
+
+// Growth per tab.
+const growth = document.getElementById("growth");
+const slopes = TOOLS.map((tool) => ({ tool, perTab: slope(runs[tool.id].perTab.map((tab) => tab.totalMb)) }));
+slopes.sort((a, b) => a.perTab - b.perTab);
+const maxSlope = Math.max(...slopes.map((s) => s.perTab));
+for (const s of slopes) {
+  const li = document.createElement("li");
+  if (s.tool.ours) li.className = "ours";
+  const width = (s.perTab / maxSlope) * 100;
+  li.innerHTML = `<span>${s.tool.name}</span><span class="bar-track"><span class="bar" style="display:block;width:${width}%;background:${s.tool.color}"></span></span><span class="v">${s.perTab.toFixed(1)} MB</span>`;
+  growth.append(li);
+}
+
+// The table.
+const table = document.getElementById("table");
+let head = "<thead><tr><th>Tabs</th><th>Site added</th>";
+for (const tool of TOOLS) head += `<th class="${tool.ours ? "ours" : ""}">${tool.name}</th>`;
+head += "</tr></thead><tbody>";
+let body = "";
+for (let i = 0; i < tabCount; i++) {
+  body += `<tr><td>${i + 1}</td><td class="site">${siteName(ours.perTab[i].url)}</td>`;
+  for (const tool of TOOLS) {
+    const entry = runs[tool.id].perTab[i];
+    const classes = [tool.ours ? "ours" : "", entry.worked ? "" : "blocked"].join(" ").trim();
+    body += `<td class="${classes}">${entry.totalMb.toLocaleString("en-US")}</td>`;
+  }
+  body += "</tr>";
+}
+const summaries = [
+  { label: "After 5 s settle", value: (run) => run.finalMb.toLocaleString("en-US") },
+  { label: "Peak", value: (run) => Math.max(...run.perTab.map((t) => t.totalMb)).toLocaleString("en-US") },
+  { label: "MB per extra tab", value: (run) => slope(run.perTab.map((t) => t.totalMb)).toFixed(1) },
+  { label: "Pages that loaded", value: (run) => `${run.worked}/30` },
+];
+for (const summary of summaries) {
+  body += `<tr class="summary"><td></td><td class="site">${summary.label}</td>`;
+  for (const tool of TOOLS) body += `<td class="${tool.ours ? "ours" : ""}">${summary.value(runs[tool.id])}</td>`;
+  body += "</tr>";
+}
+table.innerHTML = head + body + "</tbody>";
+
+// Method details.
+document.getElementById("machine").textContent = DATA.machine;
+document.getElementById("wake").textContent = `${ours.wake.ms} ms`;
+const versions = document.getElementById("versions");
+for (const line of DATA.versions) {
+  const li = document.createElement("li");
+  li.textContent = line;
+  versions.append(li);
+}
+
+// Post copy.
+const otherRange = `${(Math.min(...otherFinal) / 1000).toFixed(1)}–${(Math.max(...otherFinal) / 1000).toFixed(1)} GB`;
+const postText = `Introducing agent-tabs: a browser for AI agents where a tab only costs memory while the agent is using it.
+
+30 real websites open as tabs:
+• agent-tabs: ${formatMb(ours.finalMb)}
+• agent-browser, Stagehand, browser-use, Playwright MCP, headless Chrome: ${otherRange}
+
+That's ${lowRatio.toFixed(1)}–${highRatio.toFixed(1)}× less memory. Each extra tab adds ${slope(ours.perTab.map((t) => t.totalMb)).toFixed(0)} MB, not ${Math.round(Math.min(...otherSlopes))}–${Math.round(Math.max(...otherSlopes))} MB. Sleeping tabs wake in ${ours.wake.ms} ms.
+
+Same machine (E2B, 8 vCPU, 8 GB), same 30 sites, every tool on default settings.`;
+document.getElementById("post-text").textContent = postText;
+document.getElementById("copy").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  try {
+    await navigator.clipboard.writeText(postText);
+    button.textContent = "Copied";
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById("post-text"));
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    button.textContent = "Selected — press Copy";
+  }
+  setTimeout(() => { button.textContent = "Copy post"; }, 2000);
+});
+</script>
