@@ -1,0 +1,161 @@
+{
+  "browser": "agent-browser",
+  "tabs": 30,
+  "worked": 23,
+  "idleMb": 0,
+  "finalMb": 3473,
+  "loadSeconds": 119,
+  "measuredAt": "2026-10-15T06:04:30.085Z",
+  "perTab": [
+    {
+      "url": "https://en.wikipedia.org/wiki/Web_browser",
+      "totalMb": 519,
+      "worked": true
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+      "totalMb": 608,
+      "worked": true
+    },
+    {
+      "url": "https://news.ycombinator.com/",
+      "totalMb": 626,
+      "worked": true
+    },
+    {
+      "url": "https://github.com/microsoft/playwright",
+      "totalMb": 801,
+      "worked": true
+    },
+    {
+      "url": "https://stackoverflow.com/questions/tagged/javascript",
+      "totalMb": 917,
+      "worked": true
+    },
+    {
+      "url": "https://arxiv.org/abs/1706.03762",
+      "totalMb": 979,
+      "worked": true
+    },
+    {
+      "url": "https://www.bbc.com/news",
+      "totalMb": 1078,
+      "worked": true
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "totalMb": 1117,
+      "worked": true
+    },
+    {
+      "url": "https://react.dev/",
+      "totalMb": 1172,
+      "worked": true
+    },
+    {
+      "url": "https://nodejs.org/en",
+      "totalMb": 1271,
+      "worked": true
+    },
+    {
+      "url": "https://www.theverge.com/",
+      "totalMb": 1410,
+      "worked": true
+    },
+    {
+      "url": "https://techcrunch.com/",
+      "totalMb": 1606,
+      "worked": true
+    },
+    {
+      "url": "https://www.npmjs.com/package/playwright",
+      "totalMb": 1772,
+      "worked": true
+    },
+    {
+      "url": "https://www.rust-lang.org/",
+      "totalMb": 1922,
+      "worked": true
+    },
+    {
+      "url": "https://www.apple.com/",
+      "totalMb": 2334,
+      "worked": true
+    },
+    {
+      "url": "https://edition.cnn.com/",
+      "totalMb": 2438,
+      "worked": false
+    },
+    {
+      "url": "https://lightpanda.io/",
+      "totalMb": 2476,
+      "worked": true
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Zig_(programming_language)",
+      "totalMb": 2540,
+      "worked": true
+    },
+    {
+      "url": "https://www.reuters.com/",
+      "totalMb": 2377,
+      "worked": false
+    },
+    {
+      "url": "https://vercel.com/",
+      "totalMb": 2546,
+      "worked": true
+    },
+    {
+      "url": "https://www.nytimes.com/",
+      "totalMb": 2444,
+      "worked": false
+    },
+    {
+      "url": "https://www.youtube.com/",
+      "totalMb": 2642,
+      "worked": false
+    },
+    {
+      "url": "https://www.amazon.com/",
+      "totalMb": 2777,
+      "worked": true
+    },
+    {
+      "url": "https://www.reddit.com/r/programming/",
+      "totalMb": 2772,
+      "worked": true
+    },
+    {
+      "url": "https://www.imdb.com/",
+      "totalMb": 2723,
+      "worked": false
+    },
+    {
+      "url": "https://www.theguardian.com/international",
+      "totalMb": 2792,
+      "worked": true
+    },
+    {
+      "url": "https://www.wired.com/",
+      "totalMb": 3141,
+      "worked": true
+    },
+    {
+      "url": "https://openai.com/",
+      "totalMb": 3630,
+      "worked": false
+    },
+    {
+      "url": "https://www.bloomberg.com/",
+      "totalMb": 3652,
+      "worked": true
+    },
+    {
+      "url": "https://medium.com/",
+      "totalMb": 3456,
+      "worked": false
+    }
+  ]
+}
