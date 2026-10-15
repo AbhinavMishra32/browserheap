@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AbhinavMishra32/browserheap/main/site/logo.svg" alt="" width="72" height="72">
+  <img src="https://browserheap.com/logo.svg" alt="" width="72" height="72">
 </p>
 
 <h1 align="center">Browserheap</h1>
@@ -10,7 +10,7 @@ A browser for AI agents with no tab management: tabs your agent isn't using slee
 <p align="center"><a href="https://browserheap.com">browserheap.com</a> · <a href="https://browserheap.com/research.html">Benchmarks</a> · <a href="https://www.npmjs.com/package/browserheap">npm</a></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AbhinavMishra32/browserheap/main/media/hero.png" alt="The Browserheap site: an agent researching in a browser window, with sleeping tabs drawn as dithered pictures and live tabs as real pages">
+  <img src="https://browserheap.com/hero.png" alt="The Browserheap site: an agent researching in a browser window, with sleeping tabs drawn as dithered pictures and live tabs as real pages">
 </p>
 
 ## Install
