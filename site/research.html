@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Idle Tabs Research</title>
+<meta name="description" content="What idle tabs cost an AI agent's browser, measured across 8 browsers, 19 agent actions, 60 sites and BU Bench.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,750&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="site.css">
+<style>
+/* The research post: a 720px reading column; figures and tables widen to 1080px. */
+article { padding-block: 72px 0; }
+.post-head { display: grid; gap: 18px; padding-bottom: 36px; border-bottom: 1px solid var(--rule); }
+.post-head h1 { font-size: clamp(36px, 5.4vw, 60px); }
+.byline { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
+.prose { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 44px; }
+.prose > p, .prose > ul, .prose > ol { margin: 0; color: var(--ink-2); font-size: 17px; line-height: 1.7; }
+.prose > ul, .prose > ol { padding-left: 22px; display: grid; gap: 8px; }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose h2 { font-size: clamp(26px, 3vw, 32px); margin-top: 44px; scroll-margin-top: 24px; }
+.prose h3 { margin-top: 16px; }
+.prose .num { font-family: var(--font-mono); color: var(--ink-3); font-size: 0.6em; margin-right: 12px; vertical-align: 0.25em; }
+.summary { background: var(--surface); border: 1px solid var(--rule); border-left: 3px solid var(--live); border-radius: 12px; padding: 22px 24px; display: grid; gap: 10px; }
+.summary h2 { margin: 0; font-size: 15px; font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.summary ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--ink-2); }
+.summary strong { color: var(--ink); }
+
+/* Figures break out of the reading column. */
+.figure { --wide: min(1080px, calc(100vw - 40px)); width: var(--wide); margin-inline: calc((100% - var(--wide)) / 2); display: grid; gap: 12px; margin-block: 8px; min-width: 0; }
+body { overflow-x: clip; }
+.figure figcaption { font-size: 14px; color: var(--ink-3); max-width: 80ch; }
+.figure figcaption b { color: var(--ink-2); font-weight: 600; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.two h3 { font-size: 15px; margin-bottom: 10px; }
+.callout { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px 24px; }
+.callout .value { font-family: var(--font-display); font-weight: 650; font-size: 46px; line-height: 1; color: var(--live); }
+.callout .value small { font-size: 18px; color: var(--ink-3); margin-left: 4px; }
+.callout p { margin: 0; color: var(--ink-2); }
+details { border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); }
+details summary { cursor: pointer; padding: 14px 18px; font-weight: 600; }
+details .table-scroll { border: 0; border-top: 1px solid var(--rule); border-radius: 0 0 12px 12px; }
+pre.code { font-size: 13px; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; color: var(--ink-3); }
+.toc a { text-decoration: none; }
+.toc a:hover { color: var(--ink); }
+@media (max-width: 760px) {
+  .two { grid-template-columns: minmax(0, 1fr); }
+  .callout { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>agent-tabs</a>
+    <nav aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="index.html#use">Docs</a>
+      <a href="https://github.com/AbhinavMishra32/agent-tabs">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap narrow">
+  <article>
+    <header class="post-head">
+      <p class="eyebrow">Research</p>
+      <h1>Agents leave tabs open. We measured what that costs.</h1>
+      <p class="lede">We opened the same 30 websites in every popular agent browser, ran 19 agent actions and 60 real sites through the lightweight engines, and gave the same AI agent real tasks on two browsers. Here is everything we found, including where we lost.</p>
+      <div class="byline"><span>15 October 2026</span><span>Abhinav Mishra</span><span>12 min read</span></div>
+      <nav class="toc" aria-label="Sections">
+        <a href="#why">Why tabs pile up</a><a href="#setup">Setup</a><a href="#memory">Memory</a><a href="#agents">Many agents</a><a href="#waking">Waking</a><a href="#actions">Actions</a><a href="#sites">Real sites</a><a href="#tasks">Agent tasks</a><a href="#config">Configuration</a><a href="#limits">Limits</a><a href="#data">Raw data</a>
+      </nav>
+    </header>
+
+    <div class="prose">
+      <section class="summary" aria-labelledby="summary-title">
+        <h2 id="summary-title">Summary</h2>
+        <ul id="summary-list"></ul>
+      </section>
+
+      <h2 id="why"><span class="num">01</span>Why tabs pile up</h2>
+      <p>An agent doing research works like a person with too many tabs, minus the habit of closing them. It searches, opens five results, follows two links into docs, checks a forum thread and writes its answer. Every page it opened is still there, rendering, running scripts and holding memory, and the agent will rarely look at most of them again.</p>
+      <p>People running agents feel this. On agent-browser, users report <a href="https://github.com/vercel-labs/agent-browser/issues/885">60 or more tabs piling up with the browser above 100% CPU</a>; the fix being discussed is an idle timeout that closes the whole browser. On browser-use, <a href="https://github.com/browser-use/browser-use/issues/5484">long-running agents collect tabs for days</a>, and the suggested fixes are to close old tabs or restart Chrome.</p>
+      <p>Both fixes throw work away. A closed tab is a source the agent can no longer go back to. A restarted Chrome has lost the agent's logins. We wanted to know whether a browser could keep every tab the agent opened and still use little memory, and whether the agent would notice.</p>
+
+      <h2 id="setup"><span class="num">02</span>What we built and what we compared</h2>
+      <p><strong>agent-tabs</strong> keeps the 2 tabs the agent used most recently as live Chromium pages. Every other tab sleeps: its page is closed and the tab keeps its URL, title, scroll position and visible text. The agent can still read a sleeping tab. When it clicks, types or reads from the live page, the tab wakes and comes back where it was, with the same cookies. Tabs holding text the agent typed but hasn't sent never sleep.</p>
+      <p>The agent never sees any of this. Its code holds pages and locators that belong to the tab, not to a Chromium page, so a page kept in a variable still works after its tab slept and woke.</p>
+      <p>We compared it with the agent tools people use today, each with its default settings: <strong>agent-browser</strong>, <strong>Stagehand</strong>, <strong>browser-use</strong> and <strong>Playwright MCP</strong>, plus plain <strong>headless Chrome</strong>. All five run Chrome underneath. We also included two browser engines built to be light: <strong>Lightpanda</strong>, which doesn't lay out or draw pages, and <strong>Obscura</strong>.</p>
+
+      <h2 id="memory"><span class="num">03</span>Memory, 1 to 30 tabs</h2>
+      <p>Each browser opened the same 30 real websites one after another, from Wikipedia and MDN to The Verge, Bloomberg and Amazon, and never closed any. After each page loaded we summed the memory of every browser process.</p>
+      <figure class="figure">
+        <div class="panel">
+          <ul class="legend"><li><span class="key ours"></span>agent-tabs</li><li><span class="key"></span>agent tools (Chrome underneath)</li><li><span class="key dash"></span>browser engines</li></ul>
+          <div class="chart-wrap">
+            <svg class="chart" id="memory-chart" role="img" aria-label="Memory from 1 to 30 tabs for eight browsers"></svg>
+            <div class="tooltip" id="tooltip" hidden></div>
+          </div>
+        </div>
+        <figcaption><b>Figure 1.</b> Memory of all browser processes (Linux PSS) after each tab loads. Hover for every browser's number at each tab.</figcaption>
+      </figure>
+      <p id="memory-text"></p>
+      <figure class="figure">
+        <div class="two">
+          <div class="panel"><h3>At 30 tabs, after a 5 s settle</h3><svg class="chart" id="final-chart" role="img" aria-label="Memory at 30 tabs"></svg></div>
+          <div class="panel"><h3>Memory added by each extra tab</h3><svg class="chart" id="slope-chart" role="img" aria-label="Memory per extra tab"></svg></div>
+        </div>
+        <figcaption><b>Figure 2.</b> Left: total memory with all 30 tabs open. Right: the slope of a straight line through each run, which is what one more tab costs.</figcaption>
+      </figure>
+      <p>Lightpanda is the interesting case. It starts lighter than agent-tabs, because it never draws a page, and it stays lighter for the first 10 or so tabs. But each of its tabs stays in memory, and on heavy news sites like Wired and Bloomberg it grows by about 1 GB at a time. By 30 tabs it uses more memory than headless Chrome.</p>
+      <div class="callout">
+        <span class="value" id="wake-ms">274<small>ms</small></span>
+        <p>The cost of sleeping: waking the first tab again after all 30 were open, from the agent's click to the page being ready to use.</p>
+      </div>
+
+      <h3>Past 30 tabs</h3>
+      <p>Thirty tabs is a long research task. Agents that run for hours open more. We kept going to 100 tabs, opening the same 30 sites again from the top, and stopped each browser once it used 6.5 GB of the sandbox's 8 GB, or when it crashed.</p>
+      <figure class="figure">
+        <div class="panel">
+          <div class="chart-wrap">
+            <svg class="chart" id="scale-chart" role="img" aria-label="Memory from 1 to 100 tabs"></svg>
+            <div class="tooltip" id="scale-tooltip" hidden></div>
+          </div>
+        </div>
+        <figcaption><b>Figure 3.</b> Memory up to 100 tabs. × marks where a browser hit the 6.5 GB limit and we stopped it.</figcaption>
+      </figure>
+      <p id="scale-text"></p>
+
+      <h3>While the agent does something else</h3>
+      <p>Open tabs don't sit still. News sites refresh, ads rotate, videos autoplay and analytics scripts keep reporting. After the 30 tabs were open we left each browser alone for 10 minutes and sampled its memory and CPU every 15 seconds. This is what idle tabs cost while the agent is thinking, or waiting on a model.</p>
+      <figure class="figure">
+        <div class="two">
+          <div class="panel"><h3>CPU, % of one core</h3><div class="chart-wrap"><svg class="chart" id="cpu-chart" role="img" aria-label="CPU over 10 idle minutes"></svg><div class="tooltip" id="cpu-tooltip" hidden></div></div></div>
+          <div class="panel"><h3>Memory</h3><div class="chart-wrap"><svg class="chart" id="creep-chart" role="img" aria-label="Memory over 10 idle minutes"></svg><div class="tooltip" id="creep-tooltip" hidden></div></div></div>
+        </div>
+        <figcaption><b>Figure 4.</b> 30 tabs open, nothing happening, sampled every 15 s for 10 minutes. 100% is one full CPU core.</figcaption>
+      </figure>
+      <p id="idle-text"></p>
+
+      <h3>How many tabs to keep live</h3>
+      <p>Two live tabs is the default because an agent usually works in one page and glances at another. An agent that switches between more pages can keep more awake. This is what that costs at 30 tabs.</p>
+      <figure class="figure">
+        <div class="panel"><svg class="chart" id="live-chart" role="img" aria-label="Memory at 30 tabs by number of live tabs"></svg></div>
+        <figcaption><b>Figure 5.</b> agent-tabs with 30 tabs open and 1, 2, 4 or 8 of them live, against headless Chrome with all 30 live.</figcaption>
+      </figure>
+
+      <h2 id="agents"><span class="num">04</span>Many agents, one machine</h2>
+      <p>Memory per tab decides how many agents fit on a machine. We started 10 agents on one sandbox, each with its own browser, and had them open tabs at the same time, one round at a time, up to 10 tabs each. Each agent read different sites.</p>
+      <figure class="figure">
+        <div class="panel">
+          <div class="chart-wrap">
+            <svg class="chart" id="agents-chart" role="img" aria-label="Memory of 10 agents' browsers together"></svg>
+            <div class="tooltip" id="agents-tooltip" hidden></div>
+          </div>
+        </div>
+        <figcaption><b>Figure 6.</b> All 10 browsers together, after each round. The dashed line is the 6.5 GB limit where we stop.</figcaption>
+      </figure>
+      <p id="agents-text"></p>
+
+      <h2 id="actions"><span class="num">05</span>Can an agent still work in it?</h2>
+      <p>Low memory is easy if you give up on parts of the web. We wrote 19 tests for the things agents actually do, from clicking a button to clicking inside an iframe from another site, reading a web component and taking a screenshot. Each ran through Playwright on a small test site, in a fresh browser, with no AI model involved.</p>
+      <figure class="figure">
+        <div class="table-scroll"><table id="actions-table"></table></div>
+        <figcaption><b>Table 1.</b> Every agent tool runs Chrome underneath, so the Chrome column is theirs as well.</figcaption>
+      </figure>
+      <p>agent-tabs passed all 19, like Chrome, because it is Chrome. Lightpanda failed 7: iframes, web components, element positions, clicking at a position, scrolling to load more, popups and screenshots. Several of those follow from not drawing pages. Its screenshot returns text, so we check the colour of a pixel rather than trusting that a file came back.</p>
+
+      <h3 id="waking">What waking costs</h3>
+      <p>Every time the agent goes back to a sleeping tab, it waits for that tab to wake. With all 30 tabs open, we woke each one in turn and timed it, and compared that with how long the same page took to load the first time.</p>
+      <figure class="figure">
+        <div class="panel"><svg class="chart" id="wake-chart" role="img" aria-label="Wake times against first load times"></svg></div>
+        <figcaption><b>Figure 7.</b> Each dot is one tab; the black tick is the median. Log scale. Hover a dot for its site.</figcaption>
+      </figure>
+      <p id="wake-text"></p>
+
+      <h2 id="sites"><span class="num">06</span>Do real sites work?</h2>
+      <p>We loaded 60 real sites across 6 kinds (docs, news, shopping, code and forums, web apps and plain information pages) one at a time. A page counts as the same content as Chrome's when it shows at least 60% of the distinct words Chrome's page shows, counted only where Chrome loaded the page.</p>
+      <figure class="figure">
+        <div class="table-scroll"><table id="sites-table"></table></div>
+        <figcaption><b>Table 2.</b> Load time is until the page is usable. Pages behind a bot wall count as not loaded.</figcaption>
+      </figure>
+      <figure class="figure">
+        <div class="panel"><svg class="chart" id="load-chart" role="img" aria-label="Load time for each site in each browser"></svg></div>
+        <figcaption><b>Figure 8.</b> Load time of every site that loaded, one dot per site, log scale. The black tick is the median.</figcaption>
+      </figure>
+      <figure class="figure">
+        <div class="table-scroll"><table id="kind-grid"></table></div>
+        <figcaption><b>Table 3.</b> Sites that loaded, by kind of site.</figcaption>
+      </figure>
+      <p>agent-tabs loads faster than plain Chrome because it blocks ads and trackers. Its one page that differs from Chrome is Twitch, whose live listing changes between visits. Lightpanda got past bot walls that stop headless Chrome on CNN, Best Buy, Zara and Spotify, which is a real advantage. Obscura timed out or showed nothing on The Verge, Walmart, Target, Al Jazeera and the Apple Store.</p>
+
+      <h2 id="tasks"><span class="num">07</span>Does sleeping hurt the agent?</h2>
+      <p>The tests above don't use a model. The question that matters is whether an agent doing real work does worse when most of its tabs are asleep. We ran tasks from <strong>BU Bench V1</strong> with the same agent, the same model and the same settings on two browsers: plain headless Chrome with every tab live, and agent-tabs. The agent is a pi agent with one browser tool that runs JavaScript against the pages.</p>
+      <figure class="figure">
+        <div class="table-scroll"><table id="bu-table"></table></div>
+        <figcaption><b>Table 4.</b> 10 tasks, 2 from each of BU Bench's 5 categories, 5 running at once. Each answer graded by the benchmark's own grader.</figcaption>
+      </figure>
+      <figure class="figure">
+        <div class="table-scroll"><table id="bu-category"></table></div>
+        <figcaption><b>Table 5.</b> Tasks solved by category. "Impossible" is the grader's verdict for tasks it judged couldn't be done as written.</figcaption>
+      </figure>
+      <figure class="figure">
+        <div class="panel">
+          <ul class="legend"><li><span class="key ours"></span>agent-tabs</li><li><span class="key"></span>headless Chrome</li><li>filled: solved · ring: not solved</li></ul>
+          <svg class="chart" id="pairs-chart" role="img" aria-label="Time per task on each browser"></svg>
+        </div>
+        <figcaption><b>Figure 9.</b> Each BU Bench task, how long the agent took on each browser.</figcaption>
+      </figure>
+      <p id="bu-text"></p>
+      <p>Ten tasks is a first look, not a score. We are running the full 100 tasks next, on E2B, and will publish every per-task result. We're not publishing task text, since the benchmark's tasks are meant to stay out of training data.</p>
+
+      <h2 id="config"><span class="num">08</span>Configuration</h2>
+      <figure class="figure">
+        <div class="table-scroll"><table id="config-table"></table></div>
+      </figure>
+
+      <h2 id="limits"><span class="num">09</span>Limits and fairness</h2>
+      <ul>
+        <li><strong>One run per test.</strong> A first memory run a few minutes earlier gave agent-tabs 556 MB and the other agent tools 3.5 to 4.5 GB. We'll repeat runs and publish medians.</li>
+        <li><strong>The sandboxes run as root</strong>, where Chrome only starts without its own sandbox. agent-browser, Stagehand and Playwright turn it off themselves; Playwright MCP and browser-use got their own flag for it.</li>
+        <li><strong>Lightpanda holds one page per connection</strong>, so each of its tabs had its own connection, and its tabs didn't share cookies. Obscura needed its flag to reach the local test site.</li>
+        <li><strong>The tools' own processes are left out.</strong> We count only browser processes, not the Node or Python process driving them. That favours the others.</li>
+        <li><strong>Ads and trackers are blocked in agent-tabs</strong> and not in the others, which run with defaults. Blocking makes each live page lighter too, so part of the gap per live page comes from it. The growth with tab count does not: agent-tabs never has more than 2 live pages.</li>
+        <li><strong>Refs from a snapshot don't survive a wake.</strong> An agent that saved a ref like <code>e12</code> must take a new snapshot after the tab wakes. Role, text and CSS locators keep working.</li>
+        <li><strong>The later runs hit sites from up to 20 sandboxes at once.</strong> Some sites blocked more often in those runs, so their "pages that loaded" counts are a little lower than in the first memory run. A blocked page still counts as an open tab.</li>
+        <li><strong>Waking was timed on the agent-tabs side only.</strong> The first-load times next to it come from the same run, so both include the same network.</li>
+        <li><strong>The agent tasks ran on a MacBook</strong>, through the browser running locally, not on E2B. The full run will be on E2B.</li>
+      </ul>
+
+      <h2 id="data"><span class="num">10</span>Raw data and how to reproduce</h2>
+      <p>Every result file is in the repository under <code>bench/launch/2026-10-15/</code>. The BU Bench file keeps each task's category, verdict, steps and time, without the task itself.</p>
+      <figure class="figure">
+        <details>
+          <summary>Every memory number, all 8 browsers, all 30 tabs</summary>
+          <div class="table-scroll tall"><table id="memory-table"></table></div>
+        </details>
+        <figcaption>† that browser's page showed a bot wall or didn't load. It still counts as an open tab.</figcaption>
+      </figure>
+<pre class="code"><span class="c"># one E2B sandbox per job; needs E2B_API_KEY</span>
+node bench/e2b/run.ts memory 30
+node bench/e2b/run.ts actions
+node bench/e2b/run.ts compat</pre>
+    </div>
+  </article>
+</main>
+
+<footer class="foot">
+  <div class="wrap"><span>agent-tabs · MIT</span><a href="index.html">Home</a><a href="https://github.com/AbhinavMishra32/agent-tabs">GitHub</a></div>
+</footer>
+
+<script src="data.js" charset="utf-8"></script>
+<script src="charts.js" charset="utf-8"></script>
+<script>
+const ours = memoryRun("agent-tabs --live 2")
+const others = TOOLS.filter((tool) => !tool.ours).map((tool) => memoryRun(tool.id))
+const otherFinals = others.map((run) => run.finalMb)
+const otherSlopes = others.map(mbPerTab)
+const lightest = Math.min(...otherFinals)
+const buOurs = buSetup("agent-tabs")
+const buChrome = buSetup("chrome")
+const memorySaved = Math.round((1 - buOurs.averageMb / buChrome.averageMb) * 100)
+const timeSaved = Math.round((1 - buOurs.minutes / buChrome.minutes) * 100)
+const oursSites = siteSummary("agent-tabs")
+
+// Summary
+const summary = [
+  `<strong>${formatMb(ours.finalMb)} with 30 real sites open</strong>, against ${othersRange()} for every other browser we tried: ${(lightest / ours.finalMb).toFixed(1)}× less than the lightest.`,
+  `<strong>Each extra tab adds ${mbPerTab(ours).toFixed(0)} MB</strong>, against ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB. Waking a sleeping tab takes ${ours.wake.ms} ms.`,
+  `<strong>Nothing an agent does breaks.</strong> ${actionRun("agent-tabs").passed} of ${actionRun("agent-tabs").of} agent actions work, like Chrome. Lightpanda managed ${actionRun("lightpanda").passed}, Obscura ${actionRun("obscura").passed}.`,
+  `<strong>Real sites look the same as in Chrome</strong>: ${oursSites.same} of ${oursSites.compared}.`,
+  `<strong>The agent doesn't notice.</strong> On BU Bench it solved the same number of tasks as on plain Chrome, with ${memorySaved}% less memory and ${timeSaved}% less time.`,
+]
+// The later runs, when their results are in.
+const scaleOursRun = window.BENCH.scale.find((run) => toolOf(run.browser).ours)
+if (scaleOursRun !== undefined) {
+  const reachedByOthers = window.BENCH.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
+  summary.splice(2, 0, `<strong>100 tabs in ${formatMb(scaleOursRun.perTab[scaleOursRun.perTab.length - 1].mb)}.</strong> Every other browser filled 6.5 GB between tab ${Math.min(...reachedByOthers)} and tab ${Math.max(...reachedByOthers)}.`)
+}
+const idleRuns = window.BENCH.idle.filter((run) => run.samples.length > 0)
+if (idleRuns.length > 0) {
+  const averageCpu = (run) => Math.round(run.samples.reduce((sum, sample) => sum + sample.cpu, 0) / run.samples.length)
+  const oursIdleRun = idleRuns.find((run) => toolOf(run.browser).ours)
+  const othersCpu = idleRuns.filter((run) => !toolOf(run.browser).ours).map(averageCpu)
+  if (oursIdleRun !== undefined) {
+    summary.splice(3, 0, `<strong>Idle tabs cost no CPU.</strong> With 30 tabs open and nothing happening, agent-tabs averaged ${averageCpu(oursIdleRun)}% of a core; the others ${Math.min(...othersCpu)}% to ${Math.max(...othersCpu)}%.`)
+  }
+}
+const agentRuns = window.BENCH.agents
+const oursAgentRun = agentRuns.find((run) => run.browser === "agent-tabs")
+const chromeAgentRun = agentRuns.find((run) => run.browser !== "agent-tabs")
+if (oursAgentRun !== undefined && chromeAgentRun !== undefined) {
+  const chromeRounds = chromeAgentRun.rounds.length
+  summary.splice(4, 0, `<strong>10 agents fit on one 8 GB machine</strong> with 10 tabs each. On headless Chrome the machine was full after ${chromeRounds} tabs each.`)
+}
+document.getElementById("summary-list").innerHTML = summary.map((line) => `<li>${line}</li>`).join("")
+
+// Memory
+drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"))
+drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), 560)
+drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, 560)
+document.getElementById("wake-ms").firstChild.textContent = ours.wake.ms
+document.getElementById("memory-text").textContent =
+  `Every browser except agent-tabs grows in a straight line, because every tab it opened is still a live page. agent-tabs moves with whichever 2 pages are live and ends at ${formatMb(ours.finalMb)}. The others end between ${othersRange()}. On this 8 GB machine, two agents with 30 tabs each would fill memory in any of the others. agent-tabs leaves room for more than ten.`
+
+// Actions, sites
+fillActionsTable(document.getElementById("actions-table"))
+fillSitesTable(document.getElementById("sites-table"))
+
+// Agent tasks
+fillBuTable(document.getElementById("bu-table"))
+const categories = []
+for (const task of buChrome.tasks) {
+  if (!categories.includes(task.category)) {
+    categories.push(task.category)
+  }
+}
+function countVerdicts(setup, category, verdict) {
+  return setup.tasks.filter((task) => task.category === category && task.verdict === verdict).length
+}
+let categoryHtml = '<thead><tr><th class="left">Category</th><th>Chrome solved</th><th class="ours">agent-tabs solved</th><th>Judged impossible (Chrome / agent-tabs)</th></tr></thead><tbody>'
+for (const category of categories) {
+  const total = buChrome.tasks.filter((task) => task.category === category).length
+  categoryHtml += `<tr><td class="text left">${category}</td><td>${countVerdicts(buChrome, category, "pass")} of ${total}</td><td class="ours">${countVerdicts(buOurs, category, "pass")} of ${total}</td><td>${countVerdicts(buChrome, category, "impossible")} / ${countVerdicts(buOurs, category, "impossible")}</td></tr>`
+}
+document.getElementById("bu-category").innerHTML = `${categoryHtml}</tbody>`
+let matched = 0
+buChrome.tasks.forEach((task, i) => {
+  if ((task.verdict === "pass") === (buOurs.tasks[i].verdict === "pass")) {
+    matched++
+  }
+})
+document.getElementById("bu-text").textContent =
+  `Both browsers solved ${buOurs.passed} of ${buOurs.total}. The outcome matched on ${matched} of 10 tasks; on the other ${10 - matched}, one browser solved a task the other didn't, once in each direction, which is the noise you expect from a model run twice. agent-tabs used ${memorySaved}% less memory on average and finished ${timeSaved}% sooner. These tasks only use a few tabs each, so the memory saving is smaller than in the 30-tab test.`
+
+// Configuration
+const config = [
+  ["Memory, actions and sites", "One E2B sandbox per test: Linux 6.1 x86_64, 8 vCPUs, 8 GB. A fresh browser for every run."],
+  ["Memory measure", "Sum of PSS from /proc/<pid>/smaps_rollup over every browser process"],
+  ["CPU measure", "utime + stime from /proc/<pid>/stat over every browser process, per 15 s interval, as % of one core"],
+  ["Later runs", "Idle, 100 tabs and the extras ran the same day, every browser in its own sandbox at the same time"],
+  ["Memory limit", "6.5 GB for the 100-tab and many-agent runs, so the 8 GB sandbox never runs out"],
+  ["agent-tabs", "Playwright's Chromium headless shell (playwright-core 1.63.0), 2 tabs live, ads and trackers blocked"],
+  ["Headless Chrome", "The same headless shell, every tab live, nothing blocked"],
+  ["Agent tools", "agent-browser 0.39.1 with its own Chrome 155; Stagehand 4.2.1, Playwright MCP 0.0.83 and browser-use 0.13.11 with Google Chrome 155.0.8059.79"],
+  ["Engines", "Lightpanda 1.0.0 and Obscura 0.2.4, driven by Playwright over the Chrome DevTools Protocol"],
+  ["Agent", "pi agent (pi-agent-core 1.0.4, pi-ai 1.0.4), one JavaScript browser tool over Playwright"],
+  ["Model", `${window.BENCH.bu.model}`],
+  ["Agent tasks", `BU Bench V1, 10 tasks (2 per category), ${window.BENCH.bu.chatsAtOnce} at once, on a MacBook (Apple silicon)`],
+  ["Grader", "BU Bench's own grader"],
+]
+let configHtml = '<thead><tr><th class="left">Setting</th><th class="left">Value</th></tr></thead><tbody>'
+for (const [name, value] of config) {
+  const cell = document.createElement("td")
+  cell.textContent = value
+  configHtml += `<tr><td class="text left" style="min-width: 160px">${name}</td><td class="text left">${cell.innerHTML}</td></tr>`
+}
+document.getElementById("config-table").innerHTML = `${configHtml}</tbody>`
+
+fillMemoryTable(document.getElementById("memory-table"))
+
+const B = window.BENCH
+const gbText = (mb) => `${(mb / 1000).toFixed(1)} GB`
+
+// Figure 3: up to 100 tabs.
+if (B.scale.length > 0) {
+  const series = B.scale.map((run) => {
+    const tool = toolOf(run.browser)
+    return {
+      name: tool.name,
+      ours: tool.ours,
+      dashed: tool.engine,
+      stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
+      points: run.perTab.map((tab, i) => ({ x: i + 1, y: tab.mb })),
+    }
+  })
+  drawLineChart(document.getElementById("scale-chart"), document.getElementById("scale-tooltip"), series, {
+    xMin: 1, xMax: 100, xTicks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open",
+    yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
+    xTitle: (tab) => `${tab} tabs open`, valueFormat: formatMb,
+    limit: { y: 6500, label: "6.5 GB limit" },
+  })
+  const oursRun = B.scale.find((run) => toolOf(run.browser).ours)
+  const others = B.scale.filter((run) => !toolOf(run.browser).ours)
+  const reached = others.map((run) => run.perTab.length)
+  document.getElementById("scale-text").textContent =
+    `Every other browser hit the limit between ${Math.min(...reached)} and ${Math.max(...reached)} tabs. ` +
+    (oursRun === undefined ? "" : `agent-tabs opened all ${oursRun.perTab.length} and ended at ${formatMb(oursRun.perTab[oursRun.perTab.length - 1].mb)}. At 10 tabs it had used ${formatMb(oursRun.perTab[9].mb)}: past the first few tabs, more tabs cost it almost nothing.`)
+}
+
+// Figure 4: 10 idle minutes.
+if (B.idle.length > 0) {
+  const idleSeries = (measure) => B.idle.map((run) => {
+    const tool = toolOf(run.browser)
+    return { name: tool.name, ours: tool.ours, dashed: tool.engine, points: run.samples.map((sample) => ({ x: sample.seconds, y: measure(sample) })) }
+  })
+  const half = { width: 560, height: 360, labelRoom: 130, xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (s) => `${s / 60}`, xLabel: "idle minutes", xTitle: (s) => `${(s / 60).toFixed(2).replace(/\.?0+$/, "")} min idle` }
+  const cpuTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.cpu))))
+  drawLineChart(document.getElementById("cpu-chart"), document.getElementById("cpu-tooltip"), idleSeries((sample) => sample.cpu), {
+    ...half, yMax: cpuTop.max, yStep: cpuTop.max / 5, yFormat: (v) => `${v}%`, valueFormat: (v) => `${v}%`,
+  })
+  const mbTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.mb))))
+  drawLineChart(document.getElementById("creep-chart"), document.getElementById("creep-tooltip"), idleSeries((sample) => sample.mb), {
+    ...half, yMax: mbTop.max, yStep: mbTop.max / 5, yFormat: (mb) => (mb === 0 ? "0" : gbText(mb)), valueFormat: formatMb,
+  })
+  const averages = B.idle.map((run) => ({
+    tool: toolOf(run.browser),
+    cpu: run.samples.reduce((sum, sample) => sum + sample.cpu, 0) / Math.max(1, run.samples.length),
+    first: run.samples[0]?.mb ?? 0,
+    last: run.samples[run.samples.length - 1]?.mb ?? 0,
+  }))
+  const oursIdle = averages.find((row) => row.tool.ours)
+  const otherCpu = averages.filter((row) => !row.tool.ours).map((row) => row.cpu)
+  if (oursIdle !== undefined) {
+    document.getElementById("idle-text").textContent =
+      `Doing nothing, agent-tabs used ${Math.round(oursIdle.cpu)}% of a core on average. The others used ${Math.round(Math.min(...otherCpu))}% to ${Math.round(Math.max(...otherCpu))}%: their 30 live tabs keep running scripts nobody is looking at. ` +
+      "Plain headless Chrome is the outlier, probably because Playwright's headless shell doesn't slow down background tabs the way full Chrome does. Even the gentlest of the others keeps a sixth of a core busy. " +
+      "Memory mostly holds steady once pages settle; Lightpanda gives back much of what it took while loading."
+  }
+}
+
+// Figure 5: how many tabs to keep live.
+if (B.live.length > 0) {
+  const rows = B.live.map((run) => ({ name: `${run.live} live`, ours: true, value: run.finalMb }))
+  const chromeRun = memoryRun("chrome-shell")
+  rows.push({ name: "Chrome, 30 live", value: chromeRun.finalMb })
+  drawValueBars(document.getElementById("live-chart"), rows, formatMb)
+}
+
+// Figure 6: 10 agents on one machine.
+if (B.agents.length > 0) {
+  const series = B.agents.map((run) => {
+    const ours = run.browser === "agent-tabs"
+    return {
+      name: ours ? "agent-tabs" : "Headless Chrome",
+      ours,
+      stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
+      points: [{ x: 0, y: run.idleMb }, ...run.rounds.map((round) => ({ x: round.totalTabs, y: round.mb }))],
+    }
+  })
+  drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), series, {
+    xMin: 0, xMax: 100, xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open across 10 agents",
+    yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
+    xTitle: (tabs) => `${tabs} tabs (${tabs / 10} per agent)`, valueFormat: formatMb,
+    limit: { y: 6500, label: "6.5 GB limit" },
+  })
+  const oursAgents = B.agents.find((run) => run.browser === "agent-tabs")
+  const chromeAgents = B.agents.find((run) => run.browser !== "agent-tabs")
+  if (oursAgents !== undefined && chromeAgents !== undefined) {
+    const oursLast = oursAgents.rounds[oursAgents.rounds.length - 1]
+    const chromeLast = chromeAgents.rounds[chromeAgents.rounds.length - 1]
+    document.getElementById("agents-text").textContent =
+      `On headless Chrome the 10 agents filled the machine after ${chromeLast.tabsEach} tabs each (${chromeLast.totalTabs} tabs, ${formatMb(chromeLast.mb)}). ` +
+      `On agent-tabs all 10 agents opened their ${oursLast.tabsEach} tabs and used ${formatMb(oursLast.mb)} together. ` +
+      `That is 10 browsers (${formatMb(oursAgents.idleMb)} before any tab), each with 2 live pages.`
+  }
+}
+
+// Figure 7: waking every tab.
+if (B.wakeAll !== null && B.wakeAll.length > 0) {
+  const wakes = B.wakeAll.map((tab) => ({ ms: tab.wakeMs, label: siteName(tab.url) }))
+  const loads = B.wakeAll.map((tab) => ({ ms: tab.loadMs, label: siteName(tab.url) }))
+  drawDotStrips(document.getElementById("wake-chart"), [
+    { name: "Waking a tab", ours: true, values: wakes },
+    { name: "Loading it first", values: loads },
+  ], [50, 100, 300, 1000, 3000, 10000, 30000])
+  const underSecond = wakes.filter((wake) => wake.ms < 1000).length
+  document.getElementById("wake-text").textContent =
+    `The median tab woke in ${median(wakes.map((wake) => wake.ms))} ms, against ${(median(loads.map((load) => load.ms)) / 1000).toFixed(1)} s to load it the first time. ` +
+    `${underSecond} of ${wakes.length} woke in under a second. Waking is faster than loading mostly because the page's code, images and fonts are still in the browser's cache.`
+}
+
+// Figure 8: load time of every site, and Table 3: sites by kind.
+drawDotStrips(document.getElementById("load-chart"), ENGINES.map((engine) => ({
+  name: engine.name,
+  ours: engine.ours,
+  values: B.sites[engine.id].filter((site) => site.loaded && site.loadMs !== null).map((site) => ({ ms: site.loadMs, label: siteName(site.url) })),
+})), [100, 300, 1000, 3000, 10000, 30000])
+fillKindGrid(document.getElementById("kind-grid"))
+
+// Figure 9: each BU Bench task on both browsers.
+// Two tasks per category: name them "GAIA 1", "GAIA 2".
+const seenCategory = {}
+const pairs = buChrome.tasks.map((task, i) => ({
+  label: `${task.category} ${(seenCategory[task.category] = (seenCategory[task.category] ?? 0) + 1)}`,
+  chrome: { seconds: task.seconds, solved: task.verdict === "pass" },
+  ours: { seconds: buOurs.tasks[i].seconds, solved: buOurs.tasks[i].verdict === "pass" },
+}))
+const longest = Math.max(...pairs.flatMap((pair) => [pair.chrome.seconds, pair.ours.seconds]))
+drawPairs(document.getElementById("pairs-chart"), pairs, Math.ceil(longest / 60) * 60)
+</script>
+</body>
+</html>
