@@ -1,6 +1,6 @@
 {
   "name": "browserheap",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "A browser for AI agents where idle tabs sleep: real Chromium, a JavaScript REPL whose pages keep working through sleep and wake, and a CLI for Claude Code and Codex.",
   "keywords": [
@@ -57,7 +57,7 @@
     "lint": "biome check .",
     "bench": "node bench/run.ts",
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "node scripts/publish-check.mjs && pnpm build"
   },
   "dependencies": {
     "@ghostery/adblocker": "2.20.1",
