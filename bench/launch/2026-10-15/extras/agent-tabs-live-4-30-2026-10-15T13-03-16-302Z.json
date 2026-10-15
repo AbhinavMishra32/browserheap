@@ -1,0 +1,203 @@
+{
+  "browser": "agent-tabs --live 4",
+  "blocked": {
+    "ads": 96,
+    "media": 556
+  },
+  "tabs": 30,
+  "worked": 22,
+  "idleMb": 114,
+  "finalMb": 928,
+  "loadSeconds": 36,
+  "wake": {
+    "ms": 471,
+    "worked": true,
+    "totalMb": 791
+  },
+  "wakes": null,
+  "stopped": null,
+  "idle": null,
+  "measuredAt": "2026-10-15T13:03:16.302Z",
+  "perTab": [
+    {
+      "url": "https://en.wikipedia.org/wiki/Web_browser",
+      "loadMs": 1207,
+      "totalMb": 226,
+      "worked": true
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+      "loadMs": 324,
+      "totalMb": 271,
+      "worked": true
+    },
+    {
+      "url": "https://news.ycombinator.com/",
+      "loadMs": 288,
+      "totalMb": 305,
+      "worked": true
+    },
+    {
+      "url": "https://github.com/microsoft/playwright",
+      "loadMs": 1531,
+      "totalMb": 456,
+      "worked": true
+    },
+    {
+      "url": "https://stackoverflow.com/questions/tagged/javascript",
+      "loadMs": 410,
+      "totalMb": 458,
+      "worked": false
+    },
+    {
+      "url": "https://arxiv.org/abs/1706.03762",
+      "loadMs": 280,
+      "totalMb": 457,
+      "worked": true
+    },
+    {
+      "url": "https://www.bbc.com/news",
+      "loadMs": 951,
+      "totalMb": 496,
+      "worked": true
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "loadMs": 396,
+      "totalMb": 461,
+      "worked": true
+    },
+    {
+      "url": "https://react.dev/",
+      "loadMs": 474,
+      "totalMb": 434,
+      "worked": true
+    },
+    {
+      "url": "https://nodejs.org/en",
+      "loadMs": 506,
+      "totalMb": 447,
+      "worked": true
+    },
+    {
+      "url": "https://www.theverge.com/",
+      "loadMs": 2954,
+      "totalMb": 612,
+      "worked": true
+    },
+    {
+      "url": "https://techcrunch.com/",
+      "loadMs": 3322,
+      "totalMb": 711,
+      "worked": true
+    },
+    {
+      "url": "https://www.npmjs.com/package/playwright",
+      "loadMs": 516,
+      "totalMb": 780,
+      "worked": true
+    },
+    {
+      "url": "https://www.rust-lang.org/",
+      "loadMs": 290,
+      "totalMb": 766,
+      "worked": true
+    },
+    {
+      "url": "https://www.apple.com/",
+      "loadMs": 829,
+      "totalMb": 614,
+      "worked": true
+    },
+    {
+      "url": "https://edition.cnn.com/",
+      "loadMs": 137,
+      "totalMb": 495,
+      "worked": false
+    },
+    {
+      "url": "https://lightpanda.io/",
+      "loadMs": 699,
+      "totalMb": 426,
+      "worked": true
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Zig_(programming_language)",
+      "loadMs": 345,
+      "totalMb": 438,
+      "worked": true
+    },
+    {
+      "url": "https://www.reuters.com/",
+      "loadMs": 464,
+      "totalMb": 403,
+      "worked": false
+    },
+    {
+      "url": "https://vercel.com/",
+      "loadMs": 654,
+      "totalMb": 444,
+      "worked": true
+    },
+    {
+      "url": "https://www.nytimes.com/",
+      "loadMs": 379,
+      "totalMb": 410,
+      "worked": false
+    },
+    {
+      "url": "https://www.youtube.com/",
+      "loadMs": 2452,
+      "totalMb": 836,
+      "worked": false
+    },
+    {
+      "url": "https://www.amazon.com/",
+      "loadMs": 671,
+      "totalMb": 881,
+      "worked": false
+    },
+    {
+      "url": "https://www.reddit.com/r/programming/",
+      "loadMs": 844,
+      "totalMb": 525,
+      "worked": true
+    },
+    {
+      "url": "https://www.imdb.com/",
+      "loadMs": 215,
+      "totalMb": 505,
+      "worked": false
+    },
+    {
+      "url": "https://www.theguardian.com/international",
+      "loadMs": 956,
+      "totalMb": 424,
+      "worked": true
+    },
+    {
+      "url": "https://www.wired.com/",
+      "loadMs": 2578,
+      "totalMb": 609,
+      "worked": true
+    },
+    {
+      "url": "https://openai.com/",
+      "loadMs": 331,
+      "totalMb": 620,
+      "worked": false
+    },
+    {
+      "url": "https://www.bloomberg.com/",
+      "loadMs": 957,
+      "totalMb": 753,
+      "worked": true
+    },
+    {
+      "url": "https://medium.com/",
+      "loadMs": 570,
+      "totalMb": 754,
+      "worked": true
+    }
+  ]
+}
