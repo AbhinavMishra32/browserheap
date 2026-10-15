@@ -4,3 +4,4 @@ wrangler.jsonc
 build.mjs
 capture-demo.ts
 .wrangler
+logo.py

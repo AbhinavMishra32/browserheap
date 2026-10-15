@@ -1,6 +1,31 @@
-# Browserheap
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AbhinavMishra32/browserheap/main/site/logo.svg" alt="" width="72" height="72">
+</p>
 
-> Working name. The real one is picked before launch.
+<h1 align="center">Browserheap</h1>
+
+<p align="center"><b>Let your agent open every tab it wants.</b><br>
+A browser for AI agents with no tab management: tabs your agent isn't using sleep in 3 MB, stay readable, and wake in a third of a second.</p>
+
+<p align="center"><a href="https://browserheap.com">browserheap.com</a> · <a href="https://browserheap.com/research.html">Benchmarks</a> · <a href="https://www.npmjs.com/package/browserheap">npm</a></p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AbhinavMishra32/browserheap/main/media/hero.png" alt="The Browserheap site: an agent researching in a browser window, with sleeping tabs drawn as dithered pictures and live tabs as real pages">
+</p>
+
+## Install
+
+| For | Run |
+|---|---|
+| Claude Code | `npx browserheap skill claude` |
+| Codex | `npx browserheap skill codex` |
+| The command line | `npx browserheap install` |
+| Your own code (SDK) | `npm install browserheap` |
+
+The first two add the Browserheap skill to your agent and download its Chromium. After that, ask your
+agent to research something and let it open as many tabs as it likes.
+
+## What it is
 
 A browser for AI agents where **a tab costs memory only while the agent is using it.**
 
