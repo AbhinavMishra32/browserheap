@@ -10,6 +10,35 @@ agent-tabs keeps the few tabs the agent is using live and puts the rest to sleep
 back to them. It's the same Chromium underneath, so every site still works, and the agent can still
 see, click and screenshot.
 
+**Handles that survive sleep.** The pages and locators an agent holds follow their tab, not one
+browser page. Keep a page in a variable, open ten more tabs, come back and click: the tab wakes
+underneath and the click lands. The agent never has to know its tabs were asleep.
+
+```js
+const docs = page                                   // react.dev
+await openTab("https://www.bbc.com/news")
+await openTab("https://github.com/microsoft/playwright")   // react.dev is asleep now
+await docs.getByRole("link", { name: "Learn" }).click()    // it wakes, and the click lands
+console.log(await tabs[1].text())                   // read a sleeping tab without waking it
+```
+
+## Use it from Claude Code, Codex and other agents
+
+```sh
+npx agent-tabs install                          # once: downloads its Chromium
+npx agent-tabs open https://news.ycombinator.com   # the page as a tree with refs
+npx agent-tabs run 'await page.locator("e14").click(); console.log((await snapshot(page)).diff)'
+npx agent-tabs tabs                             # live and asleep tabs
+npx agent-tabs stop
+```
+
+Until it's on npm, run `node src/cli/main.ts` from a checkout instead of `npx agent-tabs`.
+
+The agent writes Playwright-style JavaScript into a REPL that stays alive between commands, so one
+command can do many steps and variables carry over. Give your agent the skill file in
+[`skills/agent-tabs/SKILL.md`](skills/agent-tabs/SKILL.md): copy the folder into `.claude/skills/`
+for Claude Code, or into your Codex skills (or paste it into `AGENTS.md`). An MCP server is next.
+
 ## Numbers
 
 **30 real websites opened as tabs, one after another, never closed.** Same E2B machine for every
@@ -100,7 +129,27 @@ point it at one.
 
 ## API
 
-### `launch(options?) → AgentBrowser`
+### `startSession(options?) → Session`: the browser and its REPL
+
+What the CLI runs, for building your own agent tool:
+
+```ts
+import { startSession } from "agent-tabs"
+
+const session = await startSession({ maxLive: 2 })
+const result = await session.run(`await openTab("react.dev"); console.log((await snapshot(page)).tree)`)
+result.content   // [{ type: "text", text: "- title: React …" }], and images the code displayed
+result.error     // set when the code threw, timed out (120 s) or was stopped
+await session.close()
+```
+
+The code runs in a QuickJS sandbox: it reaches the pages and nothing else on the machine. In it:
+`page`, `tabs`, `openTab(url)`, `closeTab(tab)`, `snapshot(tab, options?)` (the page as a tree with
+refs, and what changed), `annotatedScreenshot(tab)`, `display(image)`, `console.log`, `sleep(ms)`.
+Pages and locators have Playwright's methods, plus `tab.text()` and `tab.isAsleep()`.
+`startSession` takes the same options as `launch`, and blocks ads and trackers but keeps pictures.
+
+### `launch(options?) → AgentBrowser`: just the tabs
 
 | Option | What it does | Default |
 |---|---|---|
@@ -140,9 +189,9 @@ video and fonts. **For agents that look at screenshots, use `block: { ads: true,
 so pages keep their pictures. `block: false` turns blocking off. The page itself is never blocked,
 only what it loads. `startBlocking(context, options)` adds the same blocking to any Playwright context.
 
-## Using it from an agent's tools
+## Building your own tools on the tabs
 
-Agents don't call agent-tabs; their browser tools do. agent-tabs decides which tabs are running and
+The REPL is one way to drive the tabs. Underneath, agent-tabs decides which tabs are running and
 hands out ordinary Playwright pages, so **any tooling works on top of it**:
 
 - tool calls like Playwright MCP's or agent-browser's: `open`, `tabs`, `snapshot`, `click`, `type`, `screenshot`
@@ -150,7 +199,7 @@ hands out ordinary Playwright pages, so **any tooling works on top of it**:
 - a JavaScript REPL where the agent writes Playwright code
 - raw Chrome DevTools Protocol: `page.context().newCDPSession(page)`
 
-Three rules for a tool built on it:
+Three rules for a tool built on `launch()` directly (the REPL's pages follow them for you):
 
 **1. Keep `Tab`s, not pages. Ask for the page every time you act.** When a tab sleeps its page is
 closed; waking makes a new one.
@@ -208,7 +257,9 @@ async function click(id: string, name: string) {
 - **Waking reloads.** Whatever lived only in the running page (an open menu, items an endless list
   loaded, a half-done multi-step page) is gone after a wake; the URL, scroll position and cookies
   come back.
-- **No MCP server or CLI yet.** Today it's a library for tool builders. An MCP server is next.
+- **Refs don't survive a wake.** Snapshot refs (`e12`) belong to the page as it was; after a tab
+  wakes, take a new snapshot. Role, text and CSS locators keep working.
+- **No MCP server yet.** The CLI and the library work today; an MCP server is next.
 
 ## Benchmarks
 
@@ -255,4 +306,6 @@ before your model provider's usage limit, so a long run picks up where it stoppe
 ## Reading order
 
 `src/index.ts` → `src/browser.ts` → `src/tab.ts` → `src/sleep.ts` → `src/engine.ts` →
-`src/blocking.ts`, then `bench/subjects.ts` → `bench/run.ts` → `bench/actions.ts` → `bench/compat.ts`.
+`src/blocking.ts`; the REPL: `src/repl/session.ts` → `src/repl/agent-page.ts` → `src/repl/repl.ts` →
+`src/repl/snapshot.ts`; the CLI: `src/cli/main.ts` → `src/cli/client.ts` → `src/cli/server.ts`;
+the benchmarks: `bench/subjects.ts` → `bench/run.ts` → `bench/actions.ts` → `bench/compat.ts`.
