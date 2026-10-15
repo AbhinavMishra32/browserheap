@@ -1,12 +1,31 @@
 {
   "name": "agent-tabs",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A browser for AI agents where a tab costs memory only while the agent is using it.",
+  "description": "A browser for AI agents where idle tabs sleep: real Chromium, a JavaScript REPL whose pages keep working through sleep and wake, and a CLI for Claude Code and Codex.",
+  "keywords": [
+    "browser",
+    "ai-agent",
+    "agents",
+    "playwright",
+    "chromium",
+    "headless",
+    "tabs",
+    "claude-code",
+    "codex",
+    "repl",
+    "web-automation"
+  ],
+  "license": "MIT",
+  "author": "Abhinav Mishra",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AbhinavMishra32/agent-tabs.git"
+  },
   "packageManager": "pnpm@10.23.0",
   "engines": {
-    "node": ">=26"
+    "node": ">=22"
   },
   "bin": {
     "agent-tabs": "./src/cli/main.ts"
@@ -15,16 +34,31 @@
     ".": "./src/index.ts"
   },
   "files": [
-    "src",
+    "dist",
     "skills",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "bin": {
+      "agent-tabs": "./dist/cli/main.js"
+    }
+  },
   "scripts": {
     "setup": "playwright-core install --only-shell chromium",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "biome check .",
-    "bench": "node bench/run.ts"
+    "bench": "node bench/run.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@ghostery/adblocker": "2.20.1",

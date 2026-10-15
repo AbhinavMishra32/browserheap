@@ -45,7 +45,9 @@ function readInfo(name: string): ServerInfo | null {
 /** Starts the background browser and waits until it's listening. */
 async function start(name: string, settings: StartSettings): Promise<ServerInfo> {
   const log = openSync(logFile(name), "a")
-  const program = new URL("./server.ts", import.meta.url).pathname
+  // server.ts from a checkout, server.js once built (dist/).
+  const built = import.meta.url.endsWith(".js")
+  const program = new URL(built ? "./server.js" : "./server.ts", import.meta.url).pathname
   const child = spawn(process.execPath, [program, name], {
     detached: true,
     stdio: ["ignore", log, log],
