@@ -345,8 +345,8 @@
     <div class="wrap">
       <div class="bench-head">
         <p class="eyebrow">Benchmarks</p>
-        <h2 class="g" id="bench-title">30 tabs in 539 MB. The others need 3.6 to 6.9 GB.</h2>
-        <p class="body">The same real websites, opened as tabs and never closed, in every popular agent browser and two lightweight engines, on an 8 GB E2B sandbox.</p>
+        <h2 class="g">What 30 open tabs cost</h2>
+        <p class="body" id="bench-body">We opened the same 30 real websites in every popular agent browser and two lightweight engines, one after another, and closed none. All on the same 8 GB E2B machine.</p>
       </div>
       <div class="panel">
         <div class="panel-head">
@@ -382,8 +382,8 @@
       <div class="facts-head">
         <div class="copy">
           <p class="eyebrow">Still a full browser</p>
-          <h2 class="g">Light on memory, no corners cut</h2>
-          <p class="body">Lightweight engines save memory by not drawing pages. Browserheap runs the same Chromium every agent tool runs, so it does everything Chrome does.</p>
+          <h2 class="g">Sites work the way they do in Chrome</h2>
+          <p class="body">Lightweight engines use less memory by not rendering pages. Browserheap is Chromium, the same engine every agent tool uses, so pages look and behave as they do in Chrome.</p>
         </div>
         <a class="button dark" href="research.html#actions">Read the method <span class="arrow">→</span></a>
       </div>
@@ -428,8 +428,8 @@
 
   <section class="statement" id="how">
     <div class="wrap">
-      <h2 class="g">A browser that lets agents keep every tab</h2>
-      <p class="body">The fixes on offer close tabs or restart Chrome, and both lose the agent's work. Browserheap puts idle tabs to sleep instead.</p>
+      <h2 class="g">Agents don’t close tabs</h2>
+      <p class="body">Agent tools work around it by closing tabs or restarting Chrome, and either way the agent loses its place. Browserheap lets the tabs sleep instead.</p>
     </div>
   </section>
 
@@ -478,7 +478,7 @@ docs.isAsleep()            <span class="c">// true</span>
       </div>
       <div class="copy">
         <p class="eyebrow">Handles that survive sleep</p>
-        <h2 class="g">Your agent's code never notices</h2>
+        <h2 class="g">Pages keep working while they sleep</h2>
         <p class="body">Other agent browsers hand out raw pages that go stale when a tab closes. Browserheap's pages and locators belong to the tab, so a page kept in a variable keeps working while its tab sleeps and wakes underneath.</p>
         <a class="button" href="#use">Read the SDK <span class="arrow">→</span></a>
       </div>
@@ -550,7 +550,7 @@ docs.isAsleep()            <span class="c">// true</span>
     <div class="heap" id="heap" aria-hidden="true"></div>
     <div class="wrap cta-copy">
       <p class="heap-count" id="heap-count"></p>
-      <h2 class="g">Let your agent keep every tab</h2>
+      <h2 class="g">Try it on your next research task</h2>
       <div id="cta-get"></div>
       <div class="actions">
         <a class="button" href="https://github.com/AbhinavMishra32/browserheap">Star on GitHub</a>
@@ -587,7 +587,7 @@ const ours = memoryRun("browserheap --live 2")
 
 // ---- Living text and dither pictures ----
 
-document.getElementById("bench-title").textContent = `30 tabs in ${formatMb(ours.finalMb)}. The others need ${othersRange().replace("–", " to ")}.`
+document.getElementById("bench-body").textContent = `We opened the same 30 real websites in every popular agent browser and two lightweight engines, one after another, and closed none. Browserheap ended at ${formatMb(ours.finalMb)}, the others between ${othersRange().replace("–", " and ")}. All on the same 8 GB E2B machine.`
 for (const heading of document.querySelectorAll(".g")) {
   glitchText(heading)
 }
@@ -711,14 +711,14 @@ document.getElementById("wake-chip").textContent = `${ours.wake.ms} ms`
 const otherSlopes = TOOLS.filter((tool) => !tool.ours).map((tool) => mbPerTab(memoryRun(tool.id)))
 const lowest = Math.min(...TOOLS.filter((tool) => !tool.ours).map((tool) => memoryRun(tool.id).finalMb))
 const stats = [
-  { value: formatMb(ours.finalMb), label: "Memory at 30 tabs", note: `${(lowest / ours.finalMb).toFixed(1)}× less than the next lightest` },
+  { value: formatMb(ours.finalMb), label: "Memory at 30 tabs", note: `Next lightest: ${formatMb(lowest)}` },
   { value: `${mbPerTab(ours).toFixed(0)} MB`, label: "Per extra tab", note: `Others: ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB` },
   { value: `${ours.wake.ms} ms`, label: "To wake a tab", note: "Click to a ready page" },
 ]
 const scaleOurs = B.scale.find((run) => toolOf(run.browser).ours)
 if (scaleOurs !== undefined) {
   const othersReached = B.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
-  stats.splice(1, 0, { value: `${scaleOurs.perTab.length} tabs`, label: `In ${formatMb(scaleOurs.perTab[scaleOurs.perTab.length - 1].mb)}`, note: `Others stopped by tab ${Math.max(...othersReached)}` })
+  stats.splice(1, 0, { value: `${scaleOurs.perTab.length} tabs`, label: `In ${formatMb(scaleOurs.perTab[scaleOurs.perTab.length - 1].mb)}`, note: `The others hit the limit by tab ${Math.max(...othersReached)}` })
 }
 for (const stat of stats.slice(0, 4)) {
   const card = document.createElement("div")
