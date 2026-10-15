@@ -6,7 +6,7 @@
 // sleeping tab's screenshot turns to dots. Hover a tab to see what the agent
 // can still read from it; click a sleeping one to wake it.
 
-const STEP_MS = 1500
+const STEP_MS = 1300
 const MAX_LIVE = 2
 
 // Memory per tab, from the 30-tab benchmark: a browser with no tabs, a live
@@ -33,19 +33,28 @@ const NAME = {
   chrome: "Chrome docs",
 }
 
-/** The research task, one step at a time. */
+/**
+ * The research task, one step at a time: what the agent thinks, what it
+ * tells you, and what it does in the browser.
+ */
 const STEPS = [
+  { think: "Start broad: which headless browsers exist? Then check each one's own page." },
   { open: "wiki" },
+  { message: "Wikipedia lists the main ones. Opening each project to compare." },
   { open: "playwright" },
   { open: "puppeteer" },
   { open: "selenium" },
+  { think: "Agents need something light and scriptable. Worth looking at the newer engines too." },
   { open: "lightpanda" },
   { open: "browseruse" },
+  { think: "What do people actually run in production? Hacker News, and Chrome's own docs." },
   { open: "hn" },
   { open: "chrome" },
+  { think: "Back to Playwright's README to compare. That tab is asleep, but its text is still there." },
   { read: "playwright" },
+  { think: "Wikipedia's article links a comparison of engines. Following it." },
   { wake: "wiki" },
-  { done: "Playwright on Chromium suits most agents. Puppeteer if you only need Chrome." },
+  { done: "Playwright on Chromium suits most agents: one API for every browser, and it's what agent tools build on. Puppeteer if you only need Chrome." },
 ]
 
 const els = {
@@ -221,6 +230,24 @@ function say(key, html) {
   els.thread.scrollTop = els.thread.scrollHeight
 }
 
+/** A thought: dim text with a rule beside it, like a model's visible reasoning. */
+function think(text) {
+  const thought = document.createElement("div")
+  thought.className = "thought"
+  thought.textContent = text
+  els.thread.append(thought)
+  els.thread.scrollTop = els.thread.scrollHeight
+}
+
+/** Something the agent tells you as it goes. */
+function message(text) {
+  const line = document.createElement("div")
+  line.className = "message"
+  line.textContent = text
+  els.thread.append(line)
+  els.thread.scrollTop = els.thread.scrollHeight
+}
+
 /** The agent's question at the top of its thread, and its answer at the end. */
 function ask(text) {
   els.thread.innerHTML = `<div class="ask">${escapeHtml(text)}</div>`
@@ -292,6 +319,14 @@ function hideHovercard() {
 // ---- Steps ----
 
 function runStep(step, instant) {
+  if (step.think !== undefined) {
+    think(step.think)
+    return
+  }
+  if (step.message !== undefined) {
+    message(step.message)
+    return
+  }
   if (step.open !== undefined) {
     const key = step.open
     tabs.push({ key, state: "live", lastUsed: 0, note: null })
