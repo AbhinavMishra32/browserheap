@@ -37,16 +37,13 @@
    turn to dots; the meter under them shows what that saves. */
 .demo { border-radius: 20px; overflow: visible; }
 .demo-head { display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); min-width: 0; }
-.demo-head .title { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; white-space: nowrap; }
-.app-icon { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--accent-wash); border: 1px solid var(--accent-line); }
-.app-icon .brand-mark { grid-template-columns: repeat(3, 3px); gap: 1px; }
-.app-icon .brand-mark i { width: 3px; height: 3px; border-radius: 0.5px; background: var(--accent-line); }
-.app-icon .brand-mark i.on { background: var(--accent); }
-.now { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; font-size: 13px; color: var(--ink-2); }
-.now img { width: 14px; height: 14px; border-radius: 3px; flex: none; }
-.now span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.now b { color: var(--ink); font-weight: 500; }
-.now .muted { color: var(--ink-3); }
+.lights { display: inline-flex; gap: 7px; flex: none; }
+.lights i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
+.lights i:nth-child(2) { background: #febc2e; }
+.lights i:nth-child(3) { background: #28c840; }
+.address { display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-width: 0; max-width: 440px; height: 30px; margin: 0 auto; padding: 0 14px; border-radius: 8px; background: var(--line-soft); border: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
+.address img { width: 14px; height: 14px; border-radius: 3px; flex: none; }
+.address span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .replay { flex: none; height: 28px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink-2); font: 500 12.5px var(--font-sans); cursor: pointer; }
 .replay:hover { color: var(--ink); border-color: var(--ink-4); }
 
@@ -74,8 +71,27 @@
 .tab-card.waking .tab-state { color: var(--cyan); }
 .tab-card.waking .tab-state::before { background: var(--cyan); }
 
+/* The agent: its thread, in a window of its own in front of the browser,
+   like the Claude or Codex apps. */
+.agent { position: absolute; left: -28px; bottom: -40px; z-index: 6; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: 340px; height: 340px; background: var(--bg-2); border: 1px solid var(--ink-4); border-radius: 16px; box-shadow: 0 30px 70px rgb(0 0 0 / 0.7); overflow: hidden; }
+.agent-head { display: flex; align-items: center; gap: 9px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 500; }
+.agent-avatar { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: var(--accent-wash); border: 1px solid var(--accent-line); color: var(--accent); font-size: 12px; }
+.agent-status { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+.agent-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+.agent-status.done::before { animation: none; background: var(--ink-4); }
+@keyframes pulse { 50% { opacity: 0.25; } }
+.thread { display: flex; flex-direction: column; gap: 8px; padding: 14px; overflow-y: auto; scrollbar-width: none; }
+.thread .ask { align-self: flex-end; max-width: 85%; padding: 8px 12px; border-radius: 14px 14px 4px 14px; background: var(--bubble); font-size: 13px; line-height: 1.45; }
+.thread .step { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); animation: appear 0.35s ease-out; }
+.thread .step img, .thread .step .dot { width: 14px; height: 14px; margin-top: 2px; border-radius: 3px; }
+.thread .step b { color: var(--ink); font-weight: 500; }
+.thread .step .muted { color: var(--ink-3); }
+.thread .answer { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.5; color: var(--ink); animation: appear 0.35s ease-out; }
+.agent-input { display: flex; align-items: center; justify-content: space-between; margin: 0 10px 10px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 12.5px; color: var(--ink-3); }
+.agent-input .send { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--line); color: var(--ink-2); font-size: 12px; }
+
 /* The memory meter: these tabs in Browserheap, and in plain Chrome. */
-.meter { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 14px 16px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
+.meter { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 14px 16px 16px 340px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
 .meter .track { display: block; height: 8px; border-radius: 4px; background: var(--line-soft); overflow: hidden; }
 .meter .fill { display: block; height: 100%; width: 0; border-radius: 4px; background: var(--ink-4); transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
 .meter .fill.ours { background: var(--accent); }
@@ -202,7 +218,9 @@
 }
 @media (max-width: 900px) {
   .tab-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 0; }
-  .now { display: none; }
+  .agent { position: static; width: auto; height: 300px; margin: 12px; box-shadow: none; }
+  .meter { padding-left: 16px; }
+  .address { display: none; }
   .get-body pre { font-size: 12px; }
   .get { width: 100%; }
   .quotes { grid-template-columns: minmax(0, 1fr); }
@@ -259,8 +277,8 @@
         <div class="hero-dither" aria-hidden="true"><canvas class="dither" id="hero-dither"></canvas></div>
         <figure class="panel demo" id="app" style="margin: 0" aria-label="An agent researching in Browserheap, replayed from real pages">
           <div class="demo-head">
-            <span class="title"><span class="app-icon" aria-hidden="true"><span class="brand-mark"><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></span></span>Agent's browser</span>
-            <span class="now" id="now" aria-live="polite"></span>
+            <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="address"><img id="omni-icon" alt="" hidden><span id="omni-url">about:blank</span></span>
             <button type="button" class="replay" id="demo-replay">Replay</button>
           </div>
           <div class="tab-grid" id="tab-grid"></div>
@@ -268,6 +286,11 @@
             <span>Browserheap</span><span class="track"><span class="fill ours" id="fill-ours"></span></span><b id="mem-ours">0 MB</b>
             <span>Plain Chrome</span><span class="track"><span class="fill" id="fill-chrome"></span></span><b class="theirs" id="mem-chrome">0 MB</b>
           </div>
+          <aside class="agent" aria-label="The agent's thread">
+            <div class="agent-head"><span class="agent-avatar" aria-hidden="true">✳</span>Research agent<span class="agent-status" id="agent-status">Working</span></div>
+            <div class="thread" id="thread" aria-live="polite"></div>
+            <div class="agent-input"><span>Reply…</span><span class="send" aria-hidden="true">↑</span></div>
+          </aside>
           <div class="hovercard" id="hovercard" hidden>
             <div class="hc-head"><img class="hc-icon" alt=""><div><span class="hc-title"></span><span class="hc-host"></span></div></div>
             <p class="hc-text"></p>

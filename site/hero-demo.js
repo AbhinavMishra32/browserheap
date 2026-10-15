@@ -1,5 +1,6 @@
 // The hero demo: an agent researching in Browserheap, shown as its browser's
-// tab overview, with what it's doing now above and a memory meter below. Every tab is a real page
+// tab overview in a browser window, with a memory meter below and the
+// agent's own thread in a window in front. Every tab is a real page
 // (demo.js, captured by capture-demo.ts): its screenshot, favicon, title and
 // text. The 2 tabs the agent used last are live; the rest sleep, and a
 // sleeping tab's screenshot turns to dots. Hover a tab to see what the agent
@@ -50,7 +51,10 @@ const STEPS = [
 const els = {
   app: document.getElementById("app"),
   grid: document.getElementById("tab-grid"),
-  now: document.getElementById("now"),
+  omniIcon: document.getElementById("omni-icon"),
+  omniUrl: document.getElementById("omni-url"),
+  thread: document.getElementById("thread"),
+  status: document.getElementById("agent-status"),
   memOurs: document.getElementById("mem-ours"),
   memChrome: document.getElementById("mem-chrome"),
   fillOurs: document.getElementById("fill-ours"),
@@ -188,15 +192,50 @@ function drawMeter() {
 function draw() {
   drawGrid()
   drawMeter()
+  drawAddress()
   if (hovered !== null) {
     showHovercard(hovered)
   }
 }
 
-/** What the agent is doing now, in one line at the top of the window. */
+/** The address bar shows the page the agent is on. */
+function drawAddress() {
+  if (current === null) {
+    els.omniIcon.hidden = true
+    els.omniUrl.textContent = "about:blank"
+    return
+  }
+  const page = PAGES[current]
+  els.omniIcon.hidden = false
+  els.omniIcon.src = page.icon
+  els.omniUrl.textContent = page.url.replace(/^https:\/\//, "")
+}
+
+/** One step in the agent's thread; the newest goes at the bottom. */
 function say(key, html) {
-  const icon = key === null ? "" : `<img src="${PAGES[key].icon}" alt="" width="14" height="14">`
-  els.now.innerHTML = `${icon}<span>${html}</span>`
+  const step = document.createElement("div")
+  step.className = "step"
+  const icon = key === null ? '<span class="dot"></span>' : `<img src="${PAGES[key].icon}" alt="">`
+  step.innerHTML = `${icon}<span>${html}</span>`
+  els.thread.append(step)
+  els.thread.scrollTop = els.thread.scrollHeight
+}
+
+/** The agent's question at the top of its thread, and its answer at the end. */
+function ask(text) {
+  els.thread.innerHTML = `<div class="ask">${escapeHtml(text)}</div>`
+  els.status.textContent = "Working"
+  els.status.classList.remove("done")
+}
+
+function answer(text) {
+  const message = document.createElement("div")
+  message.className = "answer"
+  message.textContent = text
+  els.thread.append(message)
+  els.thread.scrollTop = els.thread.scrollHeight
+  els.status.textContent = "Done"
+  els.status.classList.add("done")
 }
 
 function asleepText(keys) {
@@ -270,7 +309,7 @@ function runStep(step, instant) {
     wake(step.wake, instant, "Clicked a link on")
     return
   } else if (step.done !== undefined) {
-    say(null, `<b>Done.</b> ${escapeHtml(step.done)}`)
+    answer(step.done)
   }
   draw()
 }
@@ -317,7 +356,7 @@ function restart() {
   stepIndex = 0
   playing = true
   els.grid.innerHTML = ""
-  say(null, '<span class="muted">Task:</span> which headless browser should our agent use?')
+  ask("Which headless browser should our agent use?")
   hideHovercard()
   draw()
   scheduleNext()
