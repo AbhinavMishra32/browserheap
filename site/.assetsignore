@@ -1,0 +1,6 @@
+# Files in this folder that are for building the site, not for serving it.
+wrangler.jsonc
+.assetsignore
+build.mjs
+capture-demo.ts
+.wrangler
