@@ -203,12 +203,12 @@
 .terminal-art pre.code { min-height: 236px; font-size: 12.5px; }
 
 /* Closing */
-.cta { padding-block: 128px 96px; text-align: center; }
-.cta h2 { max-width: 40rem; margin: 0 auto; }
-.cta .actions { justify-content: center; margin-top: 32px; }
-.cta-art { position: relative; max-width: 720px; margin: 64px auto 0; padding: 56px 48px; }
-.cta-art .dither-back { position: absolute; inset: 0; }
-.cta-art .panel { text-align: left; }
+.cta { position: relative; overflow: hidden; padding-block: 150px; text-align: center; }
+/* The copy floats over the heap; only its controls take the pointer, so tabs around it still wake. */
+.cta-copy { position: relative; display: grid; justify-items: center; gap: 22px; pointer-events: none; }
+.cta-copy .get, .cta-copy .actions { pointer-events: auto; }
+.cta h2 { max-width: 40rem; margin: 0 auto; font-size: clamp(36px, 6vw, 64px); }
+.cta .actions { justify-content: center; }
 .install-line { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; font: 14px var(--font-mono); color: var(--ink); }
 .install-line code::before { content: "$ "; color: var(--ink-3); }
 .copy-btn { height: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--ink-2); font: 500 12px var(--font-sans); cursor: pointer; }
@@ -261,7 +261,7 @@
   .statement { padding-top: 112px; }
   .fact-grid { grid-template-columns: minmax(0, 1fr); }
   .fact, .fact:nth-child(4n + 1) { border-left: 0; padding-left: 0; }
-  .terminal-art, .cta-art { padding: 24px 0; }
+  .terminal-art { padding: 24px 0; }
   .bench-stat { padding: 14px 16px; }
   .bench-stat b { font-size: 24px; }
 }
@@ -296,7 +296,7 @@
             <button type="button" role="tab" aria-selected="false" data-get="cli"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="#cb3837" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg>CLI</button>
             <button type="button" role="tab" aria-selected="false" data-get="sdk"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="#cb3837" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg>SDK</button>
           </div>
-          <div class="get-body"><pre id="get-code"></pre><button class="get-copy" type="button" id="get-copy">Copy</button></div>
+          <div class="get-body"><pre></pre><button class="get-copy" type="button">Copy</button></div>
         </div>
       </div>
 
@@ -545,18 +545,16 @@ docs.isAsleep()            <span class="c">// true</span>
     </div>
   </section>
 
+  <!-- The end: a heap of tabs an agent left open, sleeping, with the way in on top (heap.js). -->
   <section class="cta">
-    <div class="wrap">
+    <div class="heap" id="heap" aria-hidden="true"></div>
+    <div class="wrap cta-copy">
+      <p class="heap-count" id="heap-count"></p>
       <h2 class="g">Let your agent keep every tab</h2>
+      <div id="cta-get"></div>
       <div class="actions">
         <a class="button" href="https://github.com/AbhinavMishra32/browserheap">Star on GitHub</a>
         <a class="button dark" href="research.html">Read the research</a>
-      </div>
-      <div class="cta-art">
-        <div class="dither-back" aria-hidden="true"><canvas class="dither" id="cta-dither"></canvas></div>
-        <div class="panel">
-          <div class="install-line"><code>npx browserheap install</code><button class="copy-btn" type="button" data-copy="npx browserheap install">Copy</button></div>
-        </div>
       </div>
     </div>
   </section>
@@ -573,7 +571,6 @@ docs.isAsleep()            <span class="c">// true</span>
       <div class="foot-col"><h3>Research</h3><a href="research.html">Idle tabs research</a><a href="research.html#memory">Memory</a><a href="research.html#agents">Many agents</a><a href="research.html#data">Raw data</a></div>
       <div class="foot-col"><h3>The issues</h3><a href="https://github.com/vercel-labs/agent-browser/issues/885">agent-browser #885</a><a href="https://github.com/browser-use/browser-use/issues/5484">browser-use #5484</a></div>
     </div>
-    <div class="wordmark"><canvas class="dither" id="wordmark-dither" role="img" aria-label="Browserheap"></canvas></div>
   </div>
 </footer>
 
@@ -583,6 +580,7 @@ docs.isAsleep()            <span class="c">// true</span>
 <script src="alive.js" charset="utf-8"></script>
 <script src="dither.js" charset="utf-8"></script>
 <script src="hero-demo.js" charset="utf-8"></script>
+<script src="heap.js" charset="utf-8"></script>
 <script>
 const B = window.BENCH
 const ours = memoryRun("browserheap --live 2")
@@ -597,7 +595,6 @@ fillDitherFades()
 
 ditherPicture(document.getElementById("hero-dither"), { field: "horizon", resolution: 0.6 })
 ditherPicture(document.getElementById("term-dither"), { field: "glow", resolution: 0.75 })
-ditherPicture(document.getElementById("cta-dither"), { field: "glow", resolution: 0.75 })
 
 /** Loads an image from a data: URI. */
 function loadImage(src) {
@@ -706,41 +703,6 @@ tabsCanvas.addEventListener("pointermove", (event) => {
   const column = Math.min(3, Math.floor(((event.clientX - box.left) / box.width) * 4))
   const row = Math.min(2, Math.floor(((event.clientY - box.top) / box.height) * 3))
   useTab(row * 4 + column)
-})
-
-// The footer wordmark sleeps in dots, and wakes under the pointer.
-document.fonts.load("600 300px Inter").then(() => {
-  ditherPicture(document.getElementById("wordmark-dither"), {
-    field: "mask", resolution: 1, maskSize: [2300, 500],
-    drawMask(context, width, height) {
-      context.fillStyle = "#fff"
-      // The mark: nine tabs, two of them awake (here, all drawn).
-      const square = 104
-      const gap = 22
-      for (let row = 0; row < 3; row++) {
-        for (let column = 0; column < 3; column++) {
-          const lit = (row === 0 && column === 0) || (row === 1 && column === 1)
-          context.globalAlpha = lit ? 1 : 0.45
-          context.beginPath()
-          context.roundRect(30 + column * (square + gap), 60 + row * (square + gap), square, square, 18)
-          context.fill()
-        }
-      }
-      context.globalAlpha = 1
-      // The largest size at which the word fits beside the mark.
-      const left = 440
-      let size = 330
-      context.font = `600 ${size}px Inter`
-      const room = width - left - 30
-      const measured = context.measureText("Browserheap").width
-      if (measured > room) {
-        size = Math.floor((size * room) / measured)
-        context.font = `600 ${size}px Inter`
-      }
-      context.textBaseline = "middle"
-      context.fillText("Browserheap", left, height / 2 + 14)
-    },
-  })
 })
 
 // ---- Numbers ----
@@ -855,33 +817,39 @@ const GET = {
     hint: "startSession() gives your agent the whole browser as one tool.",
   },
 }
-const getCode = document.getElementById("get-code")
-const getCopy = document.getElementById("get-copy")
-let getChoice = "claude"
-function showGet(choice) {
-  getChoice = choice
-  getCode.innerHTML = GET[choice].lines.map((line) => `<span class="p">$ </span>${line.replace(/&/g, "&amp;").replace(/</g, "&lt;")}`).join("\n")
-  getCode.title = GET[choice].hint
-  for (const button of document.querySelectorAll("[data-get]")) {
-    button.setAttribute("aria-selected", String(button.dataset.get === choice))
+// The end of the page gets its own copy of the hero's picker.
+document.getElementById("cta-get").replaceWith(document.querySelector(".hero .get").cloneNode(true))
+
+// Each picker works on its own.
+for (const picker of document.querySelectorAll(".get")) {
+  const code = picker.querySelector("pre")
+  const copy = picker.querySelector(".get-copy")
+  const buttons = picker.querySelectorAll("[data-get]")
+  let choice = "claude"
+
+  function show(next) {
+    choice = next
+    code.innerHTML = GET[choice].lines.map((line) => `<span class="p">$ </span>${line.replace(/&/g, "&amp;").replace(/</g, "&lt;")}`).join("\n")
+    code.title = GET[choice].hint
+    for (const button of buttons) {
+      button.setAttribute("aria-selected", String(button.dataset.get === choice))
+    }
   }
-}
-for (const button of document.querySelectorAll("[data-get]")) {
-  // The tabs show only icons; their names go to the tooltip and screen readers.
-  button.title = button.textContent.trim()
-  button.setAttribute("aria-label", button.title)
-  button.addEventListener("click", () => showGet(button.dataset.get))
-}
-getCopy.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(GET[getChoice].lines.join("\n"))
-    getCopy.textContent = "Copied"
-  } catch {
-    getCopy.textContent = "Select and copy"
+
+  for (const button of buttons) {
+    button.addEventListener("click", () => show(button.dataset.get))
   }
-  setTimeout(() => {
-    getCopy.textContent = "Copy"
-  }, 1800)
-})
-showGet("claude")
+  copy.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(GET[choice].lines.join("\n"))
+      copy.textContent = "Copied"
+    } catch {
+      copy.textContent = "Select and copy"
+    }
+    setTimeout(() => {
+      copy.textContent = "Copy"
+    }, 1800)
+  })
+  show("claude")
+}
 </script>

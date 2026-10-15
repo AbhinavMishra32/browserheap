@@ -193,8 +193,21 @@ tr:last-child td { border-bottom: 0; }
 .foot-col h3 { font-size: 14px; font-weight: 600; color: var(--ink-2); margin-bottom: 4px; }
 .foot-col a { color: var(--ink-3); }
 .foot-col a:hover { color: var(--ink); }
-.wordmark { aspect-ratio: 4.6 / 1; width: 100%; margin-bottom: 24px; }
-.wordmark canvas { pointer-events: auto; }
+/* The heap at the end of the page: tabs sleeping as dots, two awake (heap.js).
+   It fades out at the edges and under the copy so the words stay readable. */
+.heap { position: absolute; inset: 0; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px; padding: 8px; overflow: hidden;
+  mask-image: radial-gradient(ellipse 34% 30% at 50% 50%, rgb(0 0 0 / 0.18), #000 100%), linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent); mask-composite: intersect; }
+.heap-count { font: 12.5px var(--font-mono); color: var(--ink-3); }
+.heap-count b { font-weight: 500; color: var(--accent); }
+.heap-count span { margin-left: 12px; color: var(--ink-4); }
+.heap-tab { --dot: color-mix(in oklab, var(--accent) calc((1 - var(--x, 0)) * 100%), var(--cyan)); position: relative; height: 34px; padding: 0 14px 0 32px; border-radius: 9px; font: 13.5px/34px var(--font-sans); white-space: nowrap; color: transparent; cursor: default; transition: color 0.4s, background-color 0.4s, box-shadow 0.4s; }
+/* Asleep: only dots, the title kept for the tab's width. */
+.heap-tab::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(var(--dot) 0.8px, transparent 1.15px) 0 0 / 3px 3px; opacity: 0.55; transition: opacity 0.4s; }
+/* Awake: a real tab, with its favicon and title. */
+.heap-tab::after { content: ""; position: absolute; left: 12px; top: 12px; width: 10px; height: 10px; border-radius: 3px; background: var(--dot); opacity: 0; transition: opacity 0.4s; }
+.heap-tab.awake { color: var(--ink); background-color: var(--bg-2); box-shadow: inset 0 0 0 1px var(--accent-line), 0 0 30px var(--accent-wash); }
+.heap-tab.awake::before { opacity: 0; }
+.heap-tab.awake::after { opacity: 1; }
 
 @media (max-width: 900px) {
   .bar .wrap { grid-template-columns: 1fr auto; }
