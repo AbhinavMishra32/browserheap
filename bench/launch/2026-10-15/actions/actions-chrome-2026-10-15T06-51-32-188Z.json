@@ -1,0 +1,122 @@
+{
+  "browser": "chrome",
+  "passed": 19,
+  "of": 19,
+  "measuredAt": "2026-10-15T06:51:32.188Z",
+  "results": [
+    {
+      "id": "read-text",
+      "label": "Read a page's heading",
+      "passed": true,
+      "ms": 176
+    },
+    {
+      "id": "click-link",
+      "label": "Click a link by its text",
+      "passed": true,
+      "ms": 198
+    },
+    {
+      "id": "click-button",
+      "label": "Click a button",
+      "passed": true,
+      "ms": 190
+    },
+    {
+      "id": "type-submit",
+      "label": "Type in a search box and press Enter",
+      "passed": true,
+      "ms": 180
+    },
+    {
+      "id": "select",
+      "label": "Pick from a dropdown",
+      "passed": true,
+      "ms": 132
+    },
+    {
+      "id": "checkbox",
+      "label": "Tick a checkbox",
+      "passed": true,
+      "ms": 165
+    },
+    {
+      "id": "table",
+      "label": "Read a value from a table",
+      "passed": true,
+      "ms": 153
+    },
+    {
+      "id": "iframe",
+      "label": "Click a button inside an iframe from another site",
+      "passed": true,
+      "ms": 210
+    },
+    {
+      "id": "shadow-dom",
+      "label": "Click a button inside a web component",
+      "passed": true,
+      "ms": 192
+    },
+    {
+      "id": "visibility",
+      "label": "Tell a hidden link from a visible one",
+      "passed": true,
+      "ms": 143
+    },
+    {
+      "id": "position",
+      "label": "Know where an element is on the page",
+      "passed": true,
+      "ms": 147
+    },
+    {
+      "id": "click-at-position",
+      "label": "Click at a spot on the page (like vision agents do)",
+      "passed": true,
+      "ms": 151
+    },
+    {
+      "id": "scroll-load-more",
+      "label": "Scroll down and get more items",
+      "passed": true,
+      "ms": 408
+    },
+    {
+      "id": "popup",
+      "label": "Follow a link that opens a new tab",
+      "passed": true,
+      "ms": 208
+    },
+    {
+      "id": "js-content",
+      "label": "Read text a page loads after it opens",
+      "passed": true,
+      "ms": 903
+    },
+    {
+      "id": "cookies",
+      "label": "Stay signed in from one page to the next",
+      "passed": true,
+      "ms": 124
+    },
+    {
+      "id": "screenshot",
+      "label": "Take a screenshot that shows the page as drawn",
+      "passed": true,
+      "ms": 183
+    },
+    {
+      "id": "many-tabs",
+      "label": "Keep 5 tabs open and read each",
+      "passed": true,
+      "ms": 338
+    },
+    {
+      "id": "back-to-old-tab",
+      "label": "Go back to a tab opened earlier",
+      "passed": true,
+      "ms": 215
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "browser": "lightpanda",
+  "passed": 12,
+  "of": 19,
+  "measuredAt": "2026-10-15T06:51:59.749Z",
+  "results": [
+    {
+      "id": "read-text",
+      "label": "Read a page's heading",
+      "passed": true,
+      "ms": 1304
+    },
+    {
+      "id": "click-link",
+      "label": "Click a link by its text",
+      "passed": true,
+      "ms": 305
+    },
+    {
+      "id": "click-button",
+      "label": "Click a button",
+      "passed": true,
+      "ms": 262
+    },
+    {
+      "id": "type-submit",
+      "label": "Type in a search box and press Enter",
+      "passed": true,
+      "ms": 290
+    },
+    {
+      "id": "select",
+      "label": "Pick from a dropdown",
+      "passed": true,
+      "ms": 251
+    },
+    {
+      "id": "checkbox",
+      "label": "Tick a checkbox",
+      "passed": true,
+      "ms": 259
+    },
+    {
+      "id": "table",
+      "label": "Read a value from a table",
+      "passed": true,
+      "ms": 241
+    },
+    {
+      "id": "iframe",
+      "label": "Click a button inside an iframe from another site",
+      "passed": false,
+      "ms": 5225,
+      "error": "locator.click: Timeout 5000ms exceeded."
+    },
+    {
+      "id": "shadow-dom",
+      "label": "Click a button inside a web component",
+      "passed": false,
+      "ms": 5232,
+      "error": "locator.click: Timeout 5000ms exceeded."
+    },
+    {
+      "id": "visibility",
+      "label": "Tell a hidden link from a visible one",
+      "passed": true,
+      "ms": 239
+    },
+    {
+      "id": "position",
+      "label": "Know where an element is on the page",
+      "passed": false,
+      "ms": 249
+    },
+    {
+      "id": "click-at-position",
+      "label": "Click at a spot on the page (like vision agents do)",
+      "passed": false,
+      "ms": 247
+    },
+    {
+      "id": "scroll-load-more",
+      "label": "Scroll down and get more items",
+      "passed": false,
+      "ms": 5362
+    },
+    {
+      "id": "popup",
+      "label": "Follow a link that opens a new tab",
+      "passed": false,
+      "ms": 5238,
+      "error": "page.waitForEvent: Timeout 5000ms exceeded while waiting for event \"popup\""
+    },
+    {
+      "id": "js-content",
+      "label": "Read text a page loads after it opens",
+      "passed": true,
+      "ms": 1017
+    },
+    {
+      "id": "cookies",
+      "label": "Stay signed in from one page to the next",
+      "passed": true,
+      "ms": 249
+    },
+    {
+      "id": "screenshot",
+      "label": "Take a screenshot that shows the page as drawn",
+      "passed": false,
+      "ms": 386
+    },
+    {
+      "id": "many-tabs",
+      "label": "Keep 5 tabs open and read each",
+      "passed": true,
+      "ms": 324
+    },
+    {
+      "id": "back-to-old-tab",
+      "label": "Go back to a tab opened earlier",
+      "passed": true,
+      "ms": 264
+    }
+  ]
+}

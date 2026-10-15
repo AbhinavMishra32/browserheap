@@ -1,0 +1,122 @@
+{
+  "browser": "agent-tabs",
+  "passed": 19,
+  "of": 19,
+  "measuredAt": "2026-10-15T06:51:25.773Z",
+  "results": [
+    {
+      "id": "read-text",
+      "label": "Read a page's heading",
+      "passed": true,
+      "ms": 5679
+    },
+    {
+      "id": "click-link",
+      "label": "Click a link by its text",
+      "passed": true,
+      "ms": 213
+    },
+    {
+      "id": "click-button",
+      "label": "Click a button",
+      "passed": true,
+      "ms": 364
+    },
+    {
+      "id": "type-submit",
+      "label": "Type in a search box and press Enter",
+      "passed": true,
+      "ms": 249
+    },
+    {
+      "id": "select",
+      "label": "Pick from a dropdown",
+      "passed": true,
+      "ms": 160
+    },
+    {
+      "id": "checkbox",
+      "label": "Tick a checkbox",
+      "passed": true,
+      "ms": 168
+    },
+    {
+      "id": "table",
+      "label": "Read a value from a table",
+      "passed": true,
+      "ms": 135
+    },
+    {
+      "id": "iframe",
+      "label": "Click a button inside an iframe from another site",
+      "passed": true,
+      "ms": 215
+    },
+    {
+      "id": "shadow-dom",
+      "label": "Click a button inside a web component",
+      "passed": true,
+      "ms": 192
+    },
+    {
+      "id": "visibility",
+      "label": "Tell a hidden link from a visible one",
+      "passed": true,
+      "ms": 134
+    },
+    {
+      "id": "position",
+      "label": "Know where an element is on the page",
+      "passed": true,
+      "ms": 158
+    },
+    {
+      "id": "click-at-position",
+      "label": "Click at a spot on the page (like vision agents do)",
+      "passed": true,
+      "ms": 159
+    },
+    {
+      "id": "scroll-load-more",
+      "label": "Scroll down and get more items",
+      "passed": true,
+      "ms": 409
+    },
+    {
+      "id": "popup",
+      "label": "Follow a link that opens a new tab",
+      "passed": true,
+      "ms": 256
+    },
+    {
+      "id": "js-content",
+      "label": "Read text a page loads after it opens",
+      "passed": true,
+      "ms": 910
+    },
+    {
+      "id": "cookies",
+      "label": "Stay signed in from one page to the next",
+      "passed": true,
+      "ms": 157
+    },
+    {
+      "id": "screenshot",
+      "label": "Take a screenshot that shows the page as drawn",
+      "passed": true,
+      "ms": 190
+    },
+    {
+      "id": "many-tabs",
+      "label": "Keep 5 tabs open and read each",
+      "passed": true,
+      "ms": 614
+    },
+    {
+      "id": "back-to-old-tab",
+      "label": "Go back to a tab opened earlier",
+      "passed": true,
+      "ms": 304
+    }
+  ]
+}
