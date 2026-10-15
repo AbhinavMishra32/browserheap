@@ -175,7 +175,6 @@
 .bench .caption { padding: 0 20px 20px; }
 .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
 .mini { padding: 18px 20px 16px; }
-.mini.wide { grid-column: 1 / -1; padding-bottom: 64px; } /* room for the end labels that stack below the axis */
 .mini-head { margin-bottom: 14px; }
 .mini-head h3 { font-size: 15px; font-weight: 500; }
 .mini-head p { margin-top: 4px; font-size: 13px; color: var(--ink-3); }
@@ -364,7 +363,7 @@
         <p class="caption">Hover the chart to see every browser at each tab. Lightpanda starts lighter for the first few tabs, then grows by about 1 GB on each heavy news site. <a href="research.html">Full method and every number →</a></p>
       </div>
 
-      <!-- The other measurements, smaller, all in view at once. -->
+      <!-- The two results that matter most past 30 tabs, smaller. The rest are on the research page. -->
       <div class="chart-grid">
         <div class="panel mini">
           <div class="mini-head"><h3>Up to 100 tabs</h3><p>Each browser stopped at 6.5 GB of the sandbox's 8 GB. × marks where.</p></div>
@@ -373,18 +372,6 @@
         <div class="panel mini">
           <div class="mini-head"><h3>10 agents, one machine</h3><p>Each agent with its own browser, all opening tabs at once.</p></div>
           <div class="chart-wrap"><svg class="chart" id="agents-chart" role="img" aria-label="10 agents on one machine"></svg><div class="tooltip" id="agents-tooltip" hidden></div></div>
-        </div>
-        <div class="panel mini">
-          <div class="mini-head"><h3>Memory at 30 tabs</h3><p>All 30 tabs open, after a 5 second settle.</p></div>
-          <div class="chart-wrap"><svg class="chart" id="final-chart" role="img" aria-label="Memory at 30 tabs for eight browsers"></svg></div>
-        </div>
-        <div class="panel mini">
-          <div class="mini-head"><h3>Cost of one more tab</h3><p>The slope of each browser's line.</p></div>
-          <div class="chart-wrap"><svg class="chart" id="slope-chart" role="img" aria-label="Memory added by each extra tab for eight browsers"></svg></div>
-        </div>
-        <div class="panel mini wide">
-          <div class="mini-head"><h3>Idle CPU, 30 tabs</h3><p>10 minutes with nothing happening. 100% is one core. Live tabs keep running scripts nobody is looking at.</p></div>
-          <div class="chart-wrap"><svg class="chart" id="cpu-chart" role="img" aria-label="CPU over 10 idle minutes with 30 tabs open"></svg><div class="tooltip" id="cpu-tooltip" hidden></div></div>
         </div>
       </div>
     </div>
@@ -788,10 +775,7 @@ drawMemoryChart(document.getElementById("memory-chart"), document.getElementById
 
 // The smaller charts in the grid under it, drawn at their own width.
 const miniWidth = Math.max(480, Math.round(document.querySelector(".mini .chart-wrap").clientWidth))
-const wideWidth = Math.max(480, Math.round(document.querySelector(".mini.wide .chart-wrap").clientWidth))
 const miniHeight = 280
-drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), miniWidth)
-drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, miniWidth)
 
 if (B.scale.length > 0) {
   drawLineChart(document.getElementById("scale-chart"), document.getElementById("scale-tooltip"), B.scale.map((run) => {
@@ -805,20 +789,6 @@ if (B.scale.length > 0) {
   })
 } else {
   document.getElementById("scale-chart").closest(".mini").hidden = true
-}
-if (B.idle.length > 0) {
-  const top = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.cpu))))
-  drawLineChart(document.getElementById("cpu-chart"), document.getElementById("cpu-tooltip"), B.idle.map((run) => {
-    const tool = toolOf(run.browser)
-    return { name: tool.name, ours: tool.ours, dashed: tool.engine, points: run.samples.map((sample) => ({ x: sample.seconds, y: sample.cpu })) }
-  }), {
-    xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (seconds) => `${seconds / 60}`, xLabel: "idle minutes",
-    yMax: top.max, yStep: top.max / 5, yFormat: (v) => `${v}%`, valueFormat: (v) => `${v}%`,
-    xTitle: (seconds) => `${(seconds / 60).toFixed(2).replace(/\.?0+$/, "")} min idle`,
-    width: wideWidth, height: miniHeight,
-  })
-} else {
-  document.getElementById("cpu-chart").closest(".mini").hidden = true
 }
 if (B.agents.length > 0) {
   drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), B.agents.map((run) => {
