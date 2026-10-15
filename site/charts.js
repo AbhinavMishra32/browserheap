@@ -109,12 +109,15 @@ function add(svg, tag, attrs) {
   return el
 }
 
-/** Memory from 1 to 30 tabs, one line per browser, with a hover crosshair. */
-function drawMemoryChart(svg, tooltip) {
+/**
+ * Memory from 1 to 30 tabs, one line per browser, with a hover crosshair.
+ * Draw it at about the width it's shown at, so its text stays its real size.
+ */
+function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
   const ours = memoryRun("browserheap --live 2")
   const tabCount = ours.perTab.length
-  const W = 900
-  const H = 440
+  const W = width
+  const H = height
   const pad = { left: 52, right: 160, top: 12, bottom: 36 }
   const maxMb = 7000
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`)
@@ -239,9 +242,9 @@ function drawValueBars(svg, rows, format, width = 900) {
 
 function mark(ok) {
   if (ok) {
-    return '<span class="mark yes">[ok]</span>'
+    return '<span class="mark yes">✓ Works</span>'
   }
-  return '<span class="mark no">[fail]</span>'
+  return '<span class="mark no">✕ Fails</span>'
 }
 
 function cellClass(engine, extra = "") {
@@ -345,7 +348,7 @@ function wireCopyButtons() {
 }
 
 /**
- * A line chart for any measure over time or tabs, ours in amber, the rest grey.
+ * A line chart for any measure over time or tabs, ours in the accent color, the rest grey.
  *
  *   series   [{ name, ours?, dashed?, stopped?, points: [{ x, y }] }]
  *   options  { xMax, xTicks, xLabel, yMax, yStep, yFormat, xTitle(x), valueFormat(y), limit?: { y, label } }

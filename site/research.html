@@ -7,63 +7,68 @@
 <meta name="description" content="What idle tabs cost an AI agent's browser, measured across 8 browsers, 19 agent actions, 60 sites and BU Bench.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=DotGothic16&display=swap">
 <link rel="stylesheet" href="site.css">
 <style>
-/* The research post: a 760px reading column; figures and tables widen to the full 1200px. */
-article { padding-block: 72px 0; }
-.post-head { display: grid; gap: 20px; padding-bottom: 40px; border-bottom: 1px solid var(--color-iron); }
-.post-head h1 { font-size: clamp(30px, 4.4vw, 46px); line-height: 1.2; }
-.byline { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: var(--text-caption); color: var(--color-steel); text-transform: uppercase; letter-spacing: 0.05em; }
-.prose { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 48px; }
-.prose > p, .prose > ul, .prose > ol { margin: 0; color: var(--color-fog); font-size: 15px; line-height: 1.8; }
+/* The research post: a 760px reading column; figures widen to the page. */
+.narrow { max-width: calc(760px + 48px); }
+article { padding-block: 80px 0; }
+.post-head { display: grid; gap: 20px; padding-bottom: 40px; border-bottom: 1px solid var(--line); }
+.post-head h1 { font-size: clamp(36px, 4.4vw, 52px); }
+.byline { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13px; color: var(--ink-3); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; }
+.toc a { color: var(--ink-3); }
+.toc a:hover { color: var(--ink); }
+.prose { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; padding-top: 48px; }
+.prose > p, .prose > ul, .prose > ol { margin: 0; color: var(--ink-2); font-size: 17px; line-height: 1.75; }
 .prose > ul, .prose > ol { padding-left: 22px; display: grid; gap: 10px; }
-.prose strong { color: var(--color-paper); font-weight: 700; }
-.prose h2 { font-size: var(--text-heading-lg); line-height: 1.33; margin-top: 48px; scroll-margin-top: 72px; }
-.prose h3 { margin-top: 16px; font-size: var(--text-heading-sm); }
-.prose .num { display: block; font-size: 56px; line-height: 1; color: var(--color-iron); margin-bottom: 12px; letter-spacing: -0.04em; }
-.summary { background: var(--color-graphite); border-left: 2px solid var(--color-ember); border-radius: var(--radius); padding: 28px 32px; display: grid; gap: 12px; }
-.summary h2 { margin: 0; font-size: var(--text-caption); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-steel); }
-.summary ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 10px; color: var(--color-fog); }
-.summary li::before { content: "> "; color: var(--color-steel); }
-.summary strong { color: var(--color-paper); }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose h2 { font-size: clamp(28px, 3vw, 36px); line-height: 1.15; margin-top: 64px; }
+.prose h3 { margin-top: 16px; font-size: 19px; font-weight: 500; }
+.prose .num { display: block; font-size: 14px; color: var(--accent); margin-bottom: 12px; letter-spacing: 0; }
+.summary { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px 28px; display: grid; gap: 14px; }
+.summary h2 { margin: 0; font-size: 14px; color: var(--accent); }
+.summary ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 12px; color: var(--ink-2); font-size: 16px; }
+.summary li { display: grid; grid-template-columns: 22px minmax(0, 1fr); }
+.summary li::before { content: "✓"; color: var(--accent); }
+.summary strong { color: var(--ink); font-weight: 600; }
 
 /* Figures break out of the reading column. */
-.figure { --wide: min(1152px, calc(100vw - 48px)); width: var(--wide); margin-inline: calc((100% - var(--wide)) / 2); display: grid; gap: 12px; margin-block: 8px; min-width: 0; }
-body { overflow-x: clip; }
-.figure figcaption { font-size: var(--text-caption); color: var(--color-ash); max-width: 90ch; }
-.figure figcaption b { color: var(--color-paper); font-weight: 700; }
+.figure { --wide: min(1104px, calc(100vw - 48px)); width: var(--wide); margin-inline: calc((100% - var(--wide)) / 2); display: grid; gap: 12px; margin-block: 12px; min-width: 0; }
+.figure .panel { padding: 20px; }
+.figure .legend { margin-bottom: 12px; }
+.figure figcaption { font-size: 13.5px; color: var(--ink-3); max-width: 90ch; }
+.figure figcaption b { color: var(--ink); font-weight: 600; }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.two h3 { font-size: 13px; margin-bottom: 12px; color: var(--color-fog); }
-.callout { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: center; background: var(--color-carbon); border: 1px solid var(--color-iron); border-radius: var(--radius); padding: 24px 28px; }
-.callout .value { font-weight: 700; font-size: 44px; line-height: 1; color: var(--color-paper); }
-.callout .value small { font-size: 16px; color: var(--color-ash); font-weight: 400; margin-left: 6px; }
-.callout p { margin: 0; color: var(--color-fog); }
-details { border: 1px solid var(--color-iron); border-radius: var(--radius); background: var(--color-carbon); }
-details summary { cursor: pointer; padding: 14px 18px; }
-details .table-scroll { border: 0; border-top: 1px solid var(--color-iron); border-radius: 0; }
-.toc { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--color-ash); }
-.toc a { text-decoration: none; }
-.toc a::before { content: "#"; color: var(--color-slate); }
-.toc a:hover { color: var(--color-paper); }
+.two h3 { font-size: 13px; font-weight: 500; margin-bottom: 12px; color: var(--ink-2); }
+.callout { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; }
+.callout .value { font-weight: 400; font-size: 48px; line-height: 1; letter-spacing: -0.03em; color: var(--accent); }
+.callout .value small { font-size: 16px; color: var(--ink-3); margin-left: 6px; letter-spacing: 0; }
+.callout p { margin: 0; color: var(--ink-2); }
+details { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+details summary { cursor: pointer; padding: 14px 18px; font-weight: 500; }
+details .table-scroll { border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+.foot .row { display: flex; flex-wrap: wrap; gap: 10px 24px; padding-block: 28px 44px; font-size: 13px; color: var(--ink-3); }
+.foot .row a:hover { color: var(--ink); }
 @media (max-width: 760px) {
   .two { grid-template-columns: minmax(0, 1fr); }
   .callout { grid-template-columns: minmax(0, 1fr); }
-  .summary { padding: 24px; }
+  .summary { padding: 22px; }
 }
 </style>
 </head>
 <body>
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>browserheap</a>
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></span>Browserheap</a>
     <nav aria-label="Main">
       <a href="index.html">Home</a>
       <a href="index.html#numbers">Benchmarks</a>
       <a href="index.html#use">Docs</a>
     </nav>
     <div class="right">
-      <a class="button quiet small-btn" href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
+      <a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
+      <a class="button small" href="index.html#use">Get started</a>
     </div>
   </div>
 </header>
@@ -72,7 +77,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--color-iron); bord
   <article>
     <header class="post-head">
       <p class="eyebrow">Research</p>
-      <h1>Agents leave tabs open. We measured what that costs.</h1>
+      <h1 class="g">Agents leave tabs open. We measured what that costs.</h1>
       <p class="lede">We opened the same 30 websites in every popular agent browser, ran 19 agent actions and 60 real sites through the lightweight engines, and gave the same AI agent real tasks on two browsers. Here is everything we found, including where we lost.</p>
       <div class="byline"><span>15 October 2026</span><span>Abhinav Mishra</span><span>12 min read</span></div>
       <nav class="toc" aria-label="Sections">
@@ -254,12 +259,15 @@ node bench/e2b/run.ts compat</pre>
 </main>
 
 <footer class="foot">
-  <div class="wrap"><span>Browserheap · MIT</span><a href="index.html">Home</a><a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a></div>
+  <div class="wrap row"><span>Browserheap · MIT</span><a href="index.html">Home</a><a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a><a href="https://www.npmjs.com/package/browserheap">npm</a></div>
 </footer>
 
 <script src="data.js" charset="utf-8"></script>
 <script src="charts.js" charset="utf-8"></script>
+<script src="alive.js" charset="utf-8"></script>
 <script>
+glitchText(document.querySelector("h1.g"))
+
 const ours = memoryRun("browserheap --live 2")
 const others = TOOLS.filter((tool) => !tool.ours).map((tool) => memoryRun(tool.id))
 const otherFinals = others.map((run) => run.finalMb)
@@ -301,10 +309,14 @@ if (oursAgentRun !== undefined && chromeAgentRun !== undefined) {
   const chromeRounds = chromeAgentRun.rounds.length
   summary.splice(4, 0, `<strong>10 agents fit on one 8 GB machine</strong> with 10 tabs each. On headless Chrome the machine was full after ${chromeRounds} tabs each.`)
 }
-document.getElementById("summary-list").innerHTML = summary.map((line) => `<li>${line}</li>`).join("")
+document.getElementById("summary-list").innerHTML = summary.map((line) => `<li><span>${line}</span></li>`).join("")
+
+// Full-width charts are drawn at the width they're shown at (never under
+// 640, so they shrink to fit a phone), so their text stays its real size.
+const fullWidth = Math.max(640, Math.round(document.getElementById("memory-chart").parentElement.clientWidth))
 
 // Memory
-drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"))
+drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), fullWidth, 400)
 drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), 560)
 drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, 560)
 document.getElementById("wake-ms").firstChild.textContent = ours.wake.ms
@@ -387,6 +399,7 @@ if (B.scale.length > 0) {
     yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
     xTitle: (tab) => `${tab} tabs open`, valueFormat: formatMb,
     limit: { y: 6500, label: "6.5 GB limit" },
+    width: fullWidth, height: 380,
   })
   const oursRun = B.scale.find((run) => toolOf(run.browser).ours)
   const others = B.scale.filter((run) => !toolOf(run.browser).ours)
@@ -432,7 +445,7 @@ if (B.live.length > 0) {
   const rows = B.live.map((run) => ({ name: `${run.live} live`, ours: true, value: run.finalMb }))
   const chromeRun = memoryRun("chrome-shell")
   rows.push({ name: "Chrome, 30 live", value: chromeRun.finalMb })
-  drawValueBars(document.getElementById("live-chart"), rows, formatMb)
+  drawValueBars(document.getElementById("live-chart"), rows, formatMb, fullWidth)
 }
 
 // Figure 6: 10 agents on one machine.
@@ -451,6 +464,7 @@ if (B.agents.length > 0) {
     yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
     xTitle: (tabs) => `${tabs} tabs (${tabs / 10} per agent)`, valueFormat: formatMb,
     limit: { y: 6500, label: "6.5 GB limit" },
+    width: fullWidth, height: 380,
   })
   const oursAgents = B.agents.find((run) => run.browser === "browserheap")
   const chromeAgents = B.agents.find((run) => run.browser !== "browserheap")

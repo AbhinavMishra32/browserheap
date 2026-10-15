@@ -4,6 +4,7 @@
  * tabs that sleep while it isn't using them.
  *
  *   browserheap install                      downloads the browser (Playwright's Chromium headless shell)
+ *   browserheap skill <claude|codex|folder>  adds the skill to Claude Code, Codex or a folder, then downloads the browser
  *   browserheap open <url>                   opens a tab and prints the page as a tree with refs
  *   browserheap run '<code>'                 runs JavaScript in the REPL (also --file <path>, or piped in)
  *   browserheap tabs                         lists the tabs, live and asleep
@@ -22,9 +23,11 @@
  * Uses:    client.ts, paths.ts
  */
 import { spawnSync } from "node:child_process"
-import { readFileSync, writeFileSync } from "node:fs"
+import { cpSync, readFileSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
+import { homedir } from "node:os"
 import { join, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 import type { ReplResult } from "../repl/repl.ts"
 import { runCode, type StartSettings, stopServer } from "./client.ts"
 import { imagesFolder } from "./paths.ts"
@@ -32,6 +35,7 @@ import { imagesFolder } from "./paths.ts"
 const USAGE = `browserheap: a browser for agents, where idle tabs sleep.
 
   browserheap install                      download the browser
+  browserheap skill <claude|codex|folder>  add the skill to your agent, then download the browser
   browserheap open <url>                   open a tab, print the page with refs
   browserheap run '<code>'                 run JavaScript in the REPL (--file <path>, or piped in)
   browserheap tabs                         list the tabs
@@ -74,7 +78,10 @@ const command = args[0]
 if (command === undefined || command === "help") {
   console.log(USAGE)
 } else if (command === "install") {
-  install()
+  process.exit(installBrowser())
+} else if (command === "skill") {
+  addSkill(need(args[1], "browserheap skill <claude|codex|folder>"))
+  process.exit(installBrowser())
 } else if (command === "stop") {
   const stopped = await stopServer(session)
   console.log(stopped ? "Closed the browser." : "No browser was running.")
@@ -139,13 +146,32 @@ async function codeToRun(): Promise<string> {
   return code
 }
 
-function install(): void {
+/** Downloads Playwright's Chromium headless shell. Returns the exit status. */
+function installBrowser(): number {
   const require = createRequire(import.meta.url)
   const cli = join(require.resolve("playwright-core/package.json"), "..", "cli.js")
   const result = spawnSync(process.execPath, [cli, "install", "--only-shell", "chromium"], {
     stdio: "inherit",
   })
-  process.exit(result.status ?? 1)
+  return result.status ?? 1
+}
+
+/**
+ * Copies the skill (skills/browserheap in this package) into an agent's
+ * skills folder: ~/.claude/skills for Claude Code, ~/.codex/skills for Codex,
+ * or any folder you name.
+ */
+function addSkill(where: string): void {
+  const folders: Record<string, string> = {
+    claude: join(homedir(), ".claude", "skills"),
+    codex: join(homedir(), ".codex", "skills"),
+  }
+  const skills = folders[where] ?? resolve(where)
+  // This file is src/cli/main.ts, or dist/cli/main.js once built: two folders below the package.
+  const source = fileURLToPath(new URL("../../skills/browserheap", import.meta.url))
+  const target = join(skills, "browserheap")
+  cpSync(source, target, { recursive: true })
+  console.log(`Added the skill: ${target}`)
 }
 
 function need(value: string | undefined, usage: string): string {

@@ -1,6 +1,6 @@
 {
   "name": "browserheap",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "A browser for AI agents where idle tabs sleep: real Chromium, a JavaScript REPL whose pages keep working through sleep and wake, and a CLI for Claude Code and Codex.",
   "keywords": [

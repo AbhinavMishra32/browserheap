@@ -34,9 +34,10 @@ npx browserheap stop
 
 
 The agent writes Playwright-style JavaScript into a REPL that stays alive between commands, so one
-command can do many steps and variables carry over. Give your agent the skill file in
-[`skills/browserheap/SKILL.md`](skills/browserheap/SKILL.md): copy the folder into `.claude/skills/`
-for Claude Code, or into your Codex skills (or paste it into `AGENTS.md`). An MCP server is next.
+command can do many steps and variables carry over. Give your agent the skill in
+[`skills/browserheap/SKILL.md`](skills/browserheap/SKILL.md): `npx browserheap skill claude` adds it
+to Claude Code and `npx browserheap skill codex` to Codex (both also download the browser), or paste
+it into `AGENTS.md`. An MCP server is next.
 
 ## Numbers
 
