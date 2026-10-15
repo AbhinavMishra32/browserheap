@@ -1,0 +1,1940 @@
+{
+  "measuredAt": "2026-10-15T06:52:52.976Z",
+  "note": "sameAsChrome: share of the distinct words (4+ letters) on Chrome’s page that this browser’s page also shows; null where Chrome didn’t load the page",
+  "browsers": {
+    "agent-tabs": [
+      {
+        "kind": "Docs",
+        "url": "https://en.wikipedia.org/wiki/Web_browser",
+        "loaded": true,
+        "loadMs": 352,
+        "textLength": 20286,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "Docs",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        "loaded": true,
+        "loadMs": 220,
+        "textLength": 6631,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://docs.python.org/3/",
+        "loaded": true,
+        "loadMs": 184,
+        "textLength": 3440,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://react.dev/",
+        "loaded": true,
+        "loadMs": 353,
+        "textLength": 6583,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://nodejs.org/en",
+        "loaded": true,
+        "loadMs": 307,
+        "textLength": 1620,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://www.rust-lang.org/",
+        "loaded": true,
+        "loadMs": 167,
+        "textLength": 3485,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://go.dev/doc/",
+        "loaded": true,
+        "loadMs": 244,
+        "textLength": 11695,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://tailwindcss.com/docs/installation",
+        "loaded": true,
+        "loadMs": 312,
+        "textLength": 5208,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://learn.microsoft.com/en-us/dotnet/csharp/",
+        "loaded": true,
+        "loadMs": 1758,
+        "textLength": 4156,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://playwright.dev/docs/intro",
+        "loaded": true,
+        "loadMs": 261,
+        "textLength": 4864,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.bbc.com/news",
+        "loaded": true,
+        "loadMs": 809,
+        "textLength": 8241,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theverge.com/",
+        "loaded": true,
+        "loadMs": 1688,
+        "textLength": 21821,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "News",
+        "url": "https://techcrunch.com/",
+        "loaded": true,
+        "loadMs": 893,
+        "textLength": 12655,
+        "sameAsChrome": 0.99
+      },
+      {
+        "kind": "News",
+        "url": "https://edition.cnn.com/",
+        "loaded": false,
+        "loadMs": 74,
+        "textLength": 13,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theguardian.com/international",
+        "loaded": true,
+        "loadMs": 554,
+        "textLength": 18522,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.wired.com/",
+        "loaded": true,
+        "loadMs": 1962,
+        "textLength": 7593,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://apnews.com/",
+        "loaded": true,
+        "loadMs": 198,
+        "textLength": 258,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "News",
+        "url": "https://www.npr.org/",
+        "loaded": true,
+        "loadMs": 1804,
+        "textLength": 10728,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://arstechnica.com/",
+        "loaded": true,
+        "loadMs": 911,
+        "textLength": 7934,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.aljazeera.com/",
+        "loaded": true,
+        "loadMs": 713,
+        "textLength": 5178,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.amazon.com/",
+        "loaded": false,
+        "loadMs": 235,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ebay.com/",
+        "loaded": false,
+        "loadMs": 127,
+        "textLength": 193,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.etsy.com/",
+        "loaded": false,
+        "loadMs": 312,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ikea.com/us/en/",
+        "loaded": true,
+        "loadMs": 1906,
+        "textLength": 11093,
+        "sameAsChrome": 0.96
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.bestbuy.com/",
+        "loaded": false,
+        "loadMs": null,
+        "textLength": 0,
+        "sameAsChrome": null,
+        "error": "page.goto: Timeout 30000ms exceeded."
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.walmart.com/",
+        "loaded": true,
+        "loadMs": 2431,
+        "textLength": 19760,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.target.com/",
+        "loaded": true,
+        "loadMs": 4019,
+        "textLength": 1444,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.apple.com/shop/buy-iphone",
+        "loaded": true,
+        "loadMs": 877,
+        "textLength": 84708,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.nike.com/",
+        "loaded": true,
+        "loadMs": 2668,
+        "textLength": 2690,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.zara.com/us/",
+        "loaded": false,
+        "loadMs": 105,
+        "textLength": 195,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://github.com/microsoft/playwright",
+        "loaded": true,
+        "loadMs": 1075,
+        "textLength": 9303,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://news.ycombinator.com/",
+        "loaded": true,
+        "loadMs": 319,
+        "textLength": 3977,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://stackoverflow.com/questions/tagged/javascript",
+        "loaded": false,
+        "loadMs": 220,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.reddit.com/r/programming/",
+        "loaded": true,
+        "loadMs": 90,
+        "textLength": 222,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.npmjs.com/package/playwright",
+        "loaded": true,
+        "loadMs": 241,
+        "textLength": 261,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://dev.to/",
+        "loaded": true,
+        "loadMs": 563,
+        "textLength": 8419,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://lobste.rs/",
+        "loaded": true,
+        "loadMs": 461,
+        "textLength": 3115,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://gitlab.com/gitlab-org/gitlab",
+        "loaded": true,
+        "loadMs": 1467,
+        "textLength": 850,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://huggingface.co/models",
+        "loaded": true,
+        "loadMs": 648,
+        "textLength": 3712,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.producthunt.com/",
+        "loaded": true,
+        "loadMs": 219,
+        "textLength": 267,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://vercel.com/",
+        "loaded": true,
+        "loadMs": 475,
+        "textLength": 883,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://linear.app/",
+        "loaded": true,
+        "loadMs": 932,
+        "textLength": 8482,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.figma.com/",
+        "loaded": true,
+        "loadMs": 447,
+        "textLength": 2701,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.notion.com/",
+        "loaded": true,
+        "loadMs": 451,
+        "textLength": 2073,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://stripe.com/",
+        "loaded": true,
+        "loadMs": 519,
+        "textLength": 11411,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.airbnb.com/",
+        "loaded": false,
+        "loadMs": 792,
+        "textLength": 139,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.booking.com/",
+        "loaded": false,
+        "loadMs": 730,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.twitch.tv/",
+        "loaded": true,
+        "loadMs": 910,
+        "textLength": 447,
+        "sameAsChrome": 0.24
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://discord.com/",
+        "loaded": true,
+        "loadMs": 1075,
+        "textLength": 2127,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://open.spotify.com/",
+        "loaded": false,
+        "loadMs": 772,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.usa.gov/",
+        "loaded": true,
+        "loadMs": 243,
+        "textLength": 4120,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.gov.uk/",
+        "loaded": true,
+        "loadMs": 143,
+        "textLength": 4011,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.weather.gov/",
+        "loaded": true,
+        "loadMs": 506,
+        "textLength": 1789,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://archive.org/",
+        "loaded": false,
+        "loadMs": 314,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://arxiv.org/abs/1706.03762",
+        "loaded": true,
+        "loadMs": 218,
+        "textLength": 3166,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.imdb.com/",
+        "loaded": false,
+        "loadMs": 197,
+        "textLength": 13,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.timeanddate.com/",
+        "loaded": false,
+        "loadMs": 260,
+        "textLength": 40,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.britannica.com/",
+        "loaded": true,
+        "loadMs": 231,
+        "textLength": 266,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://openai.com/",
+        "loaded": false,
+        "loadMs": 195,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.craigslist.org/about/sites",
+        "loaded": true,
+        "loadMs": 350,
+        "textLength": 9959,
+        "sameAsChrome": 1
+      }
+    ],
+    "chrome": [
+      {
+        "kind": "Docs",
+        "url": "https://en.wikipedia.org/wiki/Web_browser",
+        "loaded": true,
+        "loadMs": 1028,
+        "textLength": 20504,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        "loaded": true,
+        "loadMs": 202,
+        "textLength": 6631,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://docs.python.org/3/",
+        "loaded": true,
+        "loadMs": 168,
+        "textLength": 3440,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://react.dev/",
+        "loaded": true,
+        "loadMs": 371,
+        "textLength": 6583,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://nodejs.org/en",
+        "loaded": true,
+        "loadMs": 486,
+        "textLength": 1620,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://www.rust-lang.org/",
+        "loaded": true,
+        "loadMs": 215,
+        "textLength": 3485,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://go.dev/doc/",
+        "loaded": true,
+        "loadMs": 449,
+        "textLength": 11695,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://tailwindcss.com/docs/installation",
+        "loaded": true,
+        "loadMs": 286,
+        "textLength": 5208,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://learn.microsoft.com/en-us/dotnet/csharp/",
+        "loaded": true,
+        "loadMs": 879,
+        "textLength": 4156,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://playwright.dev/docs/intro",
+        "loaded": true,
+        "loadMs": 215,
+        "textLength": 4864,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.bbc.com/news",
+        "loaded": true,
+        "loadMs": 1953,
+        "textLength": 8223,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theverge.com/",
+        "loaded": true,
+        "loadMs": 4948,
+        "textLength": 22150,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://techcrunch.com/",
+        "loaded": true,
+        "loadMs": 2234,
+        "textLength": 12701,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://edition.cnn.com/",
+        "loaded": false,
+        "loadMs": 66,
+        "textLength": 13,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theguardian.com/international",
+        "loaded": true,
+        "loadMs": 2332,
+        "textLength": 18601,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.wired.com/",
+        "loaded": true,
+        "loadMs": 4919,
+        "textLength": 7593,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://apnews.com/",
+        "loaded": true,
+        "loadMs": 233,
+        "textLength": 258,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.npr.org/",
+        "loaded": true,
+        "loadMs": 3343,
+        "textLength": 10728,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://arstechnica.com/",
+        "loaded": true,
+        "loadMs": 1921,
+        "textLength": 7934,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.aljazeera.com/",
+        "loaded": true,
+        "loadMs": 1420,
+        "textLength": 5593,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.amazon.com/",
+        "loaded": false,
+        "loadMs": 221,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ebay.com/",
+        "loaded": false,
+        "loadMs": 598,
+        "textLength": 194,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.etsy.com/",
+        "loaded": false,
+        "loadMs": 682,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ikea.com/us/en/",
+        "loaded": true,
+        "loadMs": 2657,
+        "textLength": 15565,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.bestbuy.com/",
+        "loaded": false,
+        "loadMs": null,
+        "textLength": 0,
+        "sameAsChrome": null,
+        "error": "page.goto: Timeout 30000ms exceeded."
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.walmart.com/",
+        "loaded": true,
+        "loadMs": 2119,
+        "textLength": 19670,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.target.com/",
+        "loaded": true,
+        "loadMs": 4780,
+        "textLength": 1444,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.apple.com/shop/buy-iphone",
+        "loaded": true,
+        "loadMs": 1135,
+        "textLength": 84708,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.nike.com/",
+        "loaded": true,
+        "loadMs": 3938,
+        "textLength": 2690,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.zara.com/us/",
+        "loaded": false,
+        "loadMs": 86,
+        "textLength": 195,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://github.com/microsoft/playwright",
+        "loaded": true,
+        "loadMs": 1030,
+        "textLength": 9303,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://news.ycombinator.com/",
+        "loaded": true,
+        "loadMs": 223,
+        "textLength": 3977,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://stackoverflow.com/questions/tagged/javascript",
+        "loaded": false,
+        "loadMs": 169,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.reddit.com/r/programming/",
+        "loaded": true,
+        "loadMs": 81,
+        "textLength": 222,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.npmjs.com/package/playwright",
+        "loaded": true,
+        "loadMs": 240,
+        "textLength": 261,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://dev.to/",
+        "loaded": true,
+        "loadMs": 565,
+        "textLength": 8419,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://lobste.rs/",
+        "loaded": true,
+        "loadMs": 542,
+        "textLength": 3117,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://gitlab.com/gitlab-org/gitlab",
+        "loaded": true,
+        "loadMs": 1729,
+        "textLength": 850,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://huggingface.co/models",
+        "loaded": true,
+        "loadMs": 614,
+        "textLength": 3712,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.producthunt.com/",
+        "loaded": true,
+        "loadMs": 312,
+        "textLength": 267,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://vercel.com/",
+        "loaded": true,
+        "loadMs": 496,
+        "textLength": 883,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://linear.app/",
+        "loaded": true,
+        "loadMs": 713,
+        "textLength": 8482,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.figma.com/",
+        "loaded": true,
+        "loadMs": 544,
+        "textLength": 2701,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.notion.com/",
+        "loaded": true,
+        "loadMs": 592,
+        "textLength": 2073,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://stripe.com/",
+        "loaded": true,
+        "loadMs": 455,
+        "textLength": 11411,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.airbnb.com/",
+        "loaded": false,
+        "loadMs": 1022,
+        "textLength": 139,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.booking.com/",
+        "loaded": false,
+        "loadMs": 465,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.twitch.tv/",
+        "loaded": true,
+        "loadMs": 2373,
+        "textLength": 2393,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://discord.com/",
+        "loaded": true,
+        "loadMs": 1572,
+        "textLength": 2127,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://open.spotify.com/",
+        "loaded": false,
+        "loadMs": 810,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.usa.gov/",
+        "loaded": true,
+        "loadMs": 571,
+        "textLength": 4120,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.gov.uk/",
+        "loaded": true,
+        "loadMs": 166,
+        "textLength": 4011,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.weather.gov/",
+        "loaded": true,
+        "loadMs": 627,
+        "textLength": 1789,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://archive.org/",
+        "loaded": false,
+        "loadMs": 267,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://arxiv.org/abs/1706.03762",
+        "loaded": true,
+        "loadMs": 196,
+        "textLength": 3166,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.imdb.com/",
+        "loaded": false,
+        "loadMs": 168,
+        "textLength": 13,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.timeanddate.com/",
+        "loaded": false,
+        "loadMs": 225,
+        "textLength": 40,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.britannica.com/",
+        "loaded": true,
+        "loadMs": 228,
+        "textLength": 266,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://openai.com/",
+        "loaded": false,
+        "loadMs": 177,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.craigslist.org/about/sites",
+        "loaded": true,
+        "loadMs": 371,
+        "textLength": 9959,
+        "sameAsChrome": 1
+      }
+    ],
+    "lightpanda": [
+      {
+        "kind": "Docs",
+        "url": "https://en.wikipedia.org/wiki/Web_browser",
+        "loaded": true,
+        "loadMs": 633,
+        "textLength": 30019,
+        "sameAsChrome": 0.92
+      },
+      {
+        "kind": "Docs",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        "loaded": true,
+        "loadMs": 191,
+        "textLength": 8293,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://docs.python.org/3/",
+        "loaded": true,
+        "loadMs": 92,
+        "textLength": 4413,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://react.dev/",
+        "loaded": true,
+        "loadMs": 362,
+        "textLength": 8234,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://nodejs.org/en",
+        "loaded": true,
+        "loadMs": 291,
+        "textLength": 3150,
+        "sameAsChrome": 0.86
+      },
+      {
+        "kind": "Docs",
+        "url": "https://www.rust-lang.org/",
+        "loaded": true,
+        "loadMs": 105,
+        "textLength": 3485,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://go.dev/doc/",
+        "loaded": true,
+        "loadMs": 254,
+        "textLength": 12432,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "Docs",
+        "url": "https://tailwindcss.com/docs/installation",
+        "loaded": true,
+        "loadMs": 259,
+        "textLength": 5342,
+        "sameAsChrome": 0.99
+      },
+      {
+        "kind": "Docs",
+        "url": "https://learn.microsoft.com/en-us/dotnet/csharp/",
+        "loaded": true,
+        "loadMs": 651,
+        "textLength": 4822,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://playwright.dev/docs/intro",
+        "loaded": true,
+        "loadMs": 162,
+        "textLength": 4899,
+        "sameAsChrome": 0.99
+      },
+      {
+        "kind": "News",
+        "url": "https://www.bbc.com/news",
+        "loaded": true,
+        "loadMs": 507,
+        "textLength": 9524,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theverge.com/",
+        "loaded": true,
+        "loadMs": 2773,
+        "textLength": 20619,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "News",
+        "url": "https://techcrunch.com/",
+        "loaded": true,
+        "loadMs": 1341,
+        "textLength": 13345,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "News",
+        "url": "https://edition.cnn.com/",
+        "loaded": true,
+        "loadMs": 832,
+        "textLength": 7180,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theguardian.com/international",
+        "loaded": true,
+        "loadMs": 168,
+        "textLength": 18526,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "News",
+        "url": "https://www.wired.com/",
+        "loaded": true,
+        "loadMs": 3483,
+        "textLength": 7686,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "News",
+        "url": "https://apnews.com/",
+        "loaded": true,
+        "loadMs": 155,
+        "textLength": 257,
+        "sameAsChrome": 0.85
+      },
+      {
+        "kind": "News",
+        "url": "https://www.npr.org/",
+        "loaded": true,
+        "loadMs": 1393,
+        "textLength": 53009,
+        "sameAsChrome": 0.47
+      },
+      {
+        "kind": "News",
+        "url": "https://arstechnica.com/",
+        "loaded": true,
+        "loadMs": 1822,
+        "textLength": 9004,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.aljazeera.com/",
+        "loaded": true,
+        "loadMs": 751,
+        "textLength": 6444,
+        "sameAsChrome": 0.94
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.amazon.com/",
+        "loaded": false,
+        "loadMs": 137,
+        "textLength": 142,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ebay.com/",
+        "loaded": false,
+        "loadMs": 146,
+        "textLength": 194,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.etsy.com/",
+        "loaded": false,
+        "loadMs": 106,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ikea.com/us/en/",
+        "loaded": true,
+        "loadMs": 2382,
+        "textLength": 10816,
+        "sameAsChrome": 0.94
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.bestbuy.com/",
+        "loaded": true,
+        "loadMs": 2487,
+        "textLength": 4404,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.walmart.com/",
+        "loaded": true,
+        "loadMs": 1718,
+        "textLength": 20109,
+        "sameAsChrome": 0.99
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.target.com/",
+        "loaded": true,
+        "loadMs": 3848,
+        "textLength": 20506,
+        "sameAsChrome": 0.73
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.apple.com/shop/buy-iphone",
+        "loaded": true,
+        "loadMs": 502,
+        "textLength": 162885,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.nike.com/",
+        "loaded": true,
+        "loadMs": 1758,
+        "textLength": 11399,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.zara.com/us/",
+        "loaded": true,
+        "loadMs": 2638,
+        "textLength": 32316,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://github.com/microsoft/playwright",
+        "loaded": true,
+        "loadMs": 848,
+        "textLength": 11898,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://news.ycombinator.com/",
+        "loaded": false,
+        "loadMs": 136,
+        "textLength": 85,
+        "sameAsChrome": 0.01
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://stackoverflow.com/questions/tagged/javascript",
+        "loaded": false,
+        "loadMs": 113,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.reddit.com/r/programming/",
+        "loaded": true,
+        "loadMs": 82,
+        "textLength": 222,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.npmjs.com/package/playwright",
+        "loaded": true,
+        "loadMs": 168,
+        "textLength": 260,
+        "sameAsChrome": 0.85
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://dev.to/",
+        "loaded": true,
+        "loadMs": 324,
+        "textLength": 9642,
+        "sameAsChrome": 0.93
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://lobste.rs/",
+        "loaded": true,
+        "loadMs": 298,
+        "textLength": 3015,
+        "sameAsChrome": 0.88
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://gitlab.com/gitlab-org/gitlab",
+        "loaded": true,
+        "loadMs": 1302,
+        "textLength": 1460,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://huggingface.co/models",
+        "loaded": true,
+        "loadMs": 590,
+        "textLength": 3991,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.producthunt.com/",
+        "loaded": true,
+        "loadMs": 143,
+        "textLength": 266,
+        "sameAsChrome": 0.85
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://vercel.com/",
+        "loaded": true,
+        "loadMs": 269,
+        "textLength": 3258,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://linear.app/",
+        "loaded": true,
+        "loadMs": 692,
+        "textLength": 9690,
+        "sameAsChrome": 0.93
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.figma.com/",
+        "loaded": true,
+        "loadMs": 682,
+        "textLength": 2704,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.notion.com/",
+        "loaded": true,
+        "loadMs": 415,
+        "textLength": 2756,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://stripe.com/",
+        "loaded": true,
+        "loadMs": 961,
+        "textLength": 20010,
+        "sameAsChrome": 0.9
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.airbnb.com/",
+        "loaded": true,
+        "loadMs": 1795,
+        "textLength": 11309,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.booking.com/",
+        "loaded": false,
+        "loadMs": 230,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.twitch.tv/",
+        "loaded": false,
+        "loadMs": 790,
+        "textLength": 40,
+        "sameAsChrome": 0.02
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://discord.com/",
+        "loaded": true,
+        "loadMs": 755,
+        "textLength": 3329,
+        "sameAsChrome": 0.89
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://open.spotify.com/",
+        "loaded": true,
+        "loadMs": 405,
+        "textLength": 1542,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.usa.gov/",
+        "loaded": true,
+        "loadMs": 323,
+        "textLength": 4565,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.gov.uk/",
+        "loaded": true,
+        "loadMs": 102,
+        "textLength": 4001,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.weather.gov/",
+        "loaded": true,
+        "loadMs": 401,
+        "textLength": 2454,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://archive.org/",
+        "loaded": false,
+        "loadMs": 1556,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://arxiv.org/abs/1706.03762",
+        "loaded": false,
+        "loadMs": 38,
+        "textLength": 122,
+        "sameAsChrome": 0
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.imdb.com/",
+        "loaded": false,
+        "loadMs": 347,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.timeanddate.com/",
+        "loaded": false,
+        "loadMs": 172,
+        "textLength": 40,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.britannica.com/",
+        "loaded": true,
+        "loadMs": 138,
+        "textLength": 265,
+        "sameAsChrome": 0.85
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://openai.com/",
+        "loaded": false,
+        "loadMs": 139,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.craigslist.org/about/sites",
+        "loaded": true,
+        "loadMs": 283,
+        "textLength": 9959,
+        "sameAsChrome": 1
+      }
+    ],
+    "obscura": [
+      {
+        "kind": "Docs",
+        "url": "https://en.wikipedia.org/wiki/Web_browser",
+        "loaded": true,
+        "loadMs": 883,
+        "textLength": 21045,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "Docs",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        "loaded": true,
+        "loadMs": 395,
+        "textLength": 18150,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://docs.python.org/3/",
+        "loaded": true,
+        "loadMs": 200,
+        "textLength": 2651,
+        "sameAsChrome": 0.83
+      },
+      {
+        "kind": "Docs",
+        "url": "https://react.dev/",
+        "loaded": true,
+        "loadMs": 1177,
+        "textLength": 7944,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://nodejs.org/en",
+        "loaded": true,
+        "loadMs": 540,
+        "textLength": 1642,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://www.rust-lang.org/",
+        "loaded": true,
+        "loadMs": 1274,
+        "textLength": 3235,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "Docs",
+        "url": "https://go.dev/doc/",
+        "loaded": true,
+        "loadMs": 634,
+        "textLength": 11875,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://tailwindcss.com/docs/installation",
+        "loaded": true,
+        "loadMs": 432,
+        "textLength": 5186,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://learn.microsoft.com/en-us/dotnet/csharp/",
+        "loaded": true,
+        "loadMs": 2100,
+        "textLength": 4175,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Docs",
+        "url": "https://playwright.dev/docs/intro",
+        "loaded": true,
+        "loadMs": 266,
+        "textLength": 4997,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.bbc.com/news",
+        "loaded": true,
+        "loadMs": 1827,
+        "textLength": 9524,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theverge.com/",
+        "loaded": false,
+        "loadMs": null,
+        "textLength": 0,
+        "sameAsChrome": 0,
+        "error": "page.goto: Timeout 30000ms exceeded."
+      },
+      {
+        "kind": "News",
+        "url": "https://techcrunch.com/",
+        "loaded": true,
+        "loadMs": 18031,
+        "textLength": 13455,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "News",
+        "url": "https://edition.cnn.com/",
+        "loaded": true,
+        "loadMs": 9277,
+        "textLength": 8435,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "News",
+        "url": "https://www.theguardian.com/international",
+        "loaded": true,
+        "loadMs": 1441,
+        "textLength": 18514,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.wired.com/",
+        "loaded": true,
+        "loadMs": 25282,
+        "textLength": 7298,
+        "sameAsChrome": 0.97
+      },
+      {
+        "kind": "News",
+        "url": "https://apnews.com/",
+        "loaded": true,
+        "loadMs": 140,
+        "textLength": 258,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "News",
+        "url": "https://www.npr.org/",
+        "loaded": true,
+        "loadMs": 14195,
+        "textLength": 13824,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://arstechnica.com/",
+        "loaded": true,
+        "loadMs": 7721,
+        "textLength": 8071,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "News",
+        "url": "https://www.aljazeera.com/",
+        "loaded": false,
+        "loadMs": 1175,
+        "textLength": 7,
+        "sameAsChrome": 0
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.amazon.com/",
+        "loaded": false,
+        "loadMs": 215,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ebay.com/",
+        "loaded": false,
+        "loadMs": 175,
+        "textLength": 194,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.etsy.com/",
+        "loaded": false,
+        "loadMs": 113,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.ikea.com/us/en/",
+        "loaded": true,
+        "loadMs": 5633,
+        "textLength": 10408,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.bestbuy.com/",
+        "loaded": true,
+        "loadMs": 17100,
+        "textLength": 2638,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.walmart.com/",
+        "loaded": false,
+        "loadMs": null,
+        "textLength": 0,
+        "sameAsChrome": 0,
+        "error": "page.goto: Timeout 30000ms exceeded."
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.target.com/",
+        "loaded": false,
+        "loadMs": null,
+        "textLength": 0,
+        "sameAsChrome": 0,
+        "error": "page.goto: Protocol error (Page.navigate): Network error: Network error: Forbidden URL scheme 'javascript' - only http, https, and file are allowed"
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.apple.com/shop/buy-iphone",
+        "loaded": false,
+        "loadMs": 3656,
+        "textLength": 169,
+        "sameAsChrome": 0.01
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.nike.com/",
+        "loaded": true,
+        "loadMs": 6271,
+        "textLength": 6043,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Shopping",
+        "url": "https://www.zara.com/us/",
+        "loaded": false,
+        "loadMs": null,
+        "textLength": 0,
+        "sameAsChrome": null,
+        "error": "page.evaluate: Execution context was destroyed, most likely because of a navigation"
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://github.com/microsoft/playwright",
+        "loaded": true,
+        "loadMs": 2020,
+        "textLength": 11045,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://news.ycombinator.com/",
+        "loaded": true,
+        "loadMs": 479,
+        "textLength": 3923,
+        "sameAsChrome": 0.98
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://stackoverflow.com/questions/tagged/javascript",
+        "loaded": true,
+        "loadMs": 161,
+        "textLength": 265,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.reddit.com/r/programming/",
+        "loaded": true,
+        "loadMs": 91,
+        "textLength": 222,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.npmjs.com/package/playwright",
+        "loaded": true,
+        "loadMs": 147,
+        "textLength": 261,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://dev.to/",
+        "loaded": true,
+        "loadMs": 1107,
+        "textLength": 8406,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://lobste.rs/",
+        "loaded": true,
+        "loadMs": 884,
+        "textLength": 3842,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://gitlab.com/gitlab-org/gitlab",
+        "loaded": true,
+        "loadMs": 2206,
+        "textLength": 586,
+        "sameAsChrome": 0.44
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://huggingface.co/models",
+        "loaded": true,
+        "loadMs": 861,
+        "textLength": 3712,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Code and forums",
+        "url": "https://www.producthunt.com/",
+        "loaded": true,
+        "loadMs": 150,
+        "textLength": 267,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://vercel.com/",
+        "loaded": true,
+        "loadMs": 1691,
+        "textLength": 3512,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://linear.app/",
+        "loaded": true,
+        "loadMs": 953,
+        "textLength": 8886,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.figma.com/",
+        "loaded": true,
+        "loadMs": 1712,
+        "textLength": 2701,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.notion.com/",
+        "loaded": true,
+        "loadMs": 3156,
+        "textLength": 2687,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://stripe.com/",
+        "loaded": true,
+        "loadMs": 686,
+        "textLength": 11372,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.airbnb.com/",
+        "loaded": true,
+        "loadMs": 1598,
+        "textLength": 223,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.booking.com/",
+        "loaded": false,
+        "loadMs": 433,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://www.twitch.tv/",
+        "loaded": true,
+        "loadMs": 1518,
+        "textLength": 447,
+        "sameAsChrome": 0.24
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://discord.com/",
+        "loaded": true,
+        "loadMs": 3408,
+        "textLength": 2160,
+        "sameAsChrome": 0.99
+      },
+      {
+        "kind": "Web apps",
+        "url": "https://open.spotify.com/",
+        "loaded": false,
+        "loadMs": 800,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.usa.gov/",
+        "loaded": true,
+        "loadMs": 1445,
+        "textLength": 4160,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.gov.uk/",
+        "loaded": true,
+        "loadMs": 314,
+        "textLength": 4093,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.weather.gov/",
+        "loaded": true,
+        "loadMs": 1466,
+        "textLength": 1815,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://archive.org/",
+        "loaded": false,
+        "loadMs": 723,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://arxiv.org/abs/1706.03762",
+        "loaded": true,
+        "loadMs": 568,
+        "textLength": 3194,
+        "sameAsChrome": 1
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.imdb.com/",
+        "loaded": false,
+        "loadMs": 338,
+        "textLength": 0,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.timeanddate.com/",
+        "loaded": false,
+        "loadMs": 146,
+        "textLength": 40,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.britannica.com/",
+        "loaded": true,
+        "loadMs": 129,
+        "textLength": 266,
+        "sameAsChrome": 0.95
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://openai.com/",
+        "loaded": true,
+        "loadMs": 1940,
+        "textLength": 2950,
+        "sameAsChrome": null
+      },
+      {
+        "kind": "Plain info",
+        "url": "https://www.craigslist.org/about/sites",
+        "loaded": true,
+        "loadMs": 522,
+        "textLength": 9959,
+        "sameAsChrome": 1
+      }
+    ]
+  }
+}
