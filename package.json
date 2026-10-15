@@ -8,9 +8,17 @@
   "engines": {
     "node": ">=26"
   },
+  "bin": {
+    "agent-tabs": "./src/cli/main.ts"
+  },
   "exports": {
     ".": "./src/index.ts"
   },
+  "files": [
+    "src",
+    "skills",
+    "README.md"
+  ],
   "scripts": {
     "setup": "playwright-core install --only-shell chromium",
     "typecheck": "tsc --noEmit",
@@ -20,7 +28,11 @@
   },
   "dependencies": {
     "@ghostery/adblocker": "2.20.1",
-    "playwright-core": "1.63.0"
+    "@jitl/quickjs-wasmfile-release-sync": "0.32.0",
+    "acorn": "8.19.0",
+    "diff": "9.0.0",
+    "playwright-core": "1.63.0",
+    "quickjs-emscripten-core": "0.32.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
