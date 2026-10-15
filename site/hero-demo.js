@@ -57,6 +57,7 @@ const els = {
   fillChrome: document.getElementById("fill-chrome"),
   replay: document.getElementById("demo-replay"),
   hovercard: document.getElementById("hovercard"),
+  cursor: document.getElementById("agent-cursor"),
 }
 
 // The meter's full width: every tab open in plain Chrome.
@@ -193,6 +194,20 @@ function draw() {
   }
 }
 
+/** The agent's cursor glides to a tab, as if the agent were pointing at it. */
+function pointAt(key) {
+  const tab = tabOf(key)
+  if (tab === undefined || tab.card === undefined) {
+    return
+  }
+  const app = els.app.getBoundingClientRect()
+  const box = tab.card.getBoundingClientRect()
+  const x = box.left - app.left + box.width * 0.62
+  const y = box.top - app.top + box.height * 0.42
+  els.cursor.style.transform = `translate(${x}px, ${y}px)`
+  els.cursor.classList.add("shown")
+}
+
 /** What the agent is doing now, in one line at the top of the window. */
 function say(key, html) {
   const icon = key === null ? "" : `<img src="${PAGES[key].icon}" alt="" width="14" height="14">`
@@ -258,8 +273,12 @@ function runStep(step, instant) {
     tabs.push({ key, state: "live", lastUsed: 0, note: null })
     const slept = use(key)
     say(key, `Opened <b>${NAME[key]}</b>${asleepText(slept)}`)
+    draw()
+    pointAt(key)
+    return
   } else if (step.read !== undefined) {
     const key = step.read
+    pointAt(key)
     tabOf(key).note = "Read while asleep"
     say(key, `Read <b>${NAME[key]}</b> <span class="muted">· without waking it</span>`)
     setTimeout(() => {
@@ -268,9 +287,11 @@ function runStep(step, instant) {
     }, instant ? 0 : 1800)
   } else if (step.wake !== undefined) {
     wake(step.wake, instant, "Clicked a link on")
+    pointAt(step.wake)
     return
   } else if (step.done !== undefined) {
     say(null, `<b>Done.</b> ${escapeHtml(step.done)}`)
+    els.cursor.classList.remove("shown")
   }
   draw()
 }
@@ -317,6 +338,7 @@ function restart() {
   stepIndex = 0
   playing = true
   els.grid.innerHTML = ""
+  els.cursor.classList.remove("shown")
   say(null, '<span class="muted">Task:</span> which headless browser should our agent use?')
   hideHovercard()
   draw()
@@ -327,6 +349,8 @@ function restart() {
 function userClick(key) {
   playing = false
   clearTimeout(timer)
+  // You're driving now; the agent's cursor steps aside.
+  els.cursor.classList.remove("shown")
   const tab = tabOf(key)
   if (tab.state === "asleep") {
     wake(key, false, "You woke")

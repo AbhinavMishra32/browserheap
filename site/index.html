@@ -14,25 +14,24 @@
 .hero-copy { display: grid; justify-items: center; gap: 20px; max-width: 900px; margin: 0 auto; }
 .hero-copy .lede { max-width: 46rem; }
 .hero-product { position: relative; margin-top: 56px; text-align: left; }
-.hero-dither { position: absolute; left: -30%; right: -30%; top: -460px; bottom: 0; z-index: -1; }
+.hero-dither { position: absolute; left: -30%; right: -30%; top: -360px; bottom: 0; z-index: -1; }
 /* Under the window (z-index -1, after the dots), so it fades only the dots. */
 .hero-fade { bottom: 0; left: -50vw; right: -50vw; z-index: -1; }
 
 /* Getting it: one command per agent, ready to paste. The first thing the
    hero offers. */
-.get { width: min(720px, 100%); margin-top: 12px; text-align: left; background: var(--panel); border: 1px solid var(--ink-4); border-radius: 14px; overflow: hidden; }
-.get-tabs { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
-.get-tabs button { display: inline-flex; align-items: center; gap: 8px; flex: none; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-3); font: 500 13.5px var(--font-sans); cursor: pointer; }
-.get-tabs button:hover { color: var(--ink); }
-.get-tabs button[aria-selected="true"] { background: var(--line); color: var(--ink); }
-.get-body { display: flex; align-items: flex-start; gap: 12px; padding: 14px 14px 14px 18px; }
-.get-body pre { flex: 1; margin: 0; min-width: 0; overflow-x: auto; font: 13.5px/1.7 var(--font-mono); color: var(--ink); }
+.get { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; margin-top: 8px; padding: 4px; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
+.get-tabs { display: flex; gap: 2px; flex: none; }
+/* Icon-only tabs; the name is in the button's title and aria-label. */
+.get-tabs button { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: transparent; opacity: 0.45; cursor: pointer; font-size: 0; }
+.get-tabs button:hover { opacity: 0.8; }
+.get-tabs button[aria-selected="true"] { background: var(--line); opacity: 1; }
+.get-tabs svg { width: 16px; height: 16px; color: var(--ink); }
+.get-body { display: flex; align-items: center; gap: 8px; min-width: 0; padding-left: 10px; border-left: 1px solid var(--line); }
+.get-body pre { margin: 0; min-width: 0; overflow-x: auto; scrollbar-width: none; font: 13.5px/34px var(--font-mono); color: var(--ink-2); }
 .get-body pre .p { color: var(--ink-3); user-select: none; }
-.get-body .button { flex: none; padding: 6px 14px; font-size: 13px; }
-.get-hint { padding: 0 18px 14px; font-size: 13px; color: var(--ink-3); }
-.hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; color: var(--ink-3); }
-.hero-links a { color: var(--ink-2); }
-.hero-links a:hover { color: var(--ink); }
+.get-copy { flex: none; height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--line); color: var(--ink); font: 500 12.5px var(--font-sans); cursor: pointer; }
+.get-copy:hover { background: var(--ink-4); }
 
 /* The demo: an agent's browser as a dark app window. Tabs it isn't using
    turn to dots; the meter under them shows what that saves. */
@@ -83,6 +82,11 @@
 .meter b { font: 500 13px var(--font-mono); color: var(--ink); text-align: right; min-width: 72px; }
 .meter b.theirs { color: var(--ink-3); }
 
+/* The agent's cursor: glides to whichever tab the agent opens, reads or wakes. */
+.agent-cursor { position: absolute; left: 0; top: 0; z-index: 4; display: flex; align-items: flex-start; gap: 2px; pointer-events: none; opacity: 0; transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s; }
+.agent-cursor.shown { opacity: 1; }
+.agent-cursor svg { width: 18px; height: 18px; filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.5)); }
+.agent-cursor span { margin-top: 14px; padding: 2px 8px; border-radius: 6px; background: var(--accent); color: var(--bg); font: 600 11.5px var(--font-sans); white-space: nowrap; }
 .hovercard { position: absolute; z-index: 5; width: 300px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 16px 40px rgb(0 0 0 / 0.6); pointer-events: none; }
 .hc-head { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: start; }
 .hc-icon { width: 16px; height: 16px; border-radius: 3px; margin-top: 1px; }
@@ -205,6 +209,7 @@
   .tab-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 0; }
   .now { display: none; }
   .get-body pre { font-size: 12px; }
+  .get { width: 100%; }
   .quotes { grid-template-columns: minmax(0, 1fr); }
   .facts-head { grid-template-columns: minmax(0, 1fr); }
   .hero-fade { display: none; }
@@ -251,10 +256,8 @@
             <button type="button" role="tab" aria-selected="false" data-get="cli"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="#cb3837" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg>CLI</button>
             <button type="button" role="tab" aria-selected="false" data-get="sdk"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="#cb3837" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg>SDK</button>
           </div>
-          <div class="get-body"><pre id="get-code"></pre><button class="button" type="button" id="get-copy">Copy</button></div>
-          <p class="get-hint" id="get-hint"></p>
+          <div class="get-body"><pre id="get-code"></pre><button class="get-copy" type="button" id="get-copy">Copy</button></div>
         </div>
-        <p class="hero-links"><a href="research.html">Read the research →</a><a href="https://github.com/AbhinavMishra32/browserheap">GitHub →</a></p>
       </div>
 
       <div class="hero-product">
@@ -270,6 +273,7 @@
             <span>Browserheap</span><span class="track"><span class="fill ours" id="fill-ours"></span></span><b id="mem-ours">0 MB</b>
             <span>Plain Chrome</span><span class="track"><span class="fill" id="fill-chrome"></span></span><b class="theirs" id="mem-chrome">0 MB</b>
           </div>
+          <div class="agent-cursor" id="agent-cursor" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 2.5 20 12l-7.2 1.6L9.6 21z" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Agent</span></div>
           <div class="hovercard" id="hovercard" hidden>
             <div class="hc-head"><img class="hc-icon" alt=""><div><span class="hc-title"></span><span class="hc-host"></span></div></div>
             <p class="hc-text"></p>
@@ -793,7 +797,7 @@ const GET = {
     hint: "Adds the skill to Codex and downloads the browser. Then ask it to research anything: it opens tabs freely and never has to close one.",
   },
   cli: {
-    lines: ["npx browserheap install", "npx browserheap open https://news.ycombinator.com"],
+    lines: ["npx browserheap install"],
     hint: "Any agent that can run a shell can drive it. Tabs sleep on their own.",
   },
   sdk: {
@@ -807,12 +811,15 @@ let getChoice = "claude"
 function showGet(choice) {
   getChoice = choice
   getCode.innerHTML = GET[choice].lines.map((line) => `<span class="p">$ </span>${line.replace(/&/g, "&amp;").replace(/</g, "&lt;")}`).join("\n")
-  document.getElementById("get-hint").textContent = GET[choice].hint
+  getCode.title = GET[choice].hint
   for (const button of document.querySelectorAll("[data-get]")) {
     button.setAttribute("aria-selected", String(button.dataset.get === choice))
   }
 }
 for (const button of document.querySelectorAll("[data-get]")) {
+  // The tabs show only icons; their names go to the tooltip and screen readers.
+  button.title = button.textContent.trim()
+  button.setAttribute("aria-label", button.title)
   button.addEventListener("click", () => showGet(button.dataset.get))
 }
 getCopy.addEventListener("click", async () => {
