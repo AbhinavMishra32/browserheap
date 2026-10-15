@@ -173,6 +173,12 @@
 .bench-chart { padding: 20px 20px 16px; }
 .bench-chart .legend { margin-bottom: 12px; }
 .bench .caption { padding: 0 20px 20px; }
+.chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.mini { padding: 18px 20px 16px; }
+.mini.wide { grid-column: 1 / -1; padding-bottom: 64px; } /* room for the end labels that stack below the axis */
+.mini-head { margin-bottom: 14px; }
+.mini-head h3 { font-size: 15px; font-weight: 500; }
+.mini-head p { margin-top: 4px; font-size: 13px; color: var(--ink-3); }
 
 /* Full browser: a grid of short facts with rules between columns */
 .facts { padding-block: 96px; }
@@ -220,6 +226,7 @@
   .fact:nth-child(4n + 1) { border-left: 1px solid var(--line); padding-left: 24px; }
   .fact:nth-child(2n + 1) { border-left: 0; padding-left: 0; }
   .bench-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chart-grid { grid-template-columns: minmax(0, 1fr); }
   .bench-stat:nth-child(3) { border-left: 0; }
   .bench-stat:nth-child(n + 3) { border-top: 1px solid var(--line); }
 }
@@ -345,29 +352,40 @@
       <div class="panel">
         <div class="panel-head">
           <span class="title">Memory and CPU <span class="chip ok">✓ Measured 15 Oct 2026</span></span>
-          <div class="segmented" role="tablist" aria-label="Benchmark charts">
-            <button type="button" role="tab" aria-selected="true" data-chart="line">1 to 30 tabs</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="final">At 30</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="slope">Per tab</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="scale">100 tabs</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="cpu">Idle CPU</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="agents">10 agents</button>
-          </div>
         </div>
         <div class="bench-stats" id="stats"></div>
         <div class="bench-chart">
           <ul class="legend"><li><span class="key ours"></span>Browserheap</li><li><span class="key"></span>Agent tools</li><li><span class="key dash"></span>Engines</li></ul>
-          <div class="chart-wrap" data-panel="line">
+          <div class="chart-wrap">
             <svg class="chart" id="memory-chart" role="img" aria-label="Memory from 1 to 30 tabs for eight browsers"></svg>
             <div class="tooltip" id="tooltip" hidden></div>
           </div>
-          <div class="chart-wrap" data-panel="final" hidden><svg class="chart" id="final-chart" role="img" aria-label="Memory at 30 tabs for eight browsers"></svg></div>
-          <div class="chart-wrap" data-panel="slope" hidden><svg class="chart" id="slope-chart" role="img" aria-label="Memory added by each extra tab for eight browsers"></svg></div>
-          <div class="chart-wrap" data-panel="scale" hidden><svg class="chart" id="scale-chart" role="img" aria-label="Memory up to 100 tabs"></svg><div class="tooltip" id="scale-tooltip" hidden></div></div>
-          <div class="chart-wrap" data-panel="cpu" hidden><svg class="chart" id="cpu-chart" role="img" aria-label="CPU over 10 idle minutes with 30 tabs open"></svg><div class="tooltip" id="cpu-tooltip" hidden></div></div>
-          <div class="chart-wrap" data-panel="agents" hidden><svg class="chart" id="agents-chart" role="img" aria-label="10 agents on one machine"></svg><div class="tooltip" id="agents-tooltip" hidden></div></div>
         </div>
-        <p class="caption" id="chart-caption"></p>
+        <p class="caption">Hover the chart to see every browser at each tab. Lightpanda starts lighter for the first few tabs, then grows by about 1 GB on each heavy news site. <a href="research.html">Full method and every number →</a></p>
+      </div>
+
+      <!-- The other measurements, smaller, all in view at once. -->
+      <div class="chart-grid">
+        <div class="panel mini">
+          <div class="mini-head"><h3>Up to 100 tabs</h3><p>Each browser stopped at 6.5 GB of the sandbox's 8 GB. × marks where.</p></div>
+          <div class="chart-wrap"><svg class="chart" id="scale-chart" role="img" aria-label="Memory up to 100 tabs"></svg><div class="tooltip" id="scale-tooltip" hidden></div></div>
+        </div>
+        <div class="panel mini">
+          <div class="mini-head"><h3>10 agents, one machine</h3><p>Each agent with its own browser, all opening tabs at once.</p></div>
+          <div class="chart-wrap"><svg class="chart" id="agents-chart" role="img" aria-label="10 agents on one machine"></svg><div class="tooltip" id="agents-tooltip" hidden></div></div>
+        </div>
+        <div class="panel mini">
+          <div class="mini-head"><h3>Memory at 30 tabs</h3><p>All 30 tabs open, after a 5 second settle.</p></div>
+          <div class="chart-wrap"><svg class="chart" id="final-chart" role="img" aria-label="Memory at 30 tabs for eight browsers"></svg></div>
+        </div>
+        <div class="panel mini">
+          <div class="mini-head"><h3>Cost of one more tab</h3><p>The slope of each browser's line.</p></div>
+          <div class="chart-wrap"><svg class="chart" id="slope-chart" role="img" aria-label="Memory added by each extra tab for eight browsers"></svg></div>
+        </div>
+        <div class="panel mini wide">
+          <div class="mini-head"><h3>Idle CPU, 30 tabs</h3><p>10 minutes with nothing happening. 100% is one core. Live tabs keep running scripts nobody is looking at.</p></div>
+          <div class="chart-wrap"><svg class="chart" id="cpu-chart" role="img" aria-label="CPU over 10 idle minutes with 30 tabs open"></svg><div class="tooltip" id="cpu-tooltip" hidden></div></div>
+        </div>
       </div>
     </div>
   </section>
@@ -766,26 +784,15 @@ for (const stat of stats.slice(0, 4)) {
 const chartWidth = Math.max(640, Math.round(document.querySelector(".bench-chart").clientWidth))
 const chartHeight = 380
 
-// Memory charts, switched by the segmented control above them.
 drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), chartWidth, chartHeight)
-drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), chartWidth)
-drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, chartWidth)
 
-const CAPTIONS = {
-  line: "Hover the chart to see every browser at each tab. Lightpanda starts lighter for the first few tabs, then grows by about 1 GB on each heavy news site.",
-  final: "Memory with all 30 tabs open, after a 5 second settle.",
-  slope: "What one more open tab costs: the slope of each browser's line.",
-  scale: "We kept opening tabs, up to 100, and stopped each browser at 6.5 GB of the sandbox's 8 GB. × marks where it stopped.",
-  cpu: "30 tabs open and nothing happening, for 10 minutes. 100% is one full CPU core. Live tabs keep running scripts nobody is looking at.",
-  agents: "10 agents on one 8 GB machine, each with its own browser, opening tabs at the same time.",
-}
-function showCaption(chart) {
-  document.getElementById("chart-caption").innerHTML = `${CAPTIONS[chart]} <a href="research.html">Full method and every number →</a>`
-}
-showCaption("line")
-for (const button of document.querySelectorAll("[data-chart]")) {
-  button.addEventListener("click", () => showCaption(button.dataset.chart))
-}
+// The smaller charts in the grid under it, drawn at their own width.
+const miniWidth = Math.max(480, Math.round(document.querySelector(".mini .chart-wrap").clientWidth))
+const wideWidth = Math.max(480, Math.round(document.querySelector(".mini.wide .chart-wrap").clientWidth))
+const miniHeight = 280
+drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), miniWidth)
+drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, miniWidth)
+
 if (B.scale.length > 0) {
   drawLineChart(document.getElementById("scale-chart"), document.getElementById("scale-tooltip"), B.scale.map((run) => {
     const tool = toolOf(run.browser)
@@ -794,10 +801,10 @@ if (B.scale.length > 0) {
     xMin: 1, xMax: 100, xTicks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open",
     yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
     xTitle: (tab) => `${tab} tabs open`, valueFormat: formatMb, limit: { y: 6500, label: "6.5 GB limit" },
-    width: chartWidth, height: chartHeight,
+    width: miniWidth, height: miniHeight,
   })
 } else {
-  document.querySelector('[data-chart="scale"]').hidden = true
+  document.getElementById("scale-chart").closest(".mini").hidden = true
 }
 if (B.idle.length > 0) {
   const top = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.cpu))))
@@ -808,10 +815,10 @@ if (B.idle.length > 0) {
     xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (seconds) => `${seconds / 60}`, xLabel: "idle minutes",
     yMax: top.max, yStep: top.max / 5, yFormat: (v) => `${v}%`, valueFormat: (v) => `${v}%`,
     xTitle: (seconds) => `${(seconds / 60).toFixed(2).replace(/\.?0+$/, "")} min idle`,
-    width: chartWidth, height: chartHeight,
+    width: wideWidth, height: miniHeight,
   })
 } else {
-  document.querySelector('[data-chart="cpu"]').hidden = true
+  document.getElementById("cpu-chart").closest(".mini").hidden = true
 }
 if (B.agents.length > 0) {
   drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), B.agents.map((run) => {
@@ -824,10 +831,10 @@ if (B.agents.length > 0) {
     xMin: 0, xMax: 100, xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open across 10 agents",
     yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
     xTitle: (tabs) => `${tabs} tabs (${tabs / 10} per agent)`, valueFormat: formatMb, limit: { y: 6500, label: "6.5 GB limit" },
-    width: chartWidth, height: chartHeight,
+    width: miniWidth, height: miniHeight,
   })
 } else {
-  document.querySelector('[data-chart="agents"]').hidden = true
+  document.getElementById("agents-chart").closest(".mini").hidden = true
 }
 
 function wireTabs(buttonAttr, panelAttr) {
@@ -843,7 +850,6 @@ function wireTabs(buttonAttr, panelAttr) {
     })
   }
 }
-wireTabs("data-chart", "data-panel")
 wireTabs("data-way", "data-way-panel")
 
 // Still a full browser: the numbers in the fact grid.
