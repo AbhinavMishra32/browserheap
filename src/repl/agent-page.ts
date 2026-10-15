@@ -13,7 +13,7 @@
  * agent never needs sleep() after one. Errors are Playwright's first line,
  * without its call log.
  *
- * A page follows its tab (agent-tabs), not one Playwright page: a tab that
+ * A page follows its tab (browserheap), not one Playwright page: a tab that
  * went to sleep and woke up has a new page underneath, so every call asks
  * the tab for its page then. `const docs = page` in one REPL call still works
  * many calls later, after docs has slept. Locators work the same way: each
@@ -25,9 +25,9 @@
  * the sandbox can read, so nothing there leads to the browser context, its
  * cookies, or the rest of the program.
  *
- * Uses:    agent-tabs (Tab), snapshot.ts (refs), settle.ts, playwright-core
+ * Uses:    browserheap (Tab), snapshot.ts (refs), settle.ts, playwright-core
  * Used by: session.ts, repl.ts
- * Built:   in O first (5.6), copied into agent-tabs
+ * Built:   in O first (5.6), copied into browserheap
  */
 import { inspect } from "node:util"
 import type { Locator, Page } from "playwright-core"

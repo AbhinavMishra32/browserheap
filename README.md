@@ -1,4 +1,4 @@
-# agent-tabs
+# Browserheap
 
 > Working name. The real one is picked before launch.
 
@@ -6,7 +6,7 @@ A browser for AI agents where **a tab costs memory only while the agent is using
 
 Agents doing research open tab after tab and never close them. Most of those tabs sit idle, holding
 memory: every running page costs what its site costs, often 100 MB to 1 GB for a news front page.
-agent-tabs keeps the few tabs the agent is using live and puts the rest to sleep until the agent goes
+Browserheap keeps the few tabs the agent is using live and puts the rest to sleep until the agent goes
 back to them. It's the same Chromium underneath, so every site still works, and the agent can still
 see, click and screenshot.
 
@@ -25,18 +25,17 @@ console.log(await tabs[1].text())                   // read a sleeping tab witho
 ## Use it from Claude Code, Codex and other agents
 
 ```sh
-npx agent-tabs install                          # once: downloads its Chromium
-npx agent-tabs open https://news.ycombinator.com   # the page as a tree with refs
-npx agent-tabs run 'await page.locator("e14").click(); console.log((await snapshot(page)).diff)'
-npx agent-tabs tabs                             # live and asleep tabs
-npx agent-tabs stop
+npx browserheap install                          # once: downloads its Chromium
+npx browserheap open https://news.ycombinator.com   # the page as a tree with refs
+npx browserheap run 'await page.locator("e14").click(); console.log((await snapshot(page)).diff)'
+npx browserheap tabs                             # live and asleep tabs
+npx browserheap stop
 ```
 
-Until it's on npm, run `node src/cli/main.ts` from a checkout instead of `npx agent-tabs`.
 
 The agent writes Playwright-style JavaScript into a REPL that stays alive between commands, so one
 command can do many steps and variables carry over. Give your agent the skill file in
-[`skills/agent-tabs/SKILL.md`](skills/agent-tabs/SKILL.md): copy the folder into `.claude/skills/`
+[`skills/browserheap/SKILL.md`](skills/browserheap/SKILL.md): copy the folder into `.claude/skills/`
 for Claude Code, or into your Codex skills (or paste it into `AGENTS.md`). An MCP server is next.
 
 ## Numbers
@@ -46,7 +45,7 @@ browser (Linux, 8 vCPUs, 8 GB), default settings, memory as PSS over all the bro
 
 | Browser | Memory at 30 tabs | Each extra tab adds |
 |---|---|---|
-| **agent-tabs** | **539 MB** | **3 MB** |
+| **Browserheap** | **539 MB** | **3 MB** |
 | agent-browser 0.39.1 | 3,583 MB | 113 MB |
 | Headless Chrome (Playwright) | 3,797 MB | 127 MB |
 | Stagehand 4.2.1 | 3,877 MB | 117 MB |
@@ -55,12 +54,12 @@ browser (Linux, 8 vCPUs, 8 GB), default settings, memory as PSS over all the bro
 | Playwright MCP 0.0.83 | 4,406 MB | 137 MB |
 | Obscura 0.2.4 | 6,884 MB | 193 MB |
 
-Lightpanda is lighter than agent-tabs for the first few tabs and passes it around tab 10. Waking a
+Lightpanda is lighter than Browserheap for the first few tabs and passes it around tab 10. Waking a
 sleeping tab took 274 ms.
 
 **Agents can still do their work.** It's Chromium, so nothing an agent does breaks:
 
-| | agent-tabs | Chrome (and every agent tool above) | Lightpanda | Obscura |
+| | Browserheap | Chrome (and every agent tool above) | Lightpanda | Obscura |
 |---|---|---|---|---|
 | Agent actions that work (19 tests) | **19** | 19 | 12 | 15 |
 | Real sites with the same content as Chrome | **45 / 46** | 46 / 46 | 42 / 46 | 39 / 46 |
@@ -106,7 +105,7 @@ pnpm setup        # downloads Playwright's Chromium headless shell
 ```
 
 ```ts
-import { launch } from "agent-tabs"
+import { launch } from "browserheap"
 
 const browser = await launch({ maxLive: 2 })
 
@@ -134,7 +133,7 @@ point it at one.
 What the CLI runs, for building your own agent tool:
 
 ```ts
-import { startSession } from "agent-tabs"
+import { startSession } from "browserheap"
 
 const session = await startSession({ maxLive: 2 })
 const result = await session.run(`await openTab("react.dev"); console.log((await snapshot(page)).tree)`)
@@ -191,7 +190,7 @@ only what it loads. `startBlocking(context, options)` adds the same blocking to 
 
 ## Building your own tools on the tabs
 
-The REPL is one way to drive the tabs. Underneath, agent-tabs decides which tabs are running and
+The REPL is one way to drive the tabs. Underneath, Browserheap decides which tabs are running and
 hands out ordinary Playwright pages, so **any tooling works on top of it**:
 
 - tool calls like Playwright MCP's or agent-browser's: `open`, `tabs`, `snapshot`, `click`, `type`, `screenshot`
@@ -269,7 +268,7 @@ Everything above can be rerun. Results go to `bench/results/` (not in git); the 
 **Memory**, on this computer (macOS `footprint`) or Linux (PSS):
 
 ```sh
-node bench/run.ts agent-tabs 30 --live 2
+node bench/run.ts browserheap 30 --live 2
 node bench/run.ts chrome-shell 30          # or chromium, webkit, obscura, lightpanda
 ```
 
@@ -286,8 +285,8 @@ uv venv .venv && uv pip install --python .venv/bin/python browser-use==0.13.11
 **Agent actions** (19 tests on a local test site) and **real sites** (60 sites, compared with Chrome):
 
 ```sh
-node bench/actions.ts agent-tabs          # or chrome, lightpanda, obscura
-node bench/compat.ts agent-tabs
+node bench/actions.ts browserheap          # or chrome, lightpanda, obscura
+node bench/compat.ts browserheap
 ```
 
 **On E2B**, every browser on the same clean machine (needs `E2B_API_KEY`):

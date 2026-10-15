@@ -10,7 +10,9 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 const results = new URL("../bench/launch/2026-10-15/", import.meta.url)
 
 function readJson(path) {
-  return JSON.parse(readFileSync(new URL(path, results), "utf8"))
+  // These runs were recorded before the rename, as "agent-tabs".
+  const text = readFileSync(new URL(path, results), "utf8").replaceAll("agent-tabs", "browserheap")
+  return JSON.parse(text)
 }
 
 function readFolder(folder) {
@@ -82,7 +84,7 @@ if (wakeRun !== undefined) {
 // 30 tabs with 1, 2, 4 or 8 of them live (2 comes from the memory run).
 const live = []
 for (const run of [...extras, ...readFolder("memory/")]) {
-  const match = /^agent-tabs --live (\d+)$/.exec(run.browser)
+  const match = /^browserheap --live (\d+)$/.exec(run.browser)
   if (match !== null && (run.wakes === undefined || run.wakes === null)) {
     live.push({ live: Number(match[1]), finalMb: run.finalMb, perTab: run.perTab.map((tab) => tab.totalMb) })
   }

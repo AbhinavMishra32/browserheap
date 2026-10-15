@@ -3,7 +3,7 @@
  * by your ChatGPT usage limit (or anything else) carries on where it left off.
  *
  *   const progress = loadProgress()
- *   progress.runs["agent-tabs"][taskId]     a finished task, graded
+ *   progress.runs["browserheap"][taskId]     a finished task, graded
  *   saveProgress(progress)
  *
  * Lives in bench/results/bu-bench-progress.json, out of git: it holds the

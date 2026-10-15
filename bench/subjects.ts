@@ -8,7 +8,7 @@
  *   await tab.close()
  *   await subject.close()
  *
- *   agent-tabs   ours: Chromium's headless shell, 2 tabs live, the rest asleep, ads blocked
+ *   browserheap   ours: Chromium's headless shell, 2 tabs live, the rest asleep, ads blocked
  *   chrome       the same headless shell with every tab live: what agent-browser, Stagehand,
  *                browser-use and Playwright MCP all run underneath
  *   lightpanda   Lightpanda (LIGHTPANDA_BIN): its own engine, no layout or drawing
@@ -25,12 +25,12 @@ import { type Browser, type BrowserContext, chromium, type Page } from "playwrig
 import { launch } from "../src/browser.ts"
 import { processTree } from "./measure.ts"
 
-export const SUBJECTS = ["agent-tabs", "chrome", "lightpanda", "obscura"] as const
+export const SUBJECTS = ["browserheap", "chrome", "lightpanda", "obscura"] as const
 export type SubjectName = (typeof SUBJECTS)[number]
 
 export const PAGE_TIMEOUT_MS = 30_000
 
-/** A tab, however the browser keeps it: agent-tabs may have put it to sleep. */
+/** A tab, however the browser keeps it: browserheap may have put it to sleep. */
 export interface TabHandle {
   /** The tab's page, woken first if it was asleep. */
   page(): Promise<Page>
@@ -47,8 +47,8 @@ export interface Subject {
 }
 
 export async function startSubject(name: SubjectName): Promise<Subject> {
-  if (name === "agent-tabs") {
-    return startAgentTabs()
+  if (name === "browserheap") {
+    return startBrowserheap()
   }
   if (name === "chrome") {
     return startChrome()
@@ -65,14 +65,14 @@ export async function startSubject(name: SubjectName): Promise<Subject> {
   return startCdpServer(name, program, args, 9446, false)
 }
 
-async function startAgentTabs(): Promise<Subject> {
+async function startBrowserheap(): Promise<Subject> {
   const browser = await launch({ maxLive: 2 })
   const pid = browser.pid
   if (pid === null) {
-    throw new Error("agent-tabs started without a process id")
+    throw new Error("browserheap started without a process id")
   }
   return {
-    name: "agent-tabs",
+    name: "browserheap",
     openTab: async (url) => {
       const tab = await browser.open(url)
       return {
@@ -86,7 +86,7 @@ async function startAgentTabs(): Promise<Subject> {
 }
 
 async function startChrome(): Promise<Subject> {
-  // Without a channel, headless Playwright runs Chromium's headless shell: what agent-tabs runs on.
+  // Without a channel, headless Playwright runs Chromium's headless shell: what browserheap runs on.
   const server = await chromium.launchServer({ headless: true })
   const browser = await chromium.connect(server.wsEndpoint())
   const pid = server.process().pid

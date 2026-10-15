@@ -1,5 +1,5 @@
 {
-  "name": "agent-tabs",
+  "name": "browserheap",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,14 +21,14 @@
   "author": "Abhinav Mishra",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AbhinavMishra32/agent-tabs.git"
+    "url": "git+https://github.com/AbhinavMishra32/browserheap.git"
   },
   "packageManager": "pnpm@10.23.0",
   "engines": {
     "node": ">=22"
   },
   "bin": {
-    "agent-tabs": "./src/cli/main.ts"
+    "browserheap": "./src/cli/main.ts"
   },
   "exports": {
     ".": "./src/index.ts"
@@ -48,7 +48,7 @@
       }
     },
     "bin": {
-      "agent-tabs": "./dist/cli/main.js"
+      "browserheap": "./dist/cli/main.js"
     }
   },
   "scripts": {

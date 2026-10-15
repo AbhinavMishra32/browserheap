@@ -1,5 +1,5 @@
 /**
- * agent-tabs: a browser for AI agents where a tab costs memory only while
+ * browserheap: a browser for AI agents where a tab costs memory only while
  * the agent is using it.
  *
  *   const browser = await launch()

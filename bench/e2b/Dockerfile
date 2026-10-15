@@ -16,7 +16,7 @@ RUN apt-get update \
 # Browsers go in one shared place, whoever runs them.
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 
-# agent-tabs' own packages, and Playwright's headless shell it runs on.
+# browserheap' own packages, and Playwright's headless shell it runs on.
 WORKDIR /opt/bench
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm@10.23.0 \

@@ -1,7 +1,7 @@
 /**
  * Does an agent still succeed with sleeping tabs? Runs a pi agent (O's
  * agent loop is pi's: pi-agent-core and pi-ai) on BU Bench V1's 100 tasks,
- * once with a plain headless Chrome and once with agent-tabs, and measures
+ * once with a plain headless Chrome and once with browserheap, and measures
  * success, memory, time and your ChatGPT usage.
  *
  *   node --env-file=../../.env bench/o/run.ts                  all 100 tasks, browser on E2B, 10 at a time
@@ -10,9 +10,9 @@
  *
  *   chrome      every tab live, nothing blocked: a plain headless Chrome
  *   blocking    every tab live, ads and trackers blocked (not run unless asked: --setups)
- *   agent-tabs  ads and trackers blocked, 2 tabs live per chat
+ *   browserheap  ads and trackers blocked, 2 tabs live per chat
  *
- * In batches: 10 tasks with Chrome, the same 10 with agent-tabs, then the
+ * In batches: 10 tasks with Chrome, the same 10 with browserheap, then the
  * next 10, so the two always cover the same tasks. Tasks take turns by
  * category, so any number of batches covers all five evenly. Every task is
  * saved the moment it's graded (progress.ts); run again and it carries on.
@@ -97,7 +97,7 @@ interface Setup {
 const SETUPS: Record<string, Setup> = {
   chrome: { maxLive: "1000", block: "none" },
   blocking: { maxLive: "1000", block: "ads" },
-  "agent-tabs": { maxLive: "2", block: "ads" },
+  browserheap: { maxLive: "2", block: "ads" },
 }
 
 /** The value after `--name` on the command line, if given. */
@@ -197,7 +197,7 @@ async function benchAgentId(): Promise<string> {
   }
   const made = await api<{ id: string }>("POST", "/agents", {
     name: AGENT_NAME,
-    description: "Runs BU Bench tasks for the agent-tabs benchmark.",
+    description: "Runs BU Bench tasks for the browserheap benchmark.",
     instructions: AGENT_INSTRUCTIONS,
     provider: "openai",
     model: MODEL_ID,
@@ -557,7 +557,7 @@ async function main(): Promise<void> {
   const batchSize = Number(flagValue("--batch") ?? 10)
   const parallel = Number(flagValue("--parallel") ?? 5)
   const stopAt = Number(flagValue("--stop-at") ?? 80)
-  const setups = (flagValue("--setups") ?? "chrome,agent-tabs").split(",")
+  const setups = (flagValue("--setups") ?? "chrome,browserheap").split(",")
 
   const progress = loadProgress({ model: MODEL_ID, harness: HARNESS, where })
   if (progress.where !== where || progress.model !== MODEL_ID) {

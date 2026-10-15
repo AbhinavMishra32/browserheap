@@ -105,14 +105,14 @@ export async function startSession(options: LaunchOptions = {}): Promise<Session
 async function annotatedScreenshot(page: Page): Promise<Buffer> {
   await ensureWorld(page.mainFrame())
   await page.evaluate(() =>
-    (globalThis as unknown as { __agentTabs: { annotate(): number } }).__agentTabs.annotate(),
+    (globalThis as unknown as { __browserheap: { annotate(): number } }).__browserheap.annotate(),
   )
   try {
     return await page.screenshot({ type: "png" })
   } finally {
     await page
       .evaluate(() =>
-        (globalThis as unknown as { __agentTabs: { unannotate(): void } }).__agentTabs.unannotate(),
+        (globalThis as unknown as { __browserheap: { unannotate(): void } }).__browserheap.unannotate(),
       )
       .catch(() => {})
   }

@@ -121,13 +121,13 @@ export function trackTyping(): void {
   }
   document.addEventListener("input", remember, true)
   document.addEventListener("change", remember, true)
-  Object.defineProperty(window, "__agentTabsTouched", { value: touched })
+  Object.defineProperty(window, "__browserheapTouched", { value: touched })
 }
 
 /** Whether something was typed or chosen in the page, and not sent, that a reload would lose. */
 export async function hasUnsentInput(page: Page): Promise<boolean> {
   return page.evaluate(() => {
-    const touched = (window as unknown as { __agentTabsTouched?: Set<EventTarget> }).__agentTabsTouched
+    const touched = (window as unknown as { __browserheapTouched?: Set<EventTarget> }).__browserheapTouched
     if (touched === undefined) {
       return false
     }

@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>agent-tabs</title>
+<title>Browserheap</title>
 <meta name="description" content="A full browser for AI agents. Idle tabs sleep, and the pages your agent holds keep working.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -146,13 +146,13 @@ section.band { padding-block: 104px 0; }
 
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>agent-tabs</a>
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>Browserheap</a>
     <nav aria-label="Main">
       <a href="#how">How it works</a>
       <a href="#numbers">Benchmarks</a>
       <a href="research.html">Research</a>
       <a href="#use">Docs</a>
-      <a href="https://github.com/AbhinavMishra32/agent-tabs">GitHub</a>
+      <a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
     </nav>
   </div>
 </header>
@@ -163,9 +163,9 @@ section.band { padding-block: 104px 0; }
       <div class="hero-copy">
         <a class="pill" href="research.html"><b>RESEARCH</b>What idle tabs cost an agent →</a>
         <h1>A browser for agents where idle tabs <em>sleep</em>.</h1>
-        <p class="lede">Agents open tab after tab and never close them. agent-tabs keeps the 2 tabs your agent is using live and puts the rest to sleep. The pages your agent holds keep working, and a sleeping tab wakes the moment it's touched.</p>
+        <p class="lede">Agents open tab after tab and never close them. Browserheap keeps the 2 tabs your agent is using live and puts the rest to sleep. The pages your agent holds keep working, and a sleeping tab wakes the moment it's touched.</p>
         <div class="actions">
-          <span class="install"><code>npx agent-tabs install</code><button class="copy" type="button" data-copy="npx agent-tabs install">Copy</button></span>
+          <span class="install"><code>npx browserheap install</code><button class="copy" type="button" data-copy="npx browserheap install">Copy</button></span>
           <a class="button quiet" href="#use">Read the docs</a>
         </div>
         <p class="small">Full Chromium underneath. Works from Claude Code, Codex, any agent with a shell, or as an SDK.</p>
@@ -181,7 +181,7 @@ section.band { padding-block: 104px 0; }
           <div class="strip" id="strip" aria-hidden="true"></div>
           <div class="replay-key"><span><i class="k-live"></i>live</span><span><i class="k-sleep"></i>asleep, still readable</span></div>
           <div class="meters">
-            <div class="meter ours"><span class="name">agent-tabs</span><span class="track"><span class="fill" id="fill-ours"></span></span><span class="mb" id="mb-ours">0 MB</span></div>
+            <div class="meter ours"><span class="name">Browserheap</span><span class="track"><span class="fill" id="fill-ours"></span></span><span class="mb" id="mb-ours">0 MB</span></div>
             <div class="meter"><span class="name">Headless Chrome</span><span class="track"><span class="fill" id="fill-chrome"></span></span><span class="mb" id="mb-chrome">0 MB</span></div>
             <div class="meter"><span class="name">agent-browser</span><span class="track"><span class="fill" id="fill-ab"></span></span><span class="mb" id="mb-ab">0 MB</span></div>
           </div>
@@ -216,8 +216,8 @@ section.band { padding-block: 104px 0; }
           <a class="more" href="https://github.com/browser-use/browser-use/issues/5484">Read the issue →</a>
         </article>
         <article class="cell ours">
-          <span class="tag">agent-tabs</span>
-          <p>Closing tabs loses the agent's work. Restarting Chrome loses its logins. agent-tabs puts idle tabs to sleep instead, and brings them back when the agent needs them.</p>
+          <span class="tag">Browserheap</span>
+          <p>Closing tabs loses the agent's work. Restarting Chrome loses its logins. Browserheap puts idle tabs to sleep instead, and brings them back when the agent needs them.</p>
           <p class="fix"><b>Nothing is lost:</b> same URL, same scroll position, still signed in.</p>
         </article>
       </div>
@@ -229,7 +229,7 @@ section.band { padding-block: 104px 0; }
       <div class="head">
         <p class="eyebrow">How it works</p>
         <h2>Two tabs live. The rest asleep, and still there.</h2>
-        <p class="sub">The agent never manages any of this. It opens tabs and uses them; agent-tabs decides which ones get to hold memory.</p>
+        <p class="sub">The agent never manages any of this. It opens tabs and uses them; Browserheap decides which ones get to hold memory.</p>
       </div>
       <div class="states">
         <article class="cell">
@@ -257,7 +257,7 @@ section.band { padding-block: 104px 0; }
       <div class="head" style="margin: 0">
         <p class="eyebrow">Handles that survive sleep</p>
         <h2>Pages and locators belong to the tab, not to Chromium.</h2>
-        <p class="sub">Other agent browsers hand the agent a raw page. Close it and every reference the agent holds goes stale. agent-tabs hands out pages and locators that follow their tab, so sleeping and waking happen underneath without the agent's code noticing.</p>
+        <p class="sub">Other agent browsers hand the agent a raw page. Close it and every reference the agent holds goes stale. Browserheap hands out pages and locators that follow their tab, so sleeping and waking happen underneath without the agent's code noticing.</p>
         <ul>
           <li>A page kept in a variable still works after its tab sleeps.</li>
           <li>Locators by role, text, label or CSS keep working too.</li>
@@ -298,7 +298,7 @@ docs.isAsleep()            <span class="c">// true</span>
             <button type="button" role="tab" aria-selected="false" data-chart="cpu">Idle CPU</button>
             <button type="button" role="tab" aria-selected="false" data-chart="agents">10 agents</button>
           </div>
-          <ul class="legend"><li><span class="key ours"></span>agent-tabs</li><li><span class="key"></span>agent tools</li><li><span class="key dash"></span>browser engines</li></ul>
+          <ul class="legend"><li><span class="key ours"></span>Browserheap</li><li><span class="key"></span>agent tools</li><li><span class="key dash"></span>browser engines</li></ul>
         </div>
         <div class="chart-wrap" data-panel="line">
           <svg class="chart" id="memory-chart" role="img" aria-label="Memory from 1 to 30 tabs for eight browsers"></svg>
@@ -319,7 +319,7 @@ docs.isAsleep()            <span class="c">// true</span>
       <div class="head">
         <p class="eyebrow">Still a full browser</p>
         <h2>Light on memory, without cutting corners.</h2>
-        <p class="sub">Lightweight engines save memory by not drawing pages. agent-tabs is the same Chromium every agent tool runs, so it does everything Chrome does.</p>
+        <p class="sub">Lightweight engines save memory by not drawing pages. Browserheap is the same Chromium every agent tool runs, so it does everything Chrome does.</p>
       </div>
       <div class="proof">
         <article class="cell">
@@ -334,7 +334,7 @@ docs.isAsleep()            <span class="c">// true</span>
         </article>
         <article class="cell">
           <h3>Real agent tasks</h3>
-          <p>BU Bench tasks, same pi agent and model, on headless Chrome and on agent-tabs.</p>
+          <p>BU Bench tasks, same pi agent and model, on headless Chrome and on Browserheap.</p>
           <div class="score" id="score-bu"></div>
           <p class="small" id="bu-note"></p>
         </article>
@@ -348,7 +348,7 @@ docs.isAsleep()            <span class="c">// true</span>
         <p class="eyebrow">Use it</p>
         <h2>Give it to your agent three ways.</h2>
       </div>
-      <div class="tabs-control" role="tablist" aria-label="Ways to use agent-tabs">
+      <div class="tabs-control" role="tablist" aria-label="Ways to use browserheap">
         <button type="button" role="tab" aria-selected="true" data-way="skill">Claude Code &amp; Codex</button>
         <button type="button" role="tab" aria-selected="false" data-way="cli">CLI</button>
         <button type="button" role="tab" aria-selected="false" data-way="sdk">SDK</button>
@@ -357,14 +357,14 @@ docs.isAsleep()            <span class="c">// true</span>
         <div class="copy-text">
           <h3>Drop in the skill</h3>
           <p>Add the skill file to your agent and it learns the loop: open a page, read its snapshot, act with Playwright-style JavaScript, look at what changed.</p>
-          <p class="small">The skill file ships in the package under <code>skills/agent-tabs/SKILL.md</code>.</p>
+          <p class="small">The skill file ships in the package under <code>skills/browserheap/SKILL.md</code>.</p>
         </div>
         <div class="window">
           <div class="window-top"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>terminal</div>
 <pre class="code"><span class="c"># once</span>
-npm install -g agent-tabs
-agent-tabs install                       <span class="c"># downloads Chromium</span>
-cp -r "$(npm root -g)/agent-tabs/skills/agent-tabs" ~/.claude/skills/
+npm install -g browserheap
+browserheap install                       <span class="c"># downloads Chromium</span>
+cp -r "$(npm root -g)/browserheap/skills/browserheap" ~/.claude/skills/
 
 <span class="c"># then ask your agent</span>
 <span class="s">"Compare the pricing pages of Vercel, Netlify and Render"</span></pre>
@@ -378,14 +378,14 @@ cp -r "$(npm root -g)/agent-tabs/skills/agent-tabs" ~/.claude/skills/
         </div>
         <div class="window">
           <div class="window-top"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>terminal</div>
-<pre class="code">npx agent-tabs open https://news.ycombinator.com
+<pre class="code">npx browserheap open https://news.ycombinator.com
 <span class="c"># prints the page as a tree: link "new" [ref=e14]</span>
 
-npx agent-tabs run <span class="s">'await page.locator("e14").click()
+npx browserheap run <span class="s">'await page.locator("e14").click()
   console.log((await snapshot(page)).diff)'</span>
 
-npx agent-tabs tabs        <span class="c"># live or asleep, title, url</span>
-npx agent-tabs stop</pre>
+npx browserheap tabs        <span class="c"># live or asleep, title, url</span>
+npx browserheap stop</pre>
         </div>
       </div>
       <div class="panel way" data-way-panel="sdk" hidden>
@@ -396,7 +396,7 @@ npx agent-tabs stop</pre>
         </div>
         <div class="window">
           <div class="window-top"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>agent.ts</div>
-<pre class="code"><span class="k">import</span> { startSession } <span class="k">from</span> <span class="s">"agent-tabs"</span>
+<pre class="code"><span class="k">import</span> { startSession } <span class="k">from</span> <span class="s">"browserheap"</span>
 
 <span class="k">const</span> session = <span class="k">await</span> startSession({ maxLive: <span class="s">2</span> })
 
@@ -429,20 +429,20 @@ npx agent-tabs stop</pre>
   <section class="cta">
     <div class="wrap">
       <h2>Let your agent keep its tabs.</h2>
-      <span class="install"><code>npx agent-tabs install</code><button class="copy" type="button" data-copy="npx agent-tabs install">Copy</button></span>
-      <div class="actions"><a class="button" href="https://github.com/AbhinavMishra32/agent-tabs">GitHub</a><a class="button quiet" href="research.html">Read the research</a></div>
+      <span class="install"><code>npx browserheap install</code><button class="copy" type="button" data-copy="npx browserheap install">Copy</button></span>
+      <div class="actions"><a class="button" href="https://github.com/AbhinavMishra32/browserheap">GitHub</a><a class="button quiet" href="research.html">Read the research</a></div>
     </div>
   </section>
 </main>
 
 <footer class="foot" style="margin-top: 0">
-  <div class="wrap"><span>agent-tabs · MIT</span><a href="research.html">Research</a><a href="https://github.com/AbhinavMishra32/agent-tabs">GitHub</a><span>Benchmarks measured 15 Oct 2026</span></div>
+  <div class="wrap"><span>Browserheap · MIT</span><a href="research.html">Research</a><a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a><span>Benchmarks measured 15 Oct 2026</span></div>
 </footer>
 
 <script src="data.js" charset="utf-8"></script>
 <script src="charts.js" charset="utf-8"></script>
 <script>
-const ours = memoryRun("agent-tabs --live 2")
+const ours = memoryRun("browserheap --live 2")
 const chrome = memoryRun("chrome-shell")
 const agentBrowser = memoryRun("agent-browser")
 
@@ -576,9 +576,9 @@ if (B.idle.length > 0) {
 }
 if (B.agents.length > 0) {
   drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), B.agents.map((run) => {
-    const isOurs = run.browser === "agent-tabs"
+    const isOurs = run.browser === "browserheap"
     return {
-      name: isOurs ? "agent-tabs" : "Headless Chrome", ours: isOurs, stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
+      name: isOurs ? "Browserheap" : "Headless Chrome", ours: isOurs, stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
       points: [{ x: 0, y: run.idleMb }, ...run.rounds.map((round) => ({ x: round.totalTabs, y: round.mb }))],
     }
   }), {
@@ -620,10 +620,10 @@ fillScore("score-sites", ENGINES.filter((engine) => engine.id !== "chrome").map(
   const s = siteSummary(engine.id)
   return { name: engine.name, ours: engine.ours, value: s.same, of: s.compared }
 }))
-const buOurs = buSetup("agent-tabs")
+const buOurs = buSetup("browserheap")
 const buChrome = buSetup("chrome")
 fillScore("score-bu", [
-  { name: "agent-tabs", ours: true, value: buOurs.passed, of: buOurs.total },
+  { name: "Browserheap", ours: true, value: buOurs.passed, of: buOurs.total },
   { name: "Chrome", value: buChrome.passed, of: buChrome.total },
 ])
 document.getElementById("bu-note").textContent = `Same tasks solved with ${Math.round((1 - buOurs.averageMb / buChrome.averageMb) * 100)}% less memory and ${Math.round((1 - buOurs.minutes / buChrome.minutes) * 100)}% less time. A first run of 10 tasks; the full 100-task run is next.`

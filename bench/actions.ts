@@ -4,7 +4,7 @@
  * take a screenshot, go back to an old tab — on action-site.ts, through
  * Playwright, the way agent tools drive a browser. No AI model involved.
  *
- *   node bench/actions.ts agent-tabs        (or chrome, lightpanda, obscura)
+ *   node bench/actions.ts browserheap        (or chrome, lightpanda, obscura)
  *
  * Prints pass or fail for each test and saves
  * bench/results/actions-<browser>-<time>.json.
@@ -247,7 +247,7 @@ const TESTS: ActionTest[] = [
       await subject.openTab(`${site.url}/second`)
       await subject.openTab(`${site.url}/list`)
       await subject.openTab(`${site.url}/popup`)
-      // agent-tabs put this one to sleep by now; page() wakes it.
+      // browserheap put this one to sleep by now; page() wakes it.
       const page = await first.page()
       return (await textOf(page, "h1")) === "Results for first"
     },

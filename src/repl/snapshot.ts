@@ -14,11 +14,11 @@
  *          tree when that's shorter. After an action the agent reads the diff, not the page again.
  *
  * Refs are Playwright selectors too: page.locator("e12") (agent-page.ts) is
- * page.locator("tabref=e12"), and the "tabref" engine asks the page's __agentTabs.deref.
+ * page.locator("tabref=e12"), and the "tabref" engine asks the page's __browserheap.deref.
  *
  * Uses:    page-world.ts, playwright-core (selectors, Frame), diff
  * Used by: agent-page.ts, repl.ts
- * Built:   in O first (5.6), copied into agent-tabs
+ * Built:   in O first (5.6), copied into browserheap
  */
 import { structuredPatch } from "diff"
 import { type Frame, type Page, selectors } from "playwright-core"
@@ -70,8 +70,8 @@ export function registerRefSelector(): Promise<void> {
     registering = selectors.register(
       "tabref",
       `({
-        query(root, ref) { return globalThis.__agentTabs ? globalThis.__agentTabs.deref(ref) : null },
-        queryAll(root, ref) { const el = globalThis.__agentTabs ? globalThis.__agentTabs.deref(ref) : null; return el ? [el] : [] },
+        query(root, ref) { return globalThis.__browserheap ? globalThis.__browserheap.deref(ref) : null },
+        queryAll(root, ref) { const el = globalThis.__browserheap ? globalThis.__browserheap.deref(ref) : null; return el ? [el] : [] },
       })`,
     )
   }
@@ -133,8 +133,8 @@ async function frameTree(frame: Frame, options: SnapshotOptions, refPrefix: stri
   const result = await frame.evaluate(
     (args) => {
       const world = (
-        globalThis as unknown as { __agentTabs: { snapshot(o: unknown): { tree: string; error?: string } } }
-      ).__agentTabs
+        globalThis as unknown as { __browserheap: { snapshot(o: unknown): { tree: string; error?: string } } }
+      ).__browserheap
       return world.snapshot(args)
     },
     { ...options, refPrefix },
@@ -184,8 +184,8 @@ async function refOfFrameElement(frame: Frame): Promise<string | null> {
   const element = await frame.frameElement()
   try {
     return await element.evaluate((node) => {
-      const world = (globalThis as unknown as { __agentTabs?: { refOf(e: Element): string | null } })
-        .__agentTabs
+      const world = (globalThis as unknown as { __browserheap?: { refOf(e: Element): string | null } })
+        .__browserheap
       return world ? world.refOf(node as Element) : null
     })
   } finally {

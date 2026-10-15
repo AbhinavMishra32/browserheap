@@ -27,7 +27,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { CommandExitError, defaultBuildLogger, Sandbox, Template } from "e2b"
 
-const TEMPLATE = "agent-tabs-bench"
+const TEMPLATE = "browserheap-bench"
 const repo = resolve(import.meta.dirname, "../..")
 
 const OTHERS = "/opt/bench/bench/others"
@@ -42,9 +42,9 @@ interface JobBrowser {
 function everyTool(extra: string): JobBrowser[] {
   return [
     {
-      name: "agent-tabs",
+      name: "browserheap",
       folder: "/opt/bench",
-      command: `node bench/run.ts agent-tabs TABS --live 2 ${extra}`,
+      command: `node bench/run.ts browserheap TABS --live 2 ${extra}`,
     },
     { name: "chrome-shell", folder: "/opt/bench", command: `node bench/run.ts chrome-shell TABS ${extra}` },
     { name: "lightpanda", folder: "/opt/bench", command: `node bench/run.ts lightpanda TABS ${extra}` },
@@ -70,15 +70,15 @@ const JOBS: Record<string, JobBrowser[]> = {
     {
       name: "wake-all",
       folder: "/opt/bench",
-      command: "node bench/run.ts agent-tabs 30 --live 2 --wake-all",
+      command: "node bench/run.ts browserheap 30 --live 2 --wake-all",
     },
-    { name: "live-1", folder: "/opt/bench", command: "node bench/run.ts agent-tabs 30 --live 1" },
-    { name: "live-4", folder: "/opt/bench", command: "node bench/run.ts agent-tabs 30 --live 4" },
-    { name: "live-8", folder: "/opt/bench", command: "node bench/run.ts agent-tabs 30 --live 8" },
+    { name: "live-1", folder: "/opt/bench", command: "node bench/run.ts browserheap 30 --live 1" },
+    { name: "live-4", folder: "/opt/bench", command: "node bench/run.ts browserheap 30 --live 4" },
+    { name: "live-8", folder: "/opt/bench", command: "node bench/run.ts browserheap 30 --live 8" },
     {
-      name: "agents-agent-tabs",
+      name: "agents-browserheap",
       folder: "/opt/bench",
-      command: "node bench/agents.ts agent-tabs 10 10 --until-mb 6500",
+      command: "node bench/agents.ts browserheap 10 10 --until-mb 6500",
     },
     {
       name: "agents-chrome",
@@ -87,14 +87,14 @@ const JOBS: Record<string, JobBrowser[]> = {
     },
   ],
   actions: [
-    { name: "agent-tabs", folder: "/opt/bench", command: "node bench/actions.ts agent-tabs" },
+    { name: "browserheap", folder: "/opt/bench", command: "node bench/actions.ts browserheap" },
     { name: "chrome", folder: "/opt/bench", command: "node bench/actions.ts chrome" },
     { name: "lightpanda", folder: "/opt/bench", command: "node bench/actions.ts lightpanda" },
     { name: "obscura", folder: "/opt/bench", command: "node bench/actions.ts obscura" },
   ],
   compat: [
     { name: "chrome", folder: "/opt/bench", command: "node bench/compat.ts chrome" },
-    { name: "agent-tabs", folder: "/opt/bench", command: "node bench/compat.ts agent-tabs" },
+    { name: "browserheap", folder: "/opt/bench", command: "node bench/compat.ts browserheap" },
     { name: "lightpanda", folder: "/opt/bench", command: "node bench/compat.ts lightpanda" },
     { name: "obscura", folder: "/opt/bench", command: "node bench/compat.ts obscura" },
   ],

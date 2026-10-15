@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * The agent-tabs command: a browser an agent drives from its shell, with
+ * The browserheap command: a browser an agent drives from its shell, with
  * tabs that sleep while it isn't using them.
  *
- *   agent-tabs install                      downloads the browser (Playwright's Chromium headless shell)
- *   agent-tabs open <url>                   opens a tab and prints the page as a tree with refs
- *   agent-tabs run '<code>'                 runs JavaScript in the REPL (also --file <path>, or piped in)
- *   agent-tabs tabs                         lists the tabs, live and asleep
- *   agent-tabs screenshot [--out <file>]    saves a screenshot of the current tab
- *   agent-tabs stop                         closes the browser
+ *   browserheap install                      downloads the browser (Playwright's Chromium headless shell)
+ *   browserheap open <url>                   opens a tab and prints the page as a tree with refs
+ *   browserheap run '<code>'                 runs JavaScript in the REPL (also --file <path>, or piped in)
+ *   browserheap tabs                         lists the tabs, live and asleep
+ *   browserheap screenshot [--out <file>]    saves a screenshot of the current tab
+ *   browserheap stop                         closes the browser
  *
  *   --session <name>    a separate browser with its own tabs (default "default"), for agents side by side
  *   --live <n>          tabs live at once, when this command starts the browser (default 2)
@@ -17,7 +17,7 @@
  * The first command starts the browser in the background (server.ts); it
  * keeps the tabs and the REPL's variables between commands. What the code
  * prints comes out here; images it displays are saved under
- * ~/.agent-tabs/images and their paths printed.
+ * ~/.browserheap/images and their paths printed.
  *
  * Uses:    client.ts, paths.ts
  */
@@ -29,14 +29,14 @@ import type { ReplResult } from "../repl/repl.ts"
 import { runCode, type StartSettings, stopServer } from "./client.ts"
 import { imagesFolder } from "./paths.ts"
 
-const USAGE = `agent-tabs: a browser for agents, where idle tabs sleep.
+const USAGE = `browserheap: a browser for agents, where idle tabs sleep.
 
-  agent-tabs install                      download the browser
-  agent-tabs open <url>                   open a tab, print the page with refs
-  agent-tabs run '<code>'                 run JavaScript in the REPL (--file <path>, or piped in)
-  agent-tabs tabs                         list the tabs
-  agent-tabs screenshot [--out <file>]    save a screenshot of the current tab
-  agent-tabs stop                         close the browser
+  browserheap install                      download the browser
+  browserheap open <url>                   open a tab, print the page with refs
+  browserheap run '<code>'                 run JavaScript in the REPL (--file <path>, or piped in)
+  browserheap tabs                         list the tabs
+  browserheap screenshot [--out <file>]    save a screenshot of the current tab
+  browserheap stop                         close the browser
 
   --session <name>   a separate browser (default "default")
   --live <n>         tabs live at once (default 2)
@@ -65,7 +65,7 @@ const TABS_CODE = `for (const [index, tab] of tabs.entries()) {
   const state = tab.isAsleep() ? "asleep" : "live  "
   console.log(\`\${index}\${tab === page ? " *" : "  "} \${state}  \${await tab.title()}  \${tab.url()}\`)
 }
-if (tabs.length === 0) console.log("No tabs. agent-tabs open <url> opens one.")`
+if (tabs.length === 0) console.log("No tabs. browserheap open <url> opens one.")`
 
 const session = flags.session ?? "default"
 const settings: StartSettings = { maxLive: flags.live, block: flags.block }
@@ -79,7 +79,7 @@ if (command === undefined || command === "help") {
   const stopped = await stopServer(session)
   console.log(stopped ? "Closed the browser." : "No browser was running.")
 } else if (command === "open") {
-  const url = need(args[1], "agent-tabs open <url>")
+  const url = need(args[1], "browserheap open <url>")
   await runAndPrint(`await openTab(${JSON.stringify(url)}); console.log((await snapshot(page)).tree)`)
 } else if (command === "tabs") {
   await runAndPrint(TABS_CODE)
@@ -129,7 +129,7 @@ async function codeToRun(): Promise<string> {
     return args.slice(1).join(" ")
   }
   if (process.stdin.isTTY) {
-    console.error("agent-tabs run '<code>', or --file <path>, or pipe the code in.")
+    console.error("browserheap run '<code>', or --file <path>, or pipe the code in.")
     process.exit(1)
   }
   let code = ""

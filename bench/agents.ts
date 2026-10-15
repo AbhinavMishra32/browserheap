@@ -4,7 +4,7 @@
  * the browsers together after every round, until every agent has its tabs or
  * the machine is close to full.
  *
- *   node bench/agents.ts agent-tabs 10 10      10 agents, 10 tabs each, 2 tabs live in each
+ *   node bench/agents.ts browserheap 10 10      10 agents, 10 tabs each, 2 tabs live in each
  *   node bench/agents.ts chrome-shell 10 10    the same on plain headless Chrome, every tab live
  *   … --until-mb 6500                          stop once all the browsers together use this much
  *
@@ -33,11 +33,11 @@ async function worked(page: Page): Promise<boolean> {
   return length > 200
 }
 
-async function startAgentTabs(): Promise<AgentBrowser> {
+async function startBrowserheap(): Promise<AgentBrowser> {
   const browser = await launch({ maxLive: 2 })
   const pid = browser.pid
   if (pid === null) {
-    throw new Error("agent-tabs started without a process id")
+    throw new Error("browserheap started without a process id")
   }
   return {
     open: async (url) => worked(await (await browser.open(url)).page()),
@@ -77,8 +77,8 @@ function flagValue(name: string): string | undefined {
 }
 
 const kind = process.argv[2]
-if (kind !== "agent-tabs" && kind !== "chrome-shell") {
-  console.error("Which browser? agent-tabs or chrome-shell")
+if (kind !== "browserheap" && kind !== "chrome-shell") {
+  console.error("Which browser? browserheap or chrome-shell")
   process.exit(1)
 }
 const agentCount = Number(process.argv[3] ?? 10)
@@ -87,7 +87,7 @@ const untilMb = Number(flagValue("--until-mb") ?? Number.POSITIVE_INFINITY)
 
 const agents: AgentBrowser[] = []
 for (let k = 0; k < agentCount; k++) {
-  agents.push(kind === "agent-tabs" ? await startAgentTabs() : await startChrome())
+  agents.push(kind === "browserheap" ? await startBrowserheap() : await startChrome())
 }
 
 function allPids(): number[] {

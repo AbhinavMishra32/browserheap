@@ -11,7 +11,7 @@
  *
  *   ads and trackers   Ghostery's filter engine with its ads-and-tracking lists
  *                      (the same lists as uBlock Origin's). Downloaded once,
- *                      then kept in ~/.cache/agent-tabs.
+ *                      then kept in ~/.cache/browserheap.
  *   media              every image, video, audio and font, by the request's type.
  *
  * The page itself is never blocked: only what it asks for.
@@ -44,7 +44,7 @@ export interface BlockedCounts {
 
 const MEDIA_TYPES = new Set(["image", "media", "font"])
 
-const ENGINE_CACHE = join(homedir(), ".cache", "agent-tabs", "ghostery-ads-and-tracking.bin")
+const ENGINE_CACHE = join(homedir(), ".cache", "browserheap", "ghostery-ads-and-tracking.bin")
 
 /** Loaded once per program, shared by every context. */
 let engine: Promise<FiltersEngine> | null = null

@@ -17,7 +17,7 @@
  *
  * Uses:    acorn
  * Used by: repl.ts
- * Built:   in O first (5.6), copied into agent-tabs
+ * Built:   in O first (5.6), copied into browserheap
  */
 import { type Node, parse } from "acorn"
 

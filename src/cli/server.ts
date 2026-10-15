@@ -6,16 +6,16 @@
  *   node src/cli/server.ts <name>     started by client.ts; you don't run it yourself
  *
  * It listens on 127.0.0.1 on a free port and answers only requests with its
- * token. Both are in ~/.agent-tabs/<name>.json, readable only by you, which
+ * token. Both are in ~/.browserheap/<name>.json, readable only by you, which
  * is how the CLI finds it. It stops itself after 30 minutes without a
- * command, or on `agent-tabs stop`.
+ * command, or on `browserheap stop`.
  *
  *   POST /run    { code }   → the REPL's result: { content, error? }
  *   POST /stop             → closes the browser and exits
  *
  * Settings come from the environment the CLI starts it with:
- *   AGENT_TABS_MAX_LIVE   tabs live at once (default 2)
- *   AGENT_TABS_BLOCK      "ads" (default: ads and trackers), "all" (also images, video, fonts), "none"
+ *   BROWSERHEAP_MAX_LIVE   tabs live at once (default 2)
+ *   BROWSERHEAP_BLOCK      "ads" (default: ads and trackers), "all" (also images, video, fonts), "none"
  *
  * Uses:    ../repl/session.ts, paths.ts
  * Used by: client.ts
@@ -35,8 +35,8 @@ const file = serverFile(name)
 const token = randomBytes(24).toString("hex")
 
 const session = await startSession({
-  maxLive: Number(process.env.AGENT_TABS_MAX_LIVE ?? 2),
-  block: blockingFrom(process.env.AGENT_TABS_BLOCK ?? "ads"),
+  maxLive: Number(process.env.BROWSERHEAP_MAX_LIVE ?? 2),
+  block: blockingFrom(process.env.BROWSERHEAP_BLOCK ?? "ads"),
 })
 
 let idleTimer = setTimeout(stop, IDLE_MS)

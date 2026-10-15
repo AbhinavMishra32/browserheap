@@ -5,7 +5,7 @@ const NS = "http://www.w3.org/2000/svg"
 
 // The memory run's browsers: ours, the agent tools, then the engines (dashed).
 const TOOLS = [
-  { id: "agent-tabs --live 2", name: "agent-tabs", ours: true },
+  { id: "browserheap --live 2", name: "Browserheap", ours: true },
   { id: "agent-browser", name: "agent-browser" },
   { id: "chrome-shell", name: "Headless Chrome" },
   { id: "stagehand", name: "Stagehand" },
@@ -17,7 +17,7 @@ const TOOLS = [
 
 // The action and site tests' browsers.
 const ENGINES = [
-  { id: "agent-tabs", name: "agent-tabs", ours: true },
+  { id: "browserheap", name: "Browserheap", ours: true },
   { id: "chrome", name: "Chrome" },
   { id: "lightpanda", name: "Lightpanda" },
   { id: "obscura", name: "Obscura" },
@@ -111,7 +111,7 @@ function add(svg, tag, attrs) {
 
 /** Memory from 1 to 30 tabs, one line per browser, with a hover crosshair. */
 function drawMemoryChart(svg, tooltip) {
-  const ours = memoryRun("agent-tabs --live 2")
+  const ours = memoryRun("browserheap --live 2")
   const tabCount = ours.perTab.length
   const W = 900
   const H = 440
@@ -285,7 +285,7 @@ function fillSitesTable(table) {
 function fillBuTable(table) {
   const rows = [
     { id: "chrome", name: "Headless Chrome, every tab live" },
-    { id: "agent-tabs", name: "agent-tabs, 2 tabs live", ours: true },
+    { id: "browserheap", name: "Browserheap, 2 tabs live", ours: true },
   ]
   let html = '<thead><tr><th class="left">Browser</th><th>Tasks solved</th><th>Peak memory</th><th>Average memory</th><th>Page text read</th><th>Time for all 10</th></tr></thead><tbody>'
   for (const row of rows) {
@@ -297,7 +297,7 @@ function fillBuTable(table) {
 }
 
 function fillMemoryTable(table) {
-  const ours = memoryRun("agent-tabs --live 2")
+  const ours = memoryRun("browserheap --live 2")
   let html = '<thead><tr><th>Tabs</th><th class="left">Site added</th>'
   for (const tool of TOOLS) {
     html += `<th class="${tool.ours ? "ours" : ""}">${tool.name}</th>`
@@ -523,7 +523,7 @@ function drawDotStrips(svg, rows, ticksMs) {
 }
 
 /**
- * Each task as a pair: how long Chrome took and how long agent-tabs took.
+ * Each task as a pair: how long Chrome took and how long Browserheap took.
  * A filled dot is a solved task, a ring an unsolved one.
  *
  *   rows  [{ label, chrome: { seconds, solved }, ours: { seconds, solved } }]

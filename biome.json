@@ -1,7 +1,16 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "files": {
-    "includes": ["**", "!**/node_modules", "!**/dist", "!**/bench/results", "!**/bench/launch", "!**/.venv", "!**/.playwright-mcp"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/bench/results",
+      "!**/bench/launch",
+      "!**/.venv",
+      "!**/.playwright-mcp",
+      "!**/site"
+    ]
   },
   "formatter": {
     "indentStyle": "space",

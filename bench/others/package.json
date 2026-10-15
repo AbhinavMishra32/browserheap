@@ -1,5 +1,5 @@
 {
-  "name": "agent-tabs-bench-others",
+  "name": "browserheap-bench-others",
   "private": true,
   "type": "module",
   "description": "Other agent browser tools, pinned to the versions measured.",

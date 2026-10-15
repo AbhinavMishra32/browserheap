@@ -34,7 +34,7 @@
  * Uses:    quickjs-emscripten-core, @jitl/quickjs-wasmfile-release-sync, prepare-code.ts,
  *          snapshot.ts, agent-page.ts
  * Used by: session.ts
- * Built:   in O first (5.6), copied into agent-tabs
+ * Built:   in O first (5.6), copied into browserheap
  */
 import { inspect } from "node:util"
 import variant from "@jitl/quickjs-wasmfile-release-sync"

@@ -1,5 +1,5 @@
 /**
- * Where the CLI keeps its things: ~/.agent-tabs/
+ * Where the CLI keeps its things: ~/.browserheap/
  *
  *   <name>.json      how to reach a running background browser: { port, token, pid } (mode 600)
  *   <name>.log       what that browser printed
@@ -11,7 +11,7 @@ import { mkdirSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 
-export const HOME = join(homedir(), ".agent-tabs")
+export const HOME = join(homedir(), ".browserheap")
 
 function inHome(...parts: string[]): string {
   mkdirSync(HOME, { recursive: true, mode: 0o700 })

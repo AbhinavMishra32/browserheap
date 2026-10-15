@@ -19,7 +19,7 @@
  *
  * Uses:    snapshot.ts (ensureWorld), page-world.ts (probe, mutations), playwright-core
  * Used by: agent-page.ts
- * Built:   in O first (5.6), copied into agent-tabs
+ * Built:   in O first (5.6), copied into browserheap
  */
 import type { Frame, Page, Request } from "playwright-core"
 import { ensureWorld } from "./snapshot.ts"
@@ -100,7 +100,7 @@ export async function untilUsable(page: Page, timeoutMs = ACTION_MAX_MS): Promis
       try {
         await ensureWorld(page.mainFrame())
         probe = await page.evaluate(() =>
-          (globalThis as unknown as { __agentTabs: { probe(): never } }).__agentTabs.probe(),
+          (globalThis as unknown as { __browserheap: { probe(): never } }).__browserheap.probe(),
         )
       } catch {
         // Mid-navigation: the page is being replaced. Look again.
@@ -135,18 +135,20 @@ async function untilQuiet(page: Page, budgetMs: number): Promise<void> {
   try {
     await ensureWorld(page.mainFrame())
     await page.evaluate(() =>
-      (globalThis as unknown as { __agentTabs: { watchMutations(): void } }).__agentTabs.watchMutations(),
+      (globalThis as unknown as { __browserheap: { watchMutations(): void } }).__browserheap.watchMutations(),
     )
     // Count from now.
     await page.evaluate(() =>
-      (globalThis as unknown as { __agentTabs: { readMutations(): void } }).__agentTabs.readMutations(),
+      (globalThis as unknown as { __browserheap: { readMutations(): void } }).__browserheap.readMutations(),
     )
     while (Date.now() < deadline) {
       await sleep(QUIET_SAMPLE_MS)
       const sample = await page.evaluate(() =>
         (
-          globalThis as unknown as { __agentTabs: { readMutations(): { mutations: number; nodes: number } } }
-        ).__agentTabs.readMutations(),
+          globalThis as unknown as {
+            __browserheap: { readMutations(): { mutations: number; nodes: number } }
+          }
+        ).__browserheap.readMutations(),
       )
       if (sample.mutations / sample.nodes <= QUIET_RATIO) {
         return

@@ -1,9 +1,9 @@
 ---
-name: agent-tabs
+name: browserheap
 description: Browse real websites from the shell with a headless Chromium whose idle tabs sleep. Use for web research, reading docs, filling forms, checking a site or web app, and anything that needs many tabs open. Drive pages with Playwright-style JavaScript in a persistent REPL; pages you keep in variables keep working after their tab sleeps.
 ---
 
-# agent-tabs
+# Browserheap
 
 A browser for you, driven from the shell. Tabs you aren't using sleep, so you can keep many open
 (research, comparing sources) without the machine running out of memory. A sleeping tab wakes by
@@ -12,26 +12,26 @@ itself when you act on it.
 ## Setup (once)
 
 ```sh
-npx agent-tabs install
+npx browserheap install
 ```
 
 ## The loop
 
 1. Open a page and look at it:
    ```sh
-   npx agent-tabs open https://news.ycombinator.com
+   npx browserheap open https://news.ycombinator.com
    ```
    This prints the page as a tree. Elements you can act on have refs: `link "new" [ref=e14]`.
 
 2. Act with JavaScript in the REPL, then look at what changed:
    ```sh
-   npx agent-tabs run 'await page.locator("e14").click(); console.log((await snapshot(page)).diff)'
+   npx browserheap run 'await page.locator("e14").click(); console.log((await snapshot(page)).diff)'
    ```
 
 3. Repeat. Variables live between `run` calls, so `const results = page` in one call is still there
    in the next.
 
-For longer code, write it to a file and run `npx agent-tabs run --file steps.js`, or pipe it in.
+For longer code, write it to a file and run `npx browserheap run --file steps.js`, or pipe it in.
 
 ## What the code has
 
@@ -67,7 +67,7 @@ Only the 2 tabs you used most recently are live; the rest sleep. You don't manag
 - **Refs don't survive a wake.** Refs (`e12`) belong to the page as it was when you took the
   snapshot. After a tab wakes, take a new snapshot before using refs; an old ref fails with
   "Take a new snapshot and use its refs".
-- **`tab.isAsleep()`** says whether a tab is sleeping. `npx agent-tabs tabs` lists them all.
+- **`tab.isAsleep()`** says whether a tab is sleeping. `npx browserheap tabs` lists them all.
 
 Waking takes a fraction of a second and brings the page back where it was (same URL, scroll
 position, still signed in). Things that lived only in the running page, like an open menu, are gone.
@@ -75,19 +75,19 @@ position, still signed in). Things that lived only in the running page, like an 
 ## Other commands
 
 ```sh
-npx agent-tabs tabs                          # list tabs: live or asleep, title, url
-npx agent-tabs screenshot --out shot.png     # screenshot of the current tab; open the file to look
-npx agent-tabs stop                          # close the browser when you're done
+npx browserheap tabs                          # list tabs: live or asleep, title, url
+npx browserheap screenshot --out shot.png     # screenshot of the current tab; open the file to look
+npx browserheap stop                          # close the browser when you're done
 ```
 
 - `--session <name>` gives a separate browser with its own tabs: use one per task when several
   agents browse at once.
 - `--live <n>` keeps more tabs live (set it on the first command of a session).
-- Images your code displays are saved under `~/.agent-tabs/images/`; the command prints each path.
+- Images your code displays are saved under `~/.browserheap/images/`; the command prints each path.
 
 ## Tips
 
 - One `run` can do many steps: search, open the top results, read each, print a summary.
 - Prefer `snapshot(page, { interactive: true })` on busy pages; print `.diff` after actions.
 - If a site shows a bot check or nothing loads, say so; don't guess what the page contains.
-- Close the browser with `npx agent-tabs stop` when the task is finished.
+- Close the browser with `npx browserheap stop` when the task is finished.

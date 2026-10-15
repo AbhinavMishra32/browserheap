@@ -1,13 +1,13 @@
 /**
  * What we put inside every page (and frame) the agent uses: the snapshot
  * engine, the ref registry, and the DOM-quiet monitor. It lives in the page
- * as `globalThis.__agentTabs`.
+ * as `globalThis.__browserheap`.
  *
- *   __agentTabs.snapshot({ interactive, showHidden, ref, selector, refPrefix })   → { tree, error? }
- *   __agentTabs.deref("e12")         the element behind a ref (selector engine "tabref" uses it)
- *   __agentTabs.refOf(element)       an element's ref, if it has one (to place iframes in the tree)
- *   __agentTabs.watchMutations()     start counting DOM changes; __agentTabs.readMutations() → { mutations, nodes }
- *   __agentTabs.probe()              is the page usable yet? { bodyExists, interactiveCount, landmarkCount, textChars }
+ *   __browserheap.snapshot({ interactive, showHidden, ref, selector, refPrefix })   → { tree, error? }
+ *   __browserheap.deref("e12")         the element behind a ref (selector engine "tabref" uses it)
+ *   __browserheap.refOf(element)       an element's ref, if it has one (to place iframes in the tree)
+ *   __browserheap.watchMutations()     start counting DOM changes; __browserheap.readMutations() → { mutations, nodes }
+ *   __browserheap.probe()              is the page usable yet? { bodyExists, interactiveCount, landmarkCount, textChars }
  *
  * The snapshot is a compact accessibility tree, in the same shape as Aside's
  * (Asidewright), which puts what matters first:
@@ -39,11 +39,11 @@
  *
  * Uses:    nothing (runs in the page)
  * Used by: snapshot.ts, settle.ts, agent-page.ts
- * Built:   in O first (5.6), copied into agent-tabs
+ * Built:   in O first (5.6), copied into browserheap
  */
 export function pageWorld(): void {
-  const g = globalThis as unknown as { __agentTabs?: unknown }
-  if (g.__agentTabs !== undefined) {
+  const g = globalThis as unknown as { __browserheap?: unknown }
+  if (g.__browserheap !== undefined) {
     return
   }
 
@@ -1177,7 +1177,7 @@ export function pageWorld(): void {
 
   // --- Labels for annotatedScreenshot -----------------------------------------------
 
-  const OVERLAY_ID = "__agentTabs-annotations"
+  const OVERLAY_ID = "__browserheap-annotations"
 
   /** Draws each ref from the last snapshot on its element, where it's in view. Returns how many. */
   function annotate(): number {
@@ -1215,5 +1215,5 @@ export function pageWorld(): void {
     document.getElementById(OVERLAY_ID)?.remove()
   }
 
-  g.__agentTabs = { snapshot, deref, refOf, watchMutations, readMutations, probe, annotate, unannotate }
+  g.__browserheap = { snapshot, deref, refOf, watchMutations, readMutations, probe, annotate, unannotate }
 }

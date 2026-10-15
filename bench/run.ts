@@ -2,23 +2,23 @@
  * The memory benchmark: open real sites as tabs, one after another, keep
  * them all open, and measure the browser's memory after each one.
  *
- *   node bench/run.ts agent-tabs 20        agent-tabs: blocking on, 2 tabs live (--live 3 for 3)
- *   node bench/run.ts chrome-shell 20      Chromium's headless shell, every tab live (what agent-tabs runs on)
+ *   node bench/run.ts browserheap 20        browserheap: blocking on, 2 tabs live (--live 3 for 3)
+ *   node bench/run.ts chrome-shell 20      Chromium's headless shell, every tab live (what browserheap runs on)
  *   node bench/run.ts chromium 20          the full Chromium, in its new headless mode
  *   node bench/run.ts webkit 10            Playwright's WebKit (Safari's engine)
  *   node bench/run.ts obscura 5            Obscura, if OBSCURA_BIN points at its program
  *   node bench/run.ts lightpanda 30        Lightpanda, if LIGHTPANDA_BIN points at its program
  *
- *   … --block       with agent-tabs' blocking: ads, trackers, images, video, fonts
+ *   … --block       with browserheap' blocking: ads, trackers, images, video, fonts
  *   … --block-ads   ads and trackers only
  *   … --idle 10     then leave it alone 10 minutes, sampling memory and CPU every 15 s
  *   … --until-mb 6500   stop opening tabs once the browser uses this much (for runs past 30 tabs)
- *   … --wake-all    agent-tabs: then wake every sleeping tab in turn and time each
+ *   … --wake-all    browserheap: then wake every sleeping tab in turn and time each
  *
  * More tabs than sites opens the sites again from the top (100 tabs: the 30 sites 3 times, then 10).
  *
  * Prints memory after each tab, then a summary, and saves it all to
- * bench/results/<browser>-<tabs>-<time>.json. For agent-tabs it also wakes
+ * bench/results/<browser>-<tabs>-<time>.json. For browserheap it also wakes
  * the first tab at the end and times it: what going back to a sleeping tab costs.
  *
  * A page "worked" when it shows more than 200 characters of text; a page a
@@ -42,7 +42,7 @@ import {
 import { SITES } from "./sites.ts"
 import { startSubject } from "./subjects.ts"
 
-const KINDS = ["agent-tabs", "chrome-shell", "chromium", "webkit", "obscura", "lightpanda"] as const
+const KINDS = ["browserheap", "chrome-shell", "chromium", "webkit", "obscura", "lightpanda"] as const
 type Kind = (typeof KINDS)[number]
 type Blocking = "none" | "all" | "ads"
 
@@ -56,7 +56,7 @@ interface Session {
   open(url: string): Promise<number>
   pids(): number[]
   blocked: BlockedCounts | null
-  /** agent-tabs only: wakes tab `index` (opened order) and returns how much text it shows. */
+  /** browserheap only: wakes tab `index` (opened order) and returns how much text it shows. */
   wake?: (index: number) => Promise<number>
   close(): Promise<void>
 }
@@ -65,11 +65,11 @@ async function textLengthOf(page: Page): Promise<number> {
   return page.evaluate(() => document.body?.innerText.length ?? 0)
 }
 
-async function startAgentTabs(maxLive: number): Promise<Session> {
+async function startBrowserheap(maxLive: number): Promise<Session> {
   const browser = await launch({ maxLive })
   const pid = browser.pid
   if (pid === null) {
-    throw new Error("agent-tabs started without a process id")
+    throw new Error("browserheap started without a process id")
   }
   const tabs: Tab[] = []
   return {
@@ -91,7 +91,7 @@ async function startAgentTabs(maxLive: number): Promise<Session> {
   }
 }
 
-/** A plain browser, every tab live, optionally with agent-tabs' blocking. */
+/** A plain browser, every tab live, optionally with browserheap' blocking. */
 async function startPlain(kind: Kind, blocking: Blocking): Promise<Session> {
   const running = await startBrowser(kind)
   // Requests from service workers can't be filtered, so with blocking there are none.
@@ -208,16 +208,16 @@ async function main(): Promise<void> {
   const maxLive = Number(flagValue("--live") ?? 2)
 
   let label: string = kind
-  if (kind === "agent-tabs") {
-    label = `agent-tabs --live ${maxLive}`
+  if (kind === "browserheap") {
+    label = `browserheap --live ${maxLive}`
   } else if (blocking !== "none") {
     label = `${kind} --block${blocking === "ads" ? "-ads" : ""}`
   }
 
   const startedAt = Date.now()
   let session: Session
-  if (kind === "agent-tabs") {
-    session = await startAgentTabs(maxLive)
+  if (kind === "browserheap") {
+    session = await startBrowserheap(maxLive)
   } else if (kind === "lightpanda" || kind === "obscura") {
     session = await startOtherEngine(kind)
   } else {

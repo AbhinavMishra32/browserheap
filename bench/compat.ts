@@ -4,7 +4,7 @@
  * text. No AI model involved. (Layout is tested in actions.ts: on real sites
  * an engine can report sizes it never laid out.)
  *
- *   node bench/compat.ts chrome            (or agent-tabs, lightpanda, obscura)
+ *   node bench/compat.ts chrome            (or browserheap, lightpanda, obscura)
  *   node bench/compat.ts lightpanda 5      only the first 5 sites
  *
  * Saves bench/results/compat-<browser>-<time>.json with every site's

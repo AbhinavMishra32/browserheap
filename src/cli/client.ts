@@ -53,8 +53,8 @@ async function start(name: string, settings: StartSettings): Promise<ServerInfo>
     stdio: ["ignore", log, log],
     env: {
       ...process.env,
-      AGENT_TABS_MAX_LIVE: settings.maxLive ?? process.env.AGENT_TABS_MAX_LIVE,
-      AGENT_TABS_BLOCK: settings.block ?? process.env.AGENT_TABS_BLOCK,
+      BROWSERHEAP_MAX_LIVE: settings.maxLive ?? process.env.BROWSERHEAP_MAX_LIVE,
+      BROWSERHEAP_BLOCK: settings.block ?? process.env.BROWSERHEAP_BLOCK,
     },
   })
   child.unref()
