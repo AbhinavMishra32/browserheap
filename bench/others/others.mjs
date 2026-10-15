@@ -2,16 +2,24 @@
 // tool through its own interface and default settings, measuring only its
 // browser's processes, after each tab. Saves bench/results/<tool>-<tabs>-<time>.json, shaped like
 // bench/run.ts's. Usage: node others.mjs agent-browser|playwright-mcp|stagehand [tabs]
+// [--idle minutes] [--until-mb mb], the same flags as bench/run.ts.
 // (agent-browser first needs `npx agent-browser install` for its Chrome.)
 import { execFileSync } from "node:child_process"
 import { mkdirSync, writeFileSync } from "node:fs"
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
-import { footprintMb, processesMatching, processTree } from "../measure.ts"
+import { footprintMb, processesMatching, processTree, sitesFor, watchIdle } from "../measure.ts"
 import { SITES } from "../sites.ts"
 
 const tool = process.argv[2]
-const sites = SITES.slice(0, Number(process.argv[3] ?? SITES.length))
+const sites = sitesFor(SITES, Number(process.argv[3] ?? SITES.length))
+const idleMinutes = Number(flagValue("--idle") ?? 0)
+const untilMb = Number(flagValue("--until-mb") ?? Number.POSITIVE_INFINITY)
+
+function flagValue(name) {
+  const at = process.argv.indexOf(name)
+  return at === -1 ? undefined : process.argv[at + 1]
+}
 
 /** Only the browser's processes (Chrome, Chromium and their helpers), not the tool's own. */
 function browserOnly(pids) {
@@ -129,41 +137,63 @@ const session = await start()
 const idleMb = footprintMb(session.pids())
 const perTab = []
 let worked = 0
+let stopped = null
 for (const url of sites) {
   let ok = false
+  const openedAt = Date.now()
   try {
     ok = (await withTimeout(session.open(url), 45_000)) > 200
   } catch {
     // A site that times out still counts as an open tab.
   }
   if (ok) worked++
-  const totalMb = footprintMb(session.pids())
-  perTab.push({ url, totalMb, worked: ok })
-  console.log(`${String(totalMb).padStart(6)} MB  ${ok ? "ok  " : "FAIL"}  ${url}`)
+  const loadMs = Date.now() - openedAt
+  const pids = session.pids()
+  const totalMb = footprintMb(pids)
+  perTab.push({ url, loadMs, totalMb, worked: ok })
+  console.log(
+    `${String(perTab.length).padStart(3)}  ${String(totalMb).padStart(6)} MB  ${ok ? "ok  " : "FAIL"}  ${url}`,
+  )
+  // After the first tab the browser is up; no processes left means it died.
+  if (pids.length === 0 && perTab.length > 1) {
+    stopped = "crashed"
+    break
+  }
+  if (totalMb >= untilMb) {
+    stopped = "memory limit"
+    break
+  }
 }
 const seconds = Math.round((Date.now() - startedAt) / 1000)
 await new Promise((resolve) => setTimeout(resolve, 5000))
 const pids = session.pids()
 const finalMb = footprintMb(pids)
 console.log(
-  `\n${tool}: ${finalMb} MB with ${sites.length} tabs (${worked} worked), ${seconds} s, ${pids.length} browser processes`,
+  `\n${tool}: ${finalMb} MB with ${perTab.length} tabs (${worked} worked), ${seconds} s, ${pids.length} browser processes`,
 )
+let idle = null
+if (idleMinutes > 0 && stopped !== "crashed") {
+  idle = await watchIdle(session.pids, idleMinutes)
+}
 await session.close().catch(() => {})
 
 const measuredAt = new Date().toISOString()
 const summary = {
   browser: tool,
-  tabs: sites.length,
+  tabs: perTab.length,
   worked,
   idleMb,
   finalMb,
   loadSeconds: seconds,
+  stopped,
+  idle,
   measuredAt,
   perTab,
 }
 const resultsDir = new URL("../results/", import.meta.url).pathname
 mkdirSync(resultsDir, { recursive: true })
-const file = `${resultsDir}${tool}-${sites.length}-${measuredAt.replace(/[:.]/g, "-")}.json`
+const suffix = idleMinutes > 0 ? `-idle${idleMinutes}m` : ""
+const file = `${resultsDir}${tool}${suffix}-${perTab.length}-${measuredAt.replace(/[:.]/g, "-")}.json`
 writeFileSync(file, `${JSON.stringify(summary, null, 2)}\n`)
 console.log(`saved ${file}`)
 process.exit(0)

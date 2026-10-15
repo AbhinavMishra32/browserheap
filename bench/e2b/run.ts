@@ -7,6 +7,13 @@
  *   node --env-file=../../.env bench/e2b/run.ts actions               what agents can do, every engine (../actions.ts)
  *   node --env-file=../../.env bench/e2b/run.ts compat                which real sites work, every engine (../compat.ts)
  *   node --env-file=../../.env bench/e2b/run.ts memory 3 --only stagehand    one tool, to try it
+ *   node --env-file=../../.env bench/e2b/run.ts idle --each           30 tabs, then 10 idle minutes: memory and CPU, every tool
+ *   node --env-file=../../.env bench/e2b/run.ts scale --each          up to 100 tabs or 6.5 GB, every tool
+ *   node --env-file=../../.env bench/e2b/run.ts extras --each         waking every tab, 1/4/8 tabs live, 10 agents on one machine
+ *
+ * --each gives every browser a sandbox of its own, all running at once, so a
+ * long job takes as long as its slowest browser. Each line it prints starts
+ * with the browser's name.
  *
  * Each job gets a sandbox of its own, so jobs can run at the same time.
  * Needs E2B_API_KEY (O's .env has it). Uploads this folder's code into the
@@ -25,17 +32,59 @@ const repo = resolve(import.meta.dirname, "../..")
 
 const OTHERS = "/opt/bench/bench/others"
 
-/** Each job: every browser it runs, and how (TABS is the number of tabs). */
-const JOBS: Record<string, { name: string; folder: string; command: string }[]> = {
-  memory: [
-    { name: "agent-tabs", folder: "/opt/bench", command: "node bench/run.ts agent-tabs TABS --live 2" },
-    { name: "chrome-shell", folder: "/opt/bench", command: "node bench/run.ts chrome-shell TABS" },
-    { name: "lightpanda", folder: "/opt/bench", command: "node bench/run.ts lightpanda TABS" },
-    { name: "obscura", folder: "/opt/bench", command: "node bench/run.ts obscura TABS" },
-    { name: "agent-browser", folder: OTHERS, command: "node others.mjs agent-browser TABS" },
-    { name: "playwright-mcp", folder: OTHERS, command: "node others.mjs playwright-mcp TABS" },
-    { name: "stagehand", folder: OTHERS, command: "node others.mjs stagehand TABS" },
-    { name: "browser-use", folder: OTHERS, command: ".venv/bin/python browser-use.py TABS" },
+interface JobBrowser {
+  name: string
+  folder: string
+  command: string
+}
+
+/** Every tool and engine opening TABS tabs, with `extra` flags on each command. */
+function everyTool(extra: string): JobBrowser[] {
+  return [
+    {
+      name: "agent-tabs",
+      folder: "/opt/bench",
+      command: `node bench/run.ts agent-tabs TABS --live 2 ${extra}`,
+    },
+    { name: "chrome-shell", folder: "/opt/bench", command: `node bench/run.ts chrome-shell TABS ${extra}` },
+    { name: "lightpanda", folder: "/opt/bench", command: `node bench/run.ts lightpanda TABS ${extra}` },
+    { name: "obscura", folder: "/opt/bench", command: `node bench/run.ts obscura TABS ${extra}` },
+    { name: "agent-browser", folder: OTHERS, command: `node others.mjs agent-browser TABS ${extra}` },
+    { name: "playwright-mcp", folder: OTHERS, command: `node others.mjs playwright-mcp TABS ${extra}` },
+    { name: "stagehand", folder: OTHERS, command: `node others.mjs stagehand TABS ${extra}` },
+    { name: "browser-use", folder: OTHERS, command: `.venv/bin/python browser-use.py TABS ${extra}` },
+  ]
+}
+
+/** Each job: every browser it runs, and how (TABS is the number of tabs, 30 unless given). */
+const JOBS: Record<string, JobBrowser[]> = {
+  memory: everyTool(""),
+  // 30 tabs, then left alone: what idle tabs cost in memory and CPU over time.
+  idle: everyTool("--idle 10"),
+  // Past 30 tabs until the browser nears the machine's 8 GB, or dies.
+  scale: everyTool("--until-mb 6500").map((browser) => ({
+    ...browser,
+    command: browser.command.replace("TABS", "100"),
+  })),
+  extras: [
+    {
+      name: "wake-all",
+      folder: "/opt/bench",
+      command: "node bench/run.ts agent-tabs 30 --live 2 --wake-all",
+    },
+    { name: "live-1", folder: "/opt/bench", command: "node bench/run.ts agent-tabs 30 --live 1" },
+    { name: "live-4", folder: "/opt/bench", command: "node bench/run.ts agent-tabs 30 --live 4" },
+    { name: "live-8", folder: "/opt/bench", command: "node bench/run.ts agent-tabs 30 --live 8" },
+    {
+      name: "agents-agent-tabs",
+      folder: "/opt/bench",
+      command: "node bench/agents.ts agent-tabs 10 10 --until-mb 6500",
+    },
+    {
+      name: "agents-chrome",
+      folder: "/opt/bench",
+      command: "node bench/agents.ts chrome-shell 10 10 --until-mb 6500",
+    },
   ],
   actions: [
     { name: "agent-tabs", folder: "/opt/bench", command: "node bench/actions.ts agent-tabs" },
@@ -61,6 +110,7 @@ const CODE = [
   "src/tab.ts",
   "bench/measure.ts",
   "bench/run.ts",
+  "bench/agents.ts",
   "bench/sites.ts",
   "bench/subjects.ts",
   "bench/actions.ts",
@@ -123,12 +173,37 @@ async function buildTemplate(): Promise<void> {
 }
 
 async function runJob(job: string): Promise<void> {
-  const browsers = JOBS[job] ?? []
-  const tabs = process.argv[3] ?? "30"
+  const tabsAt = process.argv[3]
+  const tabs = tabsAt !== undefined && /^\d+$/.test(tabsAt) ? tabsAt : "30"
   const onlyAt = process.argv.indexOf("--only")
   const only = onlyAt === -1 ? null : process.argv[onlyAt + 1]
+  let browsers = JOBS[job] ?? []
+  if (only !== null) {
+    browsers = browsers.filter((browser) => browser.name === only)
+  }
 
-  console.log(`Starting a "${TEMPLATE}" sandbox…`)
+  if (!process.argv.includes("--each")) {
+    await runInSandbox(job, browsers, tabs, "")
+    return
+  }
+  // A sandbox per browser, all at once. One failing doesn't stop the rest.
+  const runs = browsers.map((browser) => runInSandbox(job, [browser], tabs, `[${browser.name}] `))
+  const outcomes = await Promise.allSettled(runs)
+  outcomes.forEach((outcome, i) => {
+    if (outcome.status === "rejected") {
+      console.error(`[${browsers[i]?.name}] failed: ${outcome.reason}`)
+    }
+  })
+}
+
+/** Starts a sandbox, runs these browsers in it one after another, saves their results, deletes it. */
+async function runInSandbox(
+  job: string,
+  browsers: JobBrowser[],
+  tabs: string,
+  prefix: string,
+): Promise<void> {
+  console.log(`${prefix}Starting a "${TEMPLATE}" sandbox…`)
   const sandbox = await Sandbox.create(TEMPLATE, { apiKey, timeoutMs: 60 * 60_000 })
   try {
     const files = []
@@ -139,22 +214,19 @@ async function runJob(job: string): Promise<void> {
 
     const resultsHere = resolve(repo, "bench/results/e2b", job)
     mkdirSync(resultsHere, { recursive: true })
-    const machine = await run(sandbox, "/opt/bench", MACHINE_INFO)
+    const machine = await run(sandbox, "/opt/bench", MACHINE_INFO, "")
     writeFileSync(resolve(resultsHere, "machine.txt"), machine)
 
     for (const browser of browsers) {
-      if (only !== null && browser.name !== only) {
-        continue
-      }
-      console.log(`\n--- ${browser.name}`)
-      await run(sandbox, browser.folder, browser.command.replace("TABS", tabs))
+      console.log(`\n${prefix}--- ${browser.name}`)
+      await run(sandbox, browser.folder, browser.command.replace("TABS", tabs), prefix)
     }
 
     const folder = "/opt/bench/bench/results"
     for (const entry of await sandbox.files.list(folder)) {
       const text = await sandbox.files.read(`${folder}/${entry.name}`)
       writeFileSync(resolve(resultsHere, entry.name), text)
-      console.log(`saved bench/results/e2b/${job}/${entry.name}`)
+      console.log(`${prefix}saved bench/results/e2b/${job}/${entry.name}`)
     }
   } finally {
     await sandbox.kill()
@@ -162,26 +234,43 @@ async function runJob(job: string): Promise<void> {
 }
 
 /** Runs a command as root, printing its output as it comes; a tool failing doesn't stop the others. */
-async function run(sandbox: Sandbox, folder: string, command: string): Promise<string> {
+async function run(sandbox: Sandbox, folder: string, command: string, prefix: string): Promise<string> {
   try {
     const result = await sandbox.commands.run(command, {
       cwd: folder,
       user: "root",
       envs: ENV,
-      timeoutMs: 20 * 60_000,
+      timeoutMs: 30 * 60_000,
       onStdout: (data) => {
-        process.stdout.write(data)
+        process.stdout.write(withPrefix(data, prefix))
       },
       onStderr: (data) => {
-        process.stderr.write(data)
+        process.stderr.write(withPrefix(data, prefix))
       },
     })
     return result.stdout
   } catch (error) {
     if (error instanceof CommandExitError) {
-      console.error(`Failed with exit code ${error.exitCode}.`)
+      console.error(`${prefix}Failed with exit code ${error.exitCode}.`)
       return error.stdout
     }
     throw error
   }
+}
+
+/** Puts the browser's name before every line, so parallel runs can be told apart. */
+function withPrefix(text: string, prefix: string): string {
+  if (prefix === "") {
+    return text
+  }
+  const lines = text.split("\n")
+  const last = lines.pop()
+  let out = ""
+  for (const line of lines) {
+    out += `${prefix}${line}\n`
+  }
+  if (last !== undefined && last !== "") {
+    out += `${prefix}${last}`
+  }
+  return out
 }

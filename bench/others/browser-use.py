@@ -15,9 +15,7 @@ def tree(pid):
 
 
 def browser_mb():
-    pids = tree(os.getpid())
-    out = subprocess.run(["ps", "-o", "pid=,command=", "-p", ",".join(map(str, pids))], capture_output=True, text=True).stdout
-    chrome = [l.split()[0] for l in out.strip().split("\n") if re.search("chrom", l, re.I)]
+    chrome = browser_pids()
     if not chrome:
         return 0
     if sys.platform == "linux":
@@ -28,6 +26,46 @@ def browser_mb():
     text = subprocess.run(args, capture_output=True, text=True).stdout
     totals = re.findall(r"Footprint:\s+(\d+) B", text)
     return round(int(totals[-1]) / 1024 / 1024) if totals else 0
+
+
+def browser_pids():
+    pids = tree(os.getpid())
+    out = subprocess.run(["ps", "-o", "pid=,command=", "-p", ",".join(map(str, pids))], capture_output=True, text=True).stdout
+    return [l.split()[0] for l in out.strip().split("\n") if re.search("chrom", l, re.I)]
+
+
+def cpu_seconds(pids):
+    """Linux: the CPU time each process has used so far, like bench/measure.ts."""
+    ticks = os.sysconf("SC_CLK_TCK")
+    used = {}
+    for pid in pids:
+        try:
+            stat = open(f"/proc/{pid}/stat").read()
+        except OSError:
+            continue
+        fields = stat[stat.rindex(")") + 2:].split(" ")
+        used[pid] = (int(fields[11]) + int(fields[12])) / ticks
+    return used
+
+
+async def watch_idle(minutes, every=15):
+    """Leaves the browser alone and samples memory and CPU every 15 s, like bench/measure.ts."""
+    samples = []
+    started = time.time()
+    before = cpu_seconds(browser_pids())
+    while time.time() - started < minutes * 60:
+        await asyncio.sleep(every)
+        after = cpu_seconds(browser_pids())
+        used = sum(total - before.get(pid, 0) for pid, total in after.items())
+        sample = {"seconds": round(time.time() - started), "mb": browser_mb(), "cpuPercent": round(used / every * 100)}
+        samples.append(sample)
+        print(f"idle {sample['seconds']:>4} s  {sample['mb']:>6} MB  {sample['cpuPercent']}% CPU", flush=True)
+        before = after
+    return samples
+
+
+def flag(name, default):
+    return float(sys.argv[sys.argv.index(name) + 1]) if name in sys.argv else default
 
 
 def pss_mb(pids):
@@ -47,6 +85,10 @@ async def main():
     from browser_use import BrowserSession
 
     count = int(sys.argv[1]) if len(sys.argv) > 1 else len(SITES)
+    idle_minutes = flag("--idle", 0)
+    until_mb = flag("--until-mb", float("inf"))
+    # More tabs than sites opens the sites again from the top, like bench/run.ts.
+    sites = [SITES[i % len(SITES)] for i in range(count)]
     started = time.time()
     # The benchmark's machine runs as root, where Chrome only starts without its
     # sandbox (the others turn it off themselves). It doesn't change memory.
@@ -55,8 +97,10 @@ async def main():
     idle_mb = browser_mb()
     per_tab = []
     worked = 0
-    for i, url in enumerate(SITES[:count]):
+    stopped = None
+    for i, url in enumerate(sites):
         ok = False
+        opened = time.time()
         try:
             await asyncio.wait_for(session.navigate_to(url, new_tab=i > 0), 45)
             page = await session.get_current_page()
@@ -65,21 +109,32 @@ async def main():
         except Exception as error:
             pass
         worked += ok
+        load_ms = round((time.time() - opened) * 1000)
         total_mb = browser_mb()
-        per_tab.append({"url": url, "totalMb": total_mb, "worked": ok})
-        print(f"{total_mb:>6} MB  {'ok  ' if ok else 'FAIL'}  {url}", flush=True)
+        per_tab.append({"url": url, "loadMs": load_ms, "totalMb": total_mb, "worked": ok})
+        print(f"{len(per_tab):>3}  {total_mb:>6} MB  {'ok  ' if ok else 'FAIL'}  {url}", flush=True)
+        if total_mb == 0 and i > 0:
+            stopped = "crashed"
+            break
+        if total_mb >= until_mb:
+            stopped = "memory limit"
+            break
     seconds = round(time.time() - started)
     await asyncio.sleep(5)
     final_mb = browser_mb()
-    print(f"\nbrowser-use: {final_mb} MB with {count} tabs ({worked} worked), {seconds} s", flush=True)
+    print(f"\nbrowser-use: {final_mb} MB with {len(per_tab)} tabs ({worked} worked), {seconds} s", flush=True)
+    idle = None
+    if idle_minutes > 0 and stopped != "crashed":
+        idle = await watch_idle(idle_minutes)
     await session.kill()
 
     measured_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    summary = {"browser": "browser-use", "tabs": count, "worked": worked, "idleMb": idle_mb, "finalMb": final_mb,
-               "loadSeconds": seconds, "measuredAt": measured_at, "perTab": per_tab}
+    summary = {"browser": "browser-use", "tabs": len(per_tab), "worked": worked, "idleMb": idle_mb, "finalMb": final_mb,
+               "loadSeconds": seconds, "stopped": stopped, "idle": idle, "measuredAt": measured_at, "perTab": per_tab}
     results = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results")
     os.makedirs(results, exist_ok=True)
-    name = f"browser-use-{count}-{re.sub(r'[:.+]', '-', measured_at)}.json"
+    suffix = f"-idle{int(idle_minutes)}m" if idle_minutes > 0 else ""
+    name = f"browser-use{suffix}-{len(per_tab)}-{re.sub(r'[:.+]', '-', measured_at)}.json"
     with open(os.path.join(results, name), "w") as out:
         json.dump(summary, out, indent=2)
     print(f"saved {name}", flush=True)

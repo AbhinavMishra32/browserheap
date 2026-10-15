@@ -79,6 +79,102 @@ export function footprintMb(pids: number[]): number {
   return Math.round(bytes / 1024 / 1024)
 }
 
+/**
+ * Linux: the CPU time each process has used so far, in seconds.
+ *
+ *   const before = cpuSeconds(pids)
+ *   … 15 s later …
+ *   cpuPercent(before, cpuSeconds(pids), 15)   → 37 (37% of one core)
+ */
+export function cpuSeconds(pids: number[]): Map<number, number> {
+  const used = new Map<number, number>()
+  for (const pid of pids) {
+    let stat = ""
+    try {
+      stat = readFileSync(`/proc/${pid}/stat`, "utf8")
+    } catch {
+      continue
+    }
+    // The command name is in brackets and can hold spaces; the numbers come after it.
+    const fields = stat.slice(stat.lastIndexOf(")") + 2).split(" ")
+    // utime and stime, fields 14 and 15 of the whole line, counted in clock ticks.
+    const ticks = Number(fields[11]) + Number(fields[12])
+    used.set(pid, ticks / CLOCK_TICKS)
+  }
+  return used
+}
+
+/** The CPU the processes used between two samples, as a percentage of one core. */
+export function cpuPercent(before: Map<number, number>, after: Map<number, number>, seconds: number): number {
+  let used = 0
+  for (const [pid, total] of after) {
+    // A process that started between the samples counts from zero.
+    used += total - (before.get(pid) ?? 0)
+  }
+  return Math.round((used / seconds) * 100)
+}
+
+export interface IdleSample {
+  /** Seconds since the watch began. */
+  seconds: number
+  mb: number
+  /** CPU over the last interval, as a percentage of one core. */
+  cpuPercent: number
+}
+
+/**
+ * Leaves the browser alone with its tabs open and samples its memory and CPU
+ * every `everySeconds`: what idle tabs cost while the agent does something else.
+ */
+export async function watchIdle(
+  pids: () => number[],
+  minutes: number,
+  everySeconds = 15,
+): Promise<IdleSample[]> {
+  const samples: IdleSample[] = []
+  const startedAt = Date.now()
+  let before = cpuSeconds(pids())
+  while (Date.now() - startedAt < minutes * 60_000) {
+    await new Promise((resolve) => setTimeout(resolve, everySeconds * 1000))
+    const now = pids()
+    const after = cpuSeconds(now)
+    const sample = {
+      seconds: Math.round((Date.now() - startedAt) / 1000),
+      mb: footprintMb(now),
+      cpuPercent: cpuPercent(before, after, everySeconds),
+    }
+    samples.push(sample)
+    console.log(
+      `idle ${String(sample.seconds).padStart(4)} s  ${String(sample.mb).padStart(6)} MB  ${sample.cpuPercent}% CPU`,
+    )
+    before = after
+  }
+  return samples
+}
+
+/** The sites to open: the list repeated as many times as it takes to reach `count`. */
+export function sitesFor(sites: readonly string[], count: number): string[] {
+  const list: string[] = []
+  for (let i = 0; i < count; i++) {
+    list.push(sites[i % sites.length] ?? "")
+  }
+  return list
+}
+
+/** Linux counts CPU time in ticks: 100 a second on almost every machine. */
+const CLOCK_TICKS = clockTicks()
+
+function clockTicks(): number {
+  if (process.platform !== "linux") {
+    return 100
+  }
+  try {
+    return Number(execFileSync("getconf", ["CLK_TCK"], { encoding: "utf8" }).trim()) || 100
+  } catch {
+    return 100
+  }
+}
+
 /** Linux: the processes' PSS added up, in MB. */
 function pssMb(pids: number[]): number {
   let kilobytes = 0

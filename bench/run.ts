@@ -11,6 +11,11 @@
  *
  *   … --block       with agent-tabs' blocking: ads, trackers, images, video, fonts
  *   … --block-ads   ads and trackers only
+ *   … --idle 10     then leave it alone 10 minutes, sampling memory and CPU every 15 s
+ *   … --until-mb 6500   stop opening tabs once the browser uses this much (for runs past 30 tabs)
+ *   … --wake-all    agent-tabs: then wake every sleeping tab in turn and time each
+ *
+ * More tabs than sites opens the sites again from the top (100 tabs: the 30 sites 3 times, then 10).
  *
  * Prints memory after each tab, then a summary, and saves it all to
  * bench/results/<browser>-<tabs>-<time>.json. For agent-tabs it also wakes
@@ -26,7 +31,14 @@ import { type Browser, chromium, type Page, webkit } from "playwright-core"
 import { type BlockedCounts, startBlocking } from "../src/blocking.ts"
 import { launch } from "../src/browser.ts"
 import type { Tab } from "../src/tab.ts"
-import { footprintMb, processesMatching, processTree } from "./measure.ts"
+import {
+  footprintMb,
+  type IdleSample,
+  processesMatching,
+  processTree,
+  sitesFor,
+  watchIdle,
+} from "./measure.ts"
 import { SITES } from "./sites.ts"
 import { startSubject } from "./subjects.ts"
 
@@ -44,8 +56,8 @@ interface Session {
   open(url: string): Promise<number>
   pids(): number[]
   blocked: BlockedCounts | null
-  /** agent-tabs only: wakes the first tab and returns how much text it shows. */
-  wakeFirst?: () => Promise<number>
+  /** agent-tabs only: wakes tab `index` (opened order) and returns how much text it shows. */
+  wake?: (index: number) => Promise<number>
   close(): Promise<void>
 }
 
@@ -68,12 +80,12 @@ async function startAgentTabs(maxLive: number): Promise<Session> {
     },
     pids: () => processTree(pid),
     blocked: browser.blocked,
-    wakeFirst: async () => {
-      const first = tabs[0]
-      if (first === undefined) {
+    wake: async (index) => {
+      const tab = tabs[index]
+      if (tab === undefined) {
         return 0
       }
-      return textLengthOf(await first.page())
+      return textLengthOf(await tab.page())
     },
     close: () => browser.close(),
   }
@@ -167,6 +179,8 @@ function flagValue(name: string): string | undefined {
 
 interface TabResult {
   url: string
+  /** How long opening the tab took, until its page loaded. */
+  loadMs: number
   /** The browser's memory after this tab loaded, in MB. */
   totalMb: number
   worked: boolean
@@ -180,7 +194,10 @@ async function main(): Promise<void> {
     process.exit(1)
   }
   const count = Number(process.argv[3] ?? SITES.length)
-  const sites = SITES.slice(0, count)
+  const sites = sitesFor(SITES, count)
+  const idleMinutes = Number(flagValue("--idle") ?? 0)
+  const untilMb = Number(flagValue("--until-mb") ?? Number.POSITIVE_INFINITY)
+  const wakeAll = process.argv.includes("--wake-all")
   let blocking: Blocking = "none"
   if (process.argv.includes("--block")) {
     blocking = "all"
@@ -209,9 +226,12 @@ async function main(): Promise<void> {
   const idleMb = footprintMb(session.pids())
 
   const tabs: TabResult[] = []
+  // Why it stopped before opening every tab, if it did.
+  let stopped: "memory limit" | "crashed" | null = null
   for (const url of sites) {
     let worked = false
     let error: string | undefined
+    const openedAt = Date.now()
     try {
       const textLength = await session.open(url)
       worked = textLength > 200
@@ -219,37 +239,75 @@ async function main(): Promise<void> {
       const message = caught instanceof Error ? caught.message : String(caught)
       error = message.split("\n")[0]
     }
-    const totalMb = footprintMb(session.pids())
-    tabs.push({ url, totalMb, worked, error })
-    console.log(`${String(totalMb).padStart(6)} MB  ${worked ? "ok  " : "FAIL"}  ${url}`)
+    const loadMs = Date.now() - openedAt
+    const pids = session.pids()
+    const totalMb = footprintMb(pids)
+    tabs.push({ url, loadMs, totalMb, worked, error })
+    console.log(
+      `${String(tabs.length).padStart(3)}  ${String(totalMb).padStart(6)} MB  ${worked ? "ok  " : "FAIL"}  ${url}`,
+    )
+    if (pids.length === 0) {
+      stopped = "crashed"
+      break
+    }
+    if (totalMb >= untilMb) {
+      stopped = "memory limit"
+      break
+    }
   }
   const loadSeconds = Math.round((Date.now() - startedAt) / 1000)
 
   await sleep(SETTLE_MS)
   const finalMb = footprintMb(session.pids())
 
+  let idle: IdleSample[] | null = null
+  if (idleMinutes > 0 && stopped !== "crashed") {
+    idle = await watchIdle(session.pids, idleMinutes)
+  }
+
+  // Going back to sleeping tabs: the first one, or (--wake-all) each one in turn.
   let wake: { ms: number; worked: boolean; totalMb: number } | null = null
-  if (session.wakeFirst !== undefined) {
+  let wakes: { index: number; ms: number; worked: boolean }[] | null = null
+  if (session.wake !== undefined && stopped !== "crashed") {
     const wakeStartedAt = Date.now()
-    const textLength = await session.wakeFirst()
+    const textLength = await session.wake(0)
     wake = { ms: Date.now() - wakeStartedAt, worked: textLength > 200, totalMb: footprintMb(session.pids()) }
+    if (wakeAll) {
+      wakes = []
+      for (let index = 1; index < tabs.length; index++) {
+        const startedAt = Date.now()
+        let worked = false
+        try {
+          worked = (await session.wake(index)) > 200
+        } catch {
+          // A site that fails to wake still counts, as a failure.
+        }
+        wakes.push({ index, ms: Date.now() - startedAt, worked })
+        console.log(
+          `wake ${String(index + 1).padStart(3)}  ${String(Date.now() - startedAt).padStart(5)} ms  ${tabs[index]?.url}`,
+        )
+      }
+    }
   }
   await session.close()
 
   const summary = {
     browser: label,
     blocked: session.blocked,
-    tabs: sites.length,
+    tabs: tabs.length,
     worked: tabs.filter((tab) => tab.worked).length,
     idleMb,
     finalMb,
     loadSeconds,
     wake,
+    wakes,
+    stopped,
+    idle,
     measuredAt: new Date().toISOString(),
     perTab: tabs,
   }
   console.log(
-    `\n${label}: ${finalMb} MB with ${sites.length} tabs (${summary.worked} worked), idle ${idleMb} MB, ${loadSeconds} s`,
+    `\n${label}: ${finalMb} MB with ${tabs.length} tabs (${summary.worked} worked), idle ${idleMb} MB, ${loadSeconds} s`,
   )
   if (session.blocked !== null) {
     console.log(
@@ -263,8 +321,14 @@ async function main(): Promise<void> {
   }
 
   mkdirSync("bench/results", { recursive: true })
-  const name = label.replace(/[^a-z0-9]+/g, "-")
-  const file = `bench/results/${name}-${sites.length}-${summary.measuredAt.replace(/[:.]/g, "-")}.json`
+  let name = label.replace(/[^a-z0-9]+/g, "-")
+  if (idleMinutes > 0) {
+    name += `-idle${idleMinutes}m`
+  }
+  if (wakeAll) {
+    name += "-wake-all"
+  }
+  const file = `bench/results/${name}-${tabs.length}-${summary.measuredAt.replace(/[:.]/g, "-")}.json`
   writeFileSync(file, `${JSON.stringify(summary, null, 2)}\n`)
   console.log(`saved ${file}`)
 }
