@@ -236,14 +236,12 @@ function drawValueBars(svg, rows, format, width = 900) {
   })
 }
 
-const CHECK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-const CROSS = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
 
 function mark(ok) {
   if (ok) {
-    return `<span class="mark yes">${CHECK}Works</span>`
+    return '<span class="mark yes">[ok]</span>'
   }
-  return `<span class="mark no">${CROSS}Fails</span>`
+  return '<span class="mark no">[fail]</span>'
 }
 
 function cellClass(engine, extra = "") {

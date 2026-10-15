@@ -7,59 +7,64 @@
 <meta name="description" content="What idle tabs cost an AI agent's browser, measured across 8 browsers, 19 agent actions, 60 sites and BU Bench.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,750&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400&display=swap">
 <link rel="stylesheet" href="site.css">
 <style>
-/* The research post: a 720px reading column; figures and tables widen to 1080px. */
+/* The research post: a 760px reading column; figures and tables widen to the full 1200px. */
 article { padding-block: 72px 0; }
-.post-head { display: grid; gap: 18px; padding-bottom: 36px; border-bottom: 1px solid var(--rule); }
-.post-head h1 { font-size: clamp(36px, 5.4vw, 60px); }
-.byline { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
-.prose { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 44px; }
-.prose > p, .prose > ul, .prose > ol { margin: 0; color: var(--ink-2); font-size: 17px; line-height: 1.7; }
-.prose > ul, .prose > ol { padding-left: 22px; display: grid; gap: 8px; }
-.prose strong { color: var(--ink); font-weight: 600; }
-.prose h2 { font-size: clamp(26px, 3vw, 32px); margin-top: 44px; scroll-margin-top: 24px; }
-.prose h3 { margin-top: 16px; }
-.prose .num { font-family: var(--font-mono); color: var(--ink-3); font-size: 0.6em; margin-right: 12px; vertical-align: 0.25em; }
-.summary { background: var(--surface); border: 1px solid var(--rule); border-left: 3px solid var(--live); border-radius: 12px; padding: 22px 24px; display: grid; gap: 10px; }
-.summary h2 { margin: 0; font-size: 15px; font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
-.summary ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--ink-2); }
-.summary strong { color: var(--ink); }
+.post-head { display: grid; gap: 20px; padding-bottom: 40px; border-bottom: 1px solid var(--color-iron); }
+.post-head h1 { font-size: clamp(30px, 4.4vw, 46px); line-height: 1.2; }
+.byline { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: var(--text-caption); color: var(--color-steel); text-transform: uppercase; letter-spacing: 0.05em; }
+.prose { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 48px; }
+.prose > p, .prose > ul, .prose > ol { margin: 0; color: var(--color-fog); font-size: 15px; line-height: 1.8; }
+.prose > ul, .prose > ol { padding-left: 22px; display: grid; gap: 10px; }
+.prose strong { color: var(--color-paper); font-weight: 700; }
+.prose h2 { font-size: var(--text-heading-lg); line-height: 1.33; margin-top: 48px; scroll-margin-top: 72px; }
+.prose h3 { margin-top: 16px; font-size: var(--text-heading-sm); }
+.prose .num { display: block; font-size: 56px; line-height: 1; color: var(--color-iron); margin-bottom: 12px; letter-spacing: -0.04em; }
+.summary { background: var(--color-graphite); border-left: 2px solid var(--color-ember); border-radius: var(--radius); padding: 28px 32px; display: grid; gap: 12px; }
+.summary h2 { margin: 0; font-size: var(--text-caption); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-steel); }
+.summary ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 10px; color: var(--color-fog); }
+.summary li::before { content: "> "; color: var(--color-steel); }
+.summary strong { color: var(--color-paper); }
 
 /* Figures break out of the reading column. */
-.figure { --wide: min(1080px, calc(100vw - 40px)); width: var(--wide); margin-inline: calc((100% - var(--wide)) / 2); display: grid; gap: 12px; margin-block: 8px; min-width: 0; }
+.figure { --wide: min(1152px, calc(100vw - 48px)); width: var(--wide); margin-inline: calc((100% - var(--wide)) / 2); display: grid; gap: 12px; margin-block: 8px; min-width: 0; }
 body { overflow-x: clip; }
-.figure figcaption { font-size: 14px; color: var(--ink-3); max-width: 80ch; }
-.figure figcaption b { color: var(--ink-2); font-weight: 600; }
-.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.two h3 { font-size: 15px; margin-bottom: 10px; }
-.callout { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px 24px; }
-.callout .value { font-family: var(--font-display); font-weight: 650; font-size: 46px; line-height: 1; color: var(--live); }
-.callout .value small { font-size: 18px; color: var(--ink-3); margin-left: 4px; }
-.callout p { margin: 0; color: var(--ink-2); }
-details { border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); }
-details summary { cursor: pointer; padding: 14px 18px; font-weight: 600; }
-details .table-scroll { border: 0; border-top: 1px solid var(--rule); border-radius: 0 0 12px 12px; }
-pre.code { font-size: 13px; }
-.toc { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; color: var(--ink-3); }
+.figure figcaption { font-size: var(--text-caption); color: var(--color-ash); max-width: 90ch; }
+.figure figcaption b { color: var(--color-paper); font-weight: 700; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.two h3 { font-size: 13px; margin-bottom: 12px; color: var(--color-fog); }
+.callout { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: center; background: var(--color-carbon); border: 1px solid var(--color-iron); border-radius: var(--radius); padding: 24px 28px; }
+.callout .value { font-weight: 700; font-size: 44px; line-height: 1; color: var(--color-paper); }
+.callout .value small { font-size: 16px; color: var(--color-ash); font-weight: 400; margin-left: 6px; }
+.callout p { margin: 0; color: var(--color-fog); }
+details { border: 1px solid var(--color-iron); border-radius: var(--radius); background: var(--color-carbon); }
+details summary { cursor: pointer; padding: 14px 18px; }
+details .table-scroll { border: 0; border-top: 1px solid var(--color-iron); border-radius: 0; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--color-ash); }
 .toc a { text-decoration: none; }
-.toc a:hover { color: var(--ink); }
+.toc a::before { content: "#"; color: var(--color-slate); }
+.toc a:hover { color: var(--color-paper); }
 @media (max-width: 760px) {
   .two { grid-template-columns: minmax(0, 1fr); }
   .callout { grid-template-columns: minmax(0, 1fr); }
+  .summary { padding: 24px; }
 }
 </style>
 </head>
 <body>
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>Browserheap</a>
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>browserheap</a>
     <nav aria-label="Main">
       <a href="index.html">Home</a>
+      <a href="index.html#numbers">Benchmarks</a>
       <a href="index.html#use">Docs</a>
-      <a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
     </nav>
+    <div class="right">
+      <a class="button quiet small-btn" href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
+    </div>
   </div>
 </header>
 

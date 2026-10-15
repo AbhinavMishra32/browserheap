@@ -4,221 +4,237 @@
 <meta name="description" content="A full browser for AI agents. Idle tabs sleep, and the pages your agent holds keep working.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,750&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400&display=swap">
 <link rel="stylesheet" href="site.css">
 <style>
-/* Landing page only. Shared tokens and parts live in site.css. */
-.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--rule); }
-.hero::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background-image: linear-gradient(var(--lines) 1px, transparent 1px), linear-gradient(90deg, var(--lines) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 70% at 70% 30%, black 30%, transparent 75%);
-}
-.hero::after {
-  content: ""; position: absolute; width: 760px; height: 520px; right: -160px; top: -160px; pointer-events: none;
-  background: radial-gradient(closest-side, var(--glow), transparent);
-}
-.hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; padding-block: 72px 80px; }
-.hero-copy { display: grid; gap: 24px; min-width: 0; }
-.pill { justify-self: start; display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-2); border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; padding: 5px 12px 5px 5px; text-decoration: none; max-width: 100%; }
-.pill b { font-weight: 500; color: var(--bg); background: var(--live); border-radius: 999px; padding: 2px 9px; letter-spacing: 0.04em; }
-.pill:hover { color: var(--ink); border-color: var(--ink-3); }
-.hero h1 em { font-style: normal; color: var(--live); }
+/* Landing page only. Tokens and shared parts live in site.css. */
+section.band { padding-block: 96px 0; }
+.head { display: grid; gap: 16px; margin-bottom: 40px; max-width: 820px; }
+.big-num { font-size: clamp(64px, 9vw, 112px); line-height: 1; color: var(--color-iron); font-weight: 400; letter-spacing: -0.04em; user-select: none; }
 
-/* The replay: the real 30-tab run, played back. */
-.replay { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.55), 0 0 0 1px var(--lines); min-width: 0; }
-.replay-top { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--rule); }
-.dots { display: inline-flex; gap: 6px; }
-.dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--rule); }
-.replay-top .where { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.replay-top button { margin-left: auto; font: 500 12px var(--font-body); color: var(--ink-2); background: var(--sunk); border: 1px solid var(--rule); border-radius: 6px; padding: 4px 10px; cursor: pointer; flex: none; }
-.replay-top button:hover { color: var(--ink); }
-.replay-body { padding: 18px; display: grid; gap: 18px; }
-.strip { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; }
-.chip { height: 26px; border-radius: 5px; border: 1px dashed var(--rule); font-family: var(--font-mono); font-size: 9.5px; line-height: 24px; padding-inline: 5px; white-space: nowrap; overflow: hidden; text-overflow: clip; color: transparent; transition: background-color 0.25s, border-color 0.25s, color 0.25s; }
-.chip.asleep { border: 1px solid var(--sleep-soft); background: var(--sleep-soft); color: var(--sleep); }
-.chip.live { border: 1px solid var(--live); background: var(--live-soft); color: var(--live-ink); box-shadow: 0 0 14px -2px var(--glow); }
-.replay-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-3); }
-.replay-key span { display: inline-flex; align-items: center; gap: 6px; }
-.replay-key i { width: 12px; height: 12px; border-radius: 3px; }
-.replay-key .k-live { background: var(--live-soft); border: 1px solid var(--live); }
-.replay-key .k-sleep { background: var(--sleep-soft); border: 1px solid var(--sleep); }
-.meters { display: grid; gap: 12px; }
-.meter { display: grid; grid-template-columns: 128px minmax(0, 1fr) 82px; gap: 12px; align-items: center; font-size: 13px; }
-.meter .name { color: var(--ink-2); }
-.meter.ours .name { color: var(--ink); font-weight: 600; }
-.meter .track { display: block; height: 12px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
-.meter .fill { display: block; height: 100%; width: 0; background: var(--other); border-radius: 4px; transition: width 0.3s ease-out; }
-.meter.ours .fill { background: var(--live); }
-.meter .mb { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-2); }
-.meter.ours .mb { color: var(--live-ink); font-weight: 500; }
-.replay-foot { display: flex; justify-content: space-between; gap: 12px; font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding: 10px 18px; }
-.replay-foot span:last-child { text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Hero: copy on the left, a field of > on the right, the product panel below. */
+.hero { position: relative; overflow: hidden; }
+.hero .wrap { position: relative; padding-block: 88px 48px; }
+.arrows { position: absolute; inset: 0 0 0 45%; color: var(--color-slate); font-size: 12px; line-height: 20px; white-space: pre; overflow: hidden; pointer-events: none; user-select: none; }
+.hero-copy { position: relative; display: grid; gap: 28px; max-width: 700px; }
+.prompt { font-size: var(--text-caption); color: var(--color-steel); }
+.prompt b { color: var(--color-paper); font-weight: 400; }
 
-.compared { border-bottom: 1px solid var(--rule); }
-.compared .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 28px; padding-block: 22px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
-.compared strong { color: var(--ink-2); font-weight: 500; }
+/* The product panel: the real 30-tab run, replayed. */
+.product { background: var(--color-carbon); border: 1px solid var(--color-iron); border-radius: var(--radius); min-width: 0; }
+.tabbar { display: flex; align-items: stretch; border-bottom: 1px solid var(--color-iron); overflow-x: auto; }
+.tabbar .logo { display: inline-flex; align-items: center; padding: 0 16px; border-right: 1px solid var(--color-iron); }
+.tabbar button { font: 400 12px var(--font-mono); color: var(--color-fog); background: transparent; border: 0; border-bottom: 1px solid transparent; padding: 14px 18px; cursor: pointer; white-space: nowrap; }
+.tabbar button[aria-selected="true"] { color: var(--color-paper); border-bottom-color: var(--color-paper); background: var(--color-graphite); }
+.tabbar button:hover { color: var(--color-paper); }
+.tabbar .spacer { flex: 1; }
+.tabbar .run { margin: 8px; font: 400 12px var(--font-mono); color: var(--color-void); background: var(--color-paper); border: 0; border-radius: var(--radius); padding: 4px 12px; cursor: pointer; white-space: nowrap; }
+.view { padding: 24px; display: grid; gap: 22px; }
+.status { display: flex; justify-content: space-between; gap: 16px; font-size: var(--text-caption); color: var(--color-steel); flex-wrap: wrap; }
+.status b { color: var(--color-paper); font-weight: 400; }
+.strip { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.chip { height: 24px; border: 1px dashed var(--color-iron); border-radius: var(--radius); font-size: 10px; line-height: 22px; padding-inline: 6px; white-space: nowrap; overflow: hidden; color: transparent; transition: color 0.2s, border-color 0.2s, background-color 0.2s; }
+.chip.asleep { border: 1px solid var(--color-iron); background: var(--color-void); color: var(--color-steel); }
+.chip.asleep::before { content: "z "; }
+.chip.live { border: 1px solid var(--color-paper); background: var(--color-graphite); color: var(--color-paper); }
+.logs { display: grid; gap: 14px; }
+.log-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) 84px; gap: 14px; align-items: end; font-size: var(--text-caption); }
+.log-row .name { color: var(--color-fog); padding-bottom: 2px; }
+.log-row.ours .name { color: var(--color-paper); font-weight: 700; }
+.log-row .mb { text-align: right; color: var(--color-fog); font-variant-numeric: tabular-nums; padding-bottom: 2px; }
+.log-row.ours .mb { color: var(--color-paper); font-weight: 700; }
+.bars { display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; align-items: end; height: 56px; border-bottom: 1px solid var(--color-iron); }
+.bars i { display: block; background: var(--color-slate); min-height: 2px; transition: height 0.25s ease-out; }
+.log-row.ours .bars i { background: var(--color-ember); }
+.key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--text-caption); color: var(--color-steel); }
+.hbars { display: grid; gap: 8px; }
+.hbar { display: grid; grid-template-columns: 150px minmax(0, 1fr) 84px; gap: 14px; align-items: center; font-size: var(--text-caption); color: var(--color-fog); }
+.hbar.ours { color: var(--color-paper); font-weight: 700; }
+.hbar .track { display: block; height: 8px; }
+.hbar .fill { display: block; height: 100%; background: var(--color-slate); }
+.hbar.ours .fill { background: var(--color-ember); }
+.hbar .n { text-align: right; font-variant-numeric: tabular-nums; }
 
-section.band { padding-block: 104px 0; }
-.head { display: grid; gap: 14px; margin-bottom: 40px; max-width: 760px; }
+/* Measured against: a grid of names, like a logo wall. */
+.wall { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.wall span { background: var(--color-carbon); border-radius: var(--radius); padding: 24px 12px; text-align: center; color: var(--color-fog); font-size: 14px; }
 
-/* The problem: two real reports. */
-.bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.cell { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 24px; display: grid; gap: 12px; align-content: start; min-width: 0; }
-.cell .tag { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
-.cell p { margin: 0; color: var(--ink-2); }
-.cell .fix { font-size: 14px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 12px; }
-.cell .fix b { color: var(--bad); font-weight: 600; }
-.cell.ours { background: linear-gradient(160deg, var(--live-soft), var(--surface) 70%); border-color: var(--live); }
-.cell.ours .fix b { color: var(--good); }
-.cell a.more { font-size: 14px; color: var(--ink-2); }
+/* Cards */
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--color-graphite); border-radius: var(--radius); padding: var(--card-padding); display: grid; gap: 16px; align-content: start; min-width: 0; }
+.card.mark-left { border-left: 2px solid var(--color-ember); }
+.card p { margin: 0; color: var(--color-fog); }
+.card .quote { background: var(--color-carbon); padding: 16px; border-radius: var(--radius); color: var(--color-fog); }
+.card .foot-row { font-size: var(--text-caption); color: var(--color-steel); border-top: 1px solid var(--color-iron); padding-top: 14px; }
+.card .foot-row b { color: var(--color-paper); font-weight: 700; }
+.card a.more::after { content: " →"; }
+.card .num { font-size: 40px; line-height: 1; color: var(--color-slate); }
+.card .big { font-size: 28px; line-height: 1; color: var(--color-paper); font-weight: 700; }
+.card .big small { font-size: 13px; color: var(--color-ash); font-weight: 400; margin-left: 6px; }
+.state-art { display: flex; gap: 4px; height: 24px; }
+.state-art i { flex: 1; border-radius: var(--radius); }
+.state-art .l { background: var(--color-graphite); border: 1px solid var(--color-paper); }
+.state-art .s { background: var(--color-void); border: 1px solid var(--color-iron); }
+.state-art .w { animation: wake 2.4s ease-in-out infinite; }
+@keyframes wake { 0%, 35% { background: var(--color-void); border: 1px solid var(--color-iron); } 50%, 100% { background: var(--color-graphite); border: 1px solid var(--color-paper); } }
+.state-art + h3, .card h3 { font-size: var(--text-heading-sm); }
 
-/* How it works */
-.states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.state-art { display: flex; gap: 5px; height: 30px; }
-.state-art i { flex: 1; border-radius: 5px; }
-.state-art .l { background: var(--live-soft); border: 1px solid var(--live); }
-.state-art .s { background: var(--sleep-soft); border: 1px solid var(--sleep-soft); }
-.state-art .w { background: var(--live-soft); border: 1px solid var(--live); animation: wake 2.4s ease-in-out infinite; }
-@keyframes wake { 0%, 35% { background: var(--sleep-soft); border-color: var(--sleep-soft); } 50%, 100% { background: var(--live-soft); border-color: var(--live); } }
-.big { font-family: var(--font-display); font-weight: 650; font-size: 30px; line-height: 1; color: var(--ink); }
-.big small { font-size: 15px; color: var(--ink-3); font-weight: 500; margin-left: 4px; }
-
-/* Handles survive sleep */
+/* Handles */
 .split { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: center; }
-.split ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; color: var(--ink-2); }
-.split li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; }
-.split li::before { content: ""; width: 8px; height: 8px; margin-top: 9px; border-radius: 2px; background: var(--live); }
-.window { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; background: var(--code-bg); min-width: 0; }
-.window-top { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
-.window pre.code { border-radius: 0; }
+.split ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; color: var(--color-fog); }
+.split li::before { content: "> "; color: var(--color-steel); }
+.window { border: 1px solid var(--color-iron); border-radius: var(--radius); overflow: hidden; background: var(--color-void); min-width: 0; }
+.window-top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--color-iron); background: var(--color-carbon); font-size: var(--text-caption); color: var(--color-steel); }
 
 /* Numbers */
-.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
-.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 20px; display: grid; gap: 6px; align-content: start; min-width: 0; }
-.stat .value { font-family: var(--font-display); font-weight: 650; font-size: 38px; line-height: 1; font-variant-numeric: tabular-nums; }
-.stat .value small { font-size: 16px; color: var(--ink-3); margin-left: 4px; }
-.stat.lead .value { color: var(--live); }
-.stat .label { font-size: 14px; color: var(--ink-2); }
-.tabs-control { display: inline-flex; gap: 4px; padding: 4px; background: var(--sunk); border: 1px solid var(--rule); border-radius: 10px; margin-bottom: 18px; flex-wrap: wrap; }
-.tabs-control button { font: 500 13px var(--font-body); color: var(--ink-3); background: transparent; border: 0; border-radius: 7px; padding: 7px 12px; cursor: pointer; }
-.tabs-control button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 0 var(--rule); }
-.chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: baseline; }
-.caption { font-size: 13.5px; color: var(--ink-3); margin: 14px 0 0; max-width: 80ch; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--color-iron); border: 1px solid var(--color-iron); border-radius: var(--radius); margin-bottom: 16px; }
+.stat { background: var(--color-void); padding: 24px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.stat .value { font-size: var(--text-display); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat .value small { font-size: 14px; color: var(--color-ash); font-weight: 400; margin-left: 6px; }
+.stat .label { font-size: 13px; color: var(--color-fog); }
+.chart-panel { padding: 0; }
+.chart-panel .tabbar { margin: 0; }
+.chart-panel .inner { padding: 24px; }
+.caption { font-size: var(--text-caption); color: var(--color-ash); margin: 16px 0 0; max-width: 90ch; }
 
-/* Still a full browser */
-.proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.score { display: grid; gap: 10px; }
-.score-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: 13px; color: var(--ink-2); }
-.score-row.ours { color: var(--ink); font-weight: 600; }
-.score-row .track { display: block; height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
-.score-row .fill { display: block; height: 100%; background: var(--other); border-radius: 4px; }
-.score-row.ours .fill { background: var(--live); }
-.score-row .n { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+/* Score rows inside cards */
+.score { display: grid; gap: 8px; }
+.score-row { display: grid; grid-template-columns: 104px minmax(0, 1fr) 48px; gap: 10px; align-items: center; font-size: var(--text-caption); color: var(--color-fog); }
+.score-row.ours { color: var(--color-paper); font-weight: 700; }
+.score-row .track { display: block; height: 6px; background: var(--color-void); }
+.score-row .fill { display: block; height: 100%; background: var(--color-slate); }
+.score-row.ours .fill { background: var(--color-ember); }
+.score-row .n { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* Use it */
-.ways .tabs-control { margin-bottom: 14px; }
-.way { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 32px; align-items: start; }
-.way p { margin: 0; color: var(--ink-2); }
+.way { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 32px; align-items: start; padding: 24px; }
+.way p { margin: 0; color: var(--color-fog); }
 .way .copy-text { display: grid; gap: 14px; }
 
-.limits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.limits .cell h3 { font-size: 17px; }
+.limits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 
-.cta { margin-top: 104px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: radial-gradient(ellipse 60% 120% at 50% 0%, var(--glow), transparent 70%); }
-.cta .wrap { display: grid; justify-items: center; text-align: center; gap: 22px; padding-block: 80px; }
-.cta .foot { margin: 0; border: 0; }
+.cta { margin-top: 96px; border-top: 1px solid var(--color-iron); border-bottom: 1px solid var(--color-iron); background: var(--color-carbon); }
+.cta .wrap { display: grid; gap: 24px; padding-block: 80px; }
 
-@media (max-width: 920px) {
-  .hero .wrap, .split, .way { grid-template-columns: minmax(0, 1fr); }
-  .bento, .states, .proof { grid-template-columns: minmax(0, 1fr); }
-  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 960px) {
+  .split, .way { grid-template-columns: minmax(0, 1fr); }
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .stats, .wall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .limits { grid-template-columns: minmax(0, 1fr); }
+  .arrows { display: none; }
 }
-@media (max-width: 520px) {
+@media (max-width: 560px) {
   .strip { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .meter { grid-template-columns: 96px minmax(0, 1fr) 70px; font-size: 12px; }
-  .stat .value { font-size: 30px; }
+  .log-row, .hbar { grid-template-columns: 96px minmax(0, 1fr) 70px; }
+  .bars { gap: 1px; }
   section.band { padding-block: 72px 0; }
+  .view, .way, .chart-panel .inner { padding: 16px; }
+  .card { padding: 24px; }
 }
 </style>
 
+<div class="announce">
+  <div class="wrap"><a href="research.html">New research: 100 tabs in 376 MB, and 0% CPU while idle <span>→ read it</span></a></div>
+</div>
+
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>Browserheap</a>
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span>browserheap</a>
     <nav aria-label="Main">
       <a href="#how">How it works</a>
       <a href="#numbers">Benchmarks</a>
       <a href="research.html">Research</a>
       <a href="#use">Docs</a>
-      <a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
     </nav>
+    <div class="right">
+      <a class="button quiet small-btn" href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
+    </div>
   </div>
 </header>
 
 <main id="top">
   <section class="hero">
+    <pre class="arrows" id="arrows" aria-hidden="true"></pre>
     <div class="wrap">
       <div class="hero-copy">
-        <a class="pill" href="research.html"><b>RESEARCH</b>What idle tabs cost an agent →</a>
-        <h1>A browser for agents where idle tabs <em>sleep</em>.</h1>
+        <span class="prompt">~/<b>browserheap</b> $ open --tabs 30</span>
+        <h1>A browser for agents.<br><span class="dim">Idle tabs sleep. Nothing breaks.</span></h1>
         <p class="lede">Agents open tab after tab and never close them. Browserheap keeps the 2 tabs your agent is using live and puts the rest to sleep. The pages your agent holds keep working, and a sleeping tab wakes the moment it's touched.</p>
         <div class="actions">
-          <span class="install"><code>npx browserheap install</code><button class="copy" type="button" data-copy="npx browserheap install">Copy</button></span>
-          <a class="button quiet" href="#use">Read the docs</a>
+          <a class="button" href="#use">Get started</a>
+          <a class="button quiet" href="research.html">Read the research</a>
         </div>
-        <p class="small">Full Chromium underneath. Works from Claude Code, Codex, any agent with a shell, or as an SDK.</p>
+        <span class="install"><code>npx browserheap install</code><button class="copy" type="button" data-copy="npx browserheap install">copy</button></span>
       </div>
+    </div>
 
-      <figure class="replay" aria-label="Replay of the 30-tab benchmark">
-        <div class="replay-top">
-          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span class="where">30 real websites · opened one by one · never closed</span>
-          <button type="button" id="replay-again">Replay</button>
+    <div class="wrap">
+      <figure class="product" aria-label="Replay of the 30-tab benchmark" style="margin: 0">
+        <div class="tabbar" role="tablist" aria-label="Benchmark views">
+          <span class="logo"><span class="brand-mark" aria-hidden="true"><span class="on"></span><span></span><span></span></span></span>
+          <button type="button" role="tab" aria-selected="true" data-view="replay">Replay</button>
+          <button type="button" role="tab" aria-selected="false" data-view="memory">Memory</button>
+          <button type="button" role="tab" aria-selected="false" data-view="cpu">Idle CPU</button>
+          <span class="spacer"></span>
+          <button type="button" class="run" id="replay-again">▷ Run</button>
         </div>
-        <div class="replay-body">
+        <div class="view" data-view-panel="replay">
+          <div class="status"><span id="replay-count"><b>30</b> of 30 tabs open</span><span id="replay-site"></span></div>
           <div class="strip" id="strip" aria-hidden="true"></div>
-          <div class="replay-key"><span><i class="k-live"></i>live</span><span><i class="k-sleep"></i>asleep, still readable</span></div>
-          <div class="meters">
-            <div class="meter ours"><span class="name">Browserheap</span><span class="track"><span class="fill" id="fill-ours"></span></span><span class="mb" id="mb-ours">0 MB</span></div>
-            <div class="meter"><span class="name">Headless Chrome</span><span class="track"><span class="fill" id="fill-chrome"></span></span><span class="mb" id="mb-chrome">0 MB</span></div>
-            <div class="meter"><span class="name">agent-browser</span><span class="track"><span class="fill" id="fill-ab"></span></span><span class="mb" id="mb-ab">0 MB</span></div>
+          <div class="logs">
+            <div class="log-row ours"><span class="name">browserheap</span><span class="bars" id="bars-ours"></span><span class="mb" id="mb-ours">0 MB</span></div>
+            <div class="log-row"><span class="name">headless chrome</span><span class="bars" id="bars-chrome"></span><span class="mb" id="mb-chrome">0 MB</span></div>
+            <div class="log-row"><span class="name">agent-browser</span><span class="bars" id="bars-ab"></span><span class="mb" id="mb-ab">0 MB</span></div>
           </div>
+          <div class="key"><span>[ ] live tab</span><span>[z] asleep, still readable</span><span>one bar per tab: memory after it opened</span></div>
         </div>
-        <figcaption class="replay-foot"><span id="replay-count">30 of 30 tabs</span><span id="replay-site"></span></figcaption>
+        <div class="view" data-view-panel="memory" hidden>
+          <div class="status"><span>memory with <b>30 real sites</b> open</span><span>linux pss · e2b · 8 vcpu · 8 gb</span></div>
+          <div class="hbars" id="hbars-memory"></div>
+        </div>
+        <div class="view" data-view-panel="cpu" hidden>
+          <div class="status"><span><b>30 tabs</b> open, <b>10 minutes</b> idle</span><span>average cpu · 100% = one core</span></div>
+          <div class="hbars" id="hbars-cpu"></div>
+        </div>
       </figure>
     </div>
   </section>
 
-  <div class="compared">
-    <div class="wrap"><strong>Measured against</strong><span>agent-browser</span><span>Stagehand</span><span>browser-use</span><span>Playwright MCP</span><span>Headless Chrome</span><span>Lightpanda</span><span>Obscura</span></div>
-  </div>
+  <section class="band" style="padding-top: 64px">
+    <div class="wrap">
+      <p class="eyebrow" style="margin-bottom: 16px">Measured against</p>
+      <div class="wall"><span>agent-browser</span><span>Stagehand</span><span>browser-use</span><span>Playwright MCP</span><span>headless Chrome</span><span>Lightpanda</span><span>Obscura</span><span>BU Bench</span></div>
+    </div>
+  </section>
 
   <section class="band">
     <div class="wrap">
       <div class="head">
         <p class="eyebrow">The problem</p>
-        <h2>Agents open tabs. They don't close them.</h2>
+        <span class="big-num" aria-hidden="true">01</span>
+        <h2>Agents open tabs. <span class="dim">They don't close them.</span></h2>
         <p class="sub">A research task opens a search, five results, two docs pages and a forum thread. The agent reads each one and moves on. Every tab stays open, holding a full page in memory, and nothing ever goes back to it.</p>
       </div>
-      <div class="bento">
-        <article class="cell">
+      <div class="cards">
+        <article class="card mark-left">
           <span class="tag">vercel-labs/agent-browser #885</span>
-          <p>Users report 60 or more tabs piling up across agent sessions, with the browser pinned above 100% CPU.</p>
-          <p class="fix"><b>The fix proposed:</b> an idle timeout that closes the whole browser.</p>
-          <a class="more" href="https://github.com/vercel-labs/agent-browser/issues/885">Read the issue →</a>
+          <h3>60+ tabs and the CPU pinned</h3>
+          <p class="quote">Users report 60 or more tabs piling up across agent sessions, with the browser pinned above 100% CPU.</p>
+          <p class="foot-row"><b>The fix proposed:</b> an idle timeout that closes the whole browser.</p>
+          <a class="more" href="https://github.com/vercel-labs/agent-browser/issues/885">Read the issue</a>
         </article>
-        <article class="cell">
+        <article class="card mark-left">
           <span class="tag">browser-use/browser-use #5484</span>
-          <p>Long-running agents collect tabs for days until the machine slows down.</p>
-          <p class="fix"><b>The fixes suggested:</b> close old tabs, or restart Chrome.</p>
-          <a class="more" href="https://github.com/browser-use/browser-use/issues/5484">Read the issue →</a>
+          <h3>Tabs that pile up for days</h3>
+          <p class="quote">Long-running agents collect tabs for days until the machine slows down.</p>
+          <p class="foot-row"><b>The fixes suggested:</b> close old tabs, or restart Chrome.</p>
+          <a class="more" href="https://github.com/browser-use/browser-use/issues/5484">Read the issue</a>
         </article>
-        <article class="cell ours">
-          <span class="tag">Browserheap</span>
-          <p>Closing tabs loses the agent's work. Restarting Chrome loses its logins. Browserheap puts idle tabs to sleep instead, and brings them back when the agent needs them.</p>
-          <p class="fix"><b>Nothing is lost:</b> same URL, same scroll position, still signed in.</p>
+        <article class="card">
+          <span class="tag">browserheap</span>
+          <h3>Sleep them instead</h3>
+          <p class="quote">Closing tabs loses the agent's work. Restarting Chrome loses its logins. Browserheap puts idle tabs to sleep and brings them back when the agent needs them.</p>
+          <p class="foot-row"><b>Nothing is lost:</b> same URL, same scroll position, still signed in.</p>
         </article>
       </div>
     </div>
@@ -228,23 +244,27 @@ section.band { padding-block: 104px 0; }
     <div class="wrap">
       <div class="head">
         <p class="eyebrow">How it works</p>
-        <h2>Two tabs live. The rest asleep, and still there.</h2>
+        <span class="big-num" aria-hidden="true">02</span>
+        <h2>Two tabs live. <span class="dim">The rest asleep, and still there.</span></h2>
         <p class="sub">The agent never manages any of this. It opens tabs and uses them; Browserheap decides which ones get to hold memory.</p>
       </div>
-      <div class="states">
-        <article class="cell">
+      <div class="cards">
+        <article class="card">
           <div class="state-art" aria-hidden="true"><i class="l"></i><i class="l"></i><i class="s"></i><i class="s"></i><i class="s"></i></div>
-          <h3><span class="live-word">Live</span>: the 2 tabs in use</h3>
+          <span class="tag">state 1 · live</span>
+          <h3>The 2 tabs in use</h3>
           <p>The tabs the agent used most recently are real Chromium pages. Raise the count with <code>--live</code>.</p>
         </article>
-        <article class="cell">
+        <article class="card">
           <div class="state-art" aria-hidden="true"><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i></div>
-          <h3><span class="sleep-word">Asleep</span>: kept, not running</h3>
+          <span class="tag">state 2 · asleep</span>
+          <h3>Kept, not running</h3>
           <p>A sleeping tab is closed and kept as its URL, title, scroll position and text. The agent can still read it without waking it. Tabs with unsent typing never sleep.</p>
         </article>
-        <article class="cell">
+        <article class="card">
           <div class="state-art" aria-hidden="true"><i class="s"></i><i class="w"></i><i class="s"></i><i class="s"></i><i class="s"></i></div>
-          <h3>Wakes when touched</h3>
+          <span class="tag">state 3 · waking</span>
+          <h3>Back when touched</h3>
           <p>Click, type or read the live page and the tab comes back where it was, with the same cookies.</p>
           <span class="big" id="wake-ms">274<small>ms to wake</small></span>
         </article>
@@ -256,7 +276,8 @@ section.band { padding-block: 104px 0; }
     <div class="wrap split">
       <div class="head" style="margin: 0">
         <p class="eyebrow">Handles that survive sleep</p>
-        <h2>Pages and locators belong to the tab, not to Chromium.</h2>
+        <span class="big-num" aria-hidden="true">03</span>
+        <h2>Pages belong to the tab. <span class="dim">Not to Chromium.</span></h2>
         <p class="sub">Other agent browsers hand the agent a raw page. Close it and every reference the agent holds goes stale. Browserheap hands out pages and locators that follow their tab, so sleeping and waking happen underneath without the agent's code noticing.</p>
         <ul>
           <li>A page kept in a variable still works after its tab sleeps.</li>
@@ -265,7 +286,7 @@ section.band { padding-block: 104px 0; }
         </ul>
       </div>
       <div class="window">
-        <div class="window-top"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>agent's code, in the REPL</div>
+        <div class="window-top">agent's code · repl</div>
 <pre class="code"><span class="k">const</span> docs = <span class="k">await</span> openTab(<span class="s">"react.dev"</span>)
 <span class="k">await</span> openTab(<span class="s">"news.ycombinator.com"</span>)
 <span class="k">await</span> openTab(<span class="s">"github.com/trending"</span>)
@@ -283,33 +304,34 @@ docs.isAsleep()            <span class="c">// true</span>
   <section class="band" id="numbers">
     <div class="wrap">
       <div class="head">
-        <p class="eyebrow">Benchmarks · E2B sandbox, 8 vCPUs, 8 GB</p>
-        <h2>30 tabs in <span class="live-word" id="h-ours">539 MB</span>. The others need <span id="h-others">3.6–6.9 GB</span>.</h2>
-        <p class="sub">The same 30 real websites, opened as tabs and never closed, in every popular agent browser and two lightweight engines. Memory is every browser process together, measured as Linux PSS.</p>
+        <p class="eyebrow">Benchmarks · e2b sandbox, 8 vcpu, 8 gb</p>
+        <span class="big-num" aria-hidden="true">04</span>
+        <h2>30 tabs in <span id="h-ours">539 MB</span>. <span class="dim">The others need <span id="h-others">3.6–6.9 GB</span>.</span></h2>
+        <p class="sub">The same real websites, opened as tabs and never closed, in every popular agent browser and two lightweight engines. Memory is every browser process together, measured as Linux PSS.</p>
       </div>
       <div class="stats" id="stats"></div>
-      <div class="panel">
-        <div class="chart-head">
-          <div class="tabs-control" role="tablist" aria-label="Memory charts">
-            <button type="button" role="tab" aria-selected="true" data-chart="line">Memory as tabs open</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="final">At 30 tabs</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="slope">Per extra tab</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="scale">100 tabs</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="cpu">Idle CPU</button>
-            <button type="button" role="tab" aria-selected="false" data-chart="agents">10 agents</button>
+      <div class="panel chart-panel">
+        <div class="tabbar" role="tablist" aria-label="Memory charts">
+          <button type="button" role="tab" aria-selected="true" data-chart="line">Memory as tabs open</button>
+          <button type="button" role="tab" aria-selected="false" data-chart="final">At 30 tabs</button>
+          <button type="button" role="tab" aria-selected="false" data-chart="slope">Per extra tab</button>
+          <button type="button" role="tab" aria-selected="false" data-chart="scale">100 tabs</button>
+          <button type="button" role="tab" aria-selected="false" data-chart="cpu">Idle CPU</button>
+          <button type="button" role="tab" aria-selected="false" data-chart="agents">10 agents</button>
+        </div>
+        <div class="inner">
+          <ul class="legend"><li><span class="key ours"></span>browserheap</li><li><span class="key"></span>agent tools</li><li><span class="key dash"></span>browser engines</li></ul>
+          <div class="chart-wrap" data-panel="line">
+            <svg class="chart" id="memory-chart" role="img" aria-label="Memory from 1 to 30 tabs for eight browsers"></svg>
+            <div class="tooltip" id="tooltip" hidden></div>
           </div>
-          <ul class="legend"><li><span class="key ours"></span>Browserheap</li><li><span class="key"></span>agent tools</li><li><span class="key dash"></span>browser engines</li></ul>
+          <div class="chart-wrap" data-panel="final" hidden><svg class="chart" id="final-chart" role="img" aria-label="Memory at 30 tabs for eight browsers"></svg></div>
+          <div class="chart-wrap" data-panel="slope" hidden><svg class="chart" id="slope-chart" role="img" aria-label="Memory added by each extra tab for eight browsers"></svg></div>
+          <div class="chart-wrap" data-panel="scale" hidden><svg class="chart" id="scale-chart" role="img" aria-label="Memory up to 100 tabs"></svg><div class="tooltip" id="scale-tooltip" hidden></div></div>
+          <div class="chart-wrap" data-panel="cpu" hidden><svg class="chart" id="cpu-chart" role="img" aria-label="CPU over 10 idle minutes with 30 tabs open"></svg><div class="tooltip" id="cpu-tooltip" hidden></div></div>
+          <div class="chart-wrap" data-panel="agents" hidden><svg class="chart" id="agents-chart" role="img" aria-label="10 agents on one machine"></svg><div class="tooltip" id="agents-tooltip" hidden></div></div>
+          <p class="caption" id="chart-caption"></p>
         </div>
-        <div class="chart-wrap" data-panel="line">
-          <svg class="chart" id="memory-chart" role="img" aria-label="Memory from 1 to 30 tabs for eight browsers"></svg>
-          <div class="tooltip" id="tooltip" hidden></div>
-        </div>
-        <div class="chart-wrap" data-panel="final" hidden><svg class="chart" id="final-chart" role="img" aria-label="Memory at 30 tabs for eight browsers"></svg></div>
-        <div class="chart-wrap" data-panel="slope" hidden><svg class="chart" id="slope-chart" role="img" aria-label="Memory added by each extra tab for eight browsers"></svg></div>
-        <div class="chart-wrap" data-panel="scale" hidden><svg class="chart" id="scale-chart" role="img" aria-label="Memory up to 100 tabs"></svg><div class="tooltip" id="scale-tooltip" hidden></div></div>
-        <div class="chart-wrap" data-panel="cpu" hidden><svg class="chart" id="cpu-chart" role="img" aria-label="CPU over 10 idle minutes with 30 tabs open"></svg><div class="tooltip" id="cpu-tooltip" hidden></div></div>
-        <div class="chart-wrap" data-panel="agents" hidden><svg class="chart" id="agents-chart" role="img" aria-label="10 agents on one machine"></svg><div class="tooltip" id="agents-tooltip" hidden></div></div>
-        <p class="caption" id="chart-caption"></p>
       </div>
     </div>
   </section>
@@ -318,22 +340,23 @@ docs.isAsleep()            <span class="c">// true</span>
     <div class="wrap">
       <div class="head">
         <p class="eyebrow">Still a full browser</p>
-        <h2>Light on memory, without cutting corners.</h2>
+        <span class="big-num" aria-hidden="true">05</span>
+        <h2>Light on memory. <span class="dim">No corners cut.</span></h2>
         <p class="sub">Lightweight engines save memory by not drawing pages. Browserheap is the same Chromium every agent tool runs, so it does everything Chrome does.</p>
       </div>
-      <div class="proof">
-        <article class="cell">
-          <h3>19 agent actions</h3>
+      <div class="cards">
+        <article class="card">
+          <span class="tag">19 agent actions</span>
           <p>Iframes, web components, popups, infinite scroll, screenshots, clicking at a position.</p>
           <div class="score" id="score-actions"></div>
         </article>
-        <article class="cell">
-          <h3>60 real sites</h3>
+        <article class="card">
+          <span class="tag">60 real sites</span>
           <p>Pages that show the same content Chrome shows, where Chrome loaded them.</p>
           <div class="score" id="score-sites"></div>
         </article>
-        <article class="cell">
-          <h3>Real agent tasks</h3>
+        <article class="card">
+          <span class="tag">real agent tasks</span>
           <p>BU Bench tasks, same pi agent and model, on headless Chrome and on Browserheap.</p>
           <div class="score" id="score-bu"></div>
           <p class="small" id="bu-note"></p>
@@ -342,63 +365,65 @@ docs.isAsleep()            <span class="c">// true</span>
     </div>
   </section>
 
-  <section class="band ways" id="use">
+  <section class="band" id="use">
     <div class="wrap">
       <div class="head">
         <p class="eyebrow">Use it</p>
-        <h2>Give it to your agent three ways.</h2>
+        <span class="big-num" aria-hidden="true">06</span>
+        <h2>Give it to your agent. <span class="dim">Three ways.</span></h2>
       </div>
-      <div class="tabs-control" role="tablist" aria-label="Ways to use browserheap">
-        <button type="button" role="tab" aria-selected="true" data-way="skill">Claude Code &amp; Codex</button>
-        <button type="button" role="tab" aria-selected="false" data-way="cli">CLI</button>
-        <button type="button" role="tab" aria-selected="false" data-way="sdk">SDK</button>
-      </div>
-      <div class="panel way" data-way-panel="skill">
-        <div class="copy-text">
-          <h3>Drop in the skill</h3>
-          <p>Add the skill file to your agent and it learns the loop: open a page, read its snapshot, act with Playwright-style JavaScript, look at what changed.</p>
-          <p class="small">The skill file ships in the package under <code>skills/browserheap/SKILL.md</code>.</p>
+      <div class="panel chart-panel">
+        <div class="tabbar" role="tablist" aria-label="Ways to use Browserheap">
+          <button type="button" role="tab" aria-selected="true" data-way="skill">Claude Code &amp; Codex</button>
+          <button type="button" role="tab" aria-selected="false" data-way="cli">CLI</button>
+          <button type="button" role="tab" aria-selected="false" data-way="sdk">SDK</button>
         </div>
-        <div class="window">
-          <div class="window-top"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>terminal</div>
+        <div class="way" data-way-panel="skill">
+          <div class="copy-text">
+            <h3>Drop in the skill</h3>
+            <p>Add the skill file to your agent and it learns the loop: open a page, read its snapshot, act with Playwright-style JavaScript, look at what changed.</p>
+            <p class="small">The skill ships in the package under <code>skills/browserheap/SKILL.md</code>.</p>
+          </div>
+          <div class="window">
+            <div class="window-top">terminal</div>
 <pre class="code"><span class="c"># once</span>
-npm install -g browserheap
-browserheap install                       <span class="c"># downloads Chromium</span>
-cp -r "$(npm root -g)/browserheap/skills/browserheap" ~/.claude/skills/
+<span class="p">$ </span>npm install -g browserheap
+<span class="p">$ </span>browserheap install        <span class="c"># downloads Chromium</span>
+<span class="p">$ </span>cp -r "$(npm root -g)/browserheap/skills/browserheap" ~/.claude/skills/
 
 <span class="c"># then ask your agent</span>
 <span class="s">"Compare the pricing pages of Vercel, Netlify and Render"</span></pre>
+          </div>
         </div>
-      </div>
-      <div class="panel way" data-way-panel="cli" hidden>
-        <div class="copy-text">
-          <h3>Drive it from any shell</h3>
-          <p>A background browser starts on first use and stops after 30 idle minutes. Variables live between <code>run</code> calls, so an agent can work step by step.</p>
-          <p class="small">Use <code>--session</code> for a separate browser per task, <code>--live 4</code> to keep more tabs awake.</p>
-        </div>
-        <div class="window">
-          <div class="window-top"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>terminal</div>
-<pre class="code">npx browserheap open https://news.ycombinator.com
+        <div class="way" data-way-panel="cli" hidden>
+          <div class="copy-text">
+            <h3>Drive it from any shell</h3>
+            <p>A background browser starts on first use and stops after 30 idle minutes. Variables live between <code>run</code> calls, so an agent can work step by step.</p>
+            <p class="small">Use <code>--session</code> for a separate browser per task, <code>--live 4</code> to keep more tabs awake.</p>
+          </div>
+          <div class="window">
+            <div class="window-top">terminal</div>
+<pre class="code"><span class="p">$ </span>npx browserheap open https://news.ycombinator.com
 <span class="c"># prints the page as a tree: link "new" [ref=e14]</span>
 
-npx browserheap run <span class="s">'await page.locator("e14").click()
+<span class="p">$ </span>npx browserheap run <span class="s">'await page.locator("e14").click()
   console.log((await snapshot(page)).diff)'</span>
 
-npx browserheap tabs        <span class="c"># live or asleep, title, url</span>
-npx browserheap stop</pre>
+<span class="p">$ </span>npx browserheap tabs        <span class="c"># live or asleep, title, url</span>
+<span class="p">$ </span>npx browserheap stop</pre>
+          </div>
         </div>
-      </div>
-      <div class="panel way" data-way-panel="sdk" hidden>
-        <div class="copy-text">
-          <h3>Build it into your agent</h3>
-          <p><code>startSession()</code> gives you the browser and its REPL: wrap <code>session.run</code> as one tool in pi, the AI SDK, LangChain or your own loop.</p>
-          <p class="small">Have your own tools already? <code>launch()</code> gives you just the sleeping tabs, with real Playwright pages underneath.</p>
-        </div>
-        <div class="window">
-          <div class="window-top"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>agent.ts</div>
+        <div class="way" data-way-panel="sdk" hidden>
+          <div class="copy-text">
+            <h3>Build it into your agent</h3>
+            <p><code>startSession()</code> gives you the browser and its REPL: wrap <code>session.run</code> as one tool in pi, the AI SDK, LangChain or your own loop.</p>
+            <p class="small">Have your own tools already? <code>launch()</code> gives you just the sleeping tabs, with real Playwright pages underneath.</p>
+          </div>
+          <div class="window">
+            <div class="window-top">agent.ts</div>
 <pre class="code"><span class="k">import</span> { startSession } <span class="k">from</span> <span class="s">"browserheap"</span>
 
-<span class="k">const</span> session = <span class="k">await</span> startSession({ maxLive: <span class="s">2</span> })
+<span class="k">const</span> session = <span class="k">await</span> startSession({ maxLive: 2 })
 
 <span class="c">// your agent's browser tool</span>
 <span class="k">async function</span> browser(code) {
@@ -406,6 +431,7 @@ npx browserheap stop</pre>
 }
 
 <span class="k">await</span> session.close()</pre>
+          </div>
         </div>
       </div>
     </div>
@@ -418,33 +444,46 @@ npx browserheap stop</pre>
         <h2>What sleeping costs.</h2>
       </div>
       <div class="limits">
-        <article class="cell"><h3>Snapshot refs don't survive a wake</h3><p>Refs like <code>e12</code> belong to the page as it was. After a tab wakes, take a new snapshot. An old ref fails with a clear message saying so.</p></article>
-        <article class="cell"><h3>Things only the running page knew are gone</h3><p>An open menu, a half-played video or unsaved page state go when a tab sleeps. URL, scroll, cookies and logins come back.</p></article>
-        <article class="cell"><h3>Live tabs cost what Chrome costs</h3><p>A live tab is a real Chromium page. Keep more live with <code>--live</code> when an agent works across several at once.</p></article>
-        <article class="cell"><h3>MCP server is next</h3><p>Today it's a CLI, a skill file and an SDK. An MCP server for apps that only speak MCP is on the way.</p></article>
+        <article class="card"><span class="tag">refs</span><h3>Snapshot refs don't survive a wake</h3><p>Refs like <code>e12</code> belong to the page as it was. After a tab wakes, take a new snapshot. An old ref fails with a message saying so.</p></article>
+        <article class="card"><span class="tag">page state</span><h3>What only the running page knew is gone</h3><p>An open menu, a half-played video or unsaved page state go when a tab sleeps. URL, scroll, cookies and logins come back.</p></article>
+        <article class="card"><span class="tag">live tabs</span><h3>Live tabs cost what Chrome costs</h3><p>A live tab is a real Chromium page. Keep more live with <code>--live</code> when an agent works across several at once.</p></article>
+        <article class="card"><span class="tag">mcp</span><h3>An MCP server is next</h3><p>Today it's a CLI, a skill file and an SDK. An MCP server for apps that only speak MCP is on the way.</p></article>
       </div>
     </div>
   </section>
 
   <section class="cta">
     <div class="wrap">
-      <h2>Let your agent keep its tabs.</h2>
-      <span class="install"><code>npx browserheap install</code><button class="copy" type="button" data-copy="npx browserheap install">Copy</button></span>
-      <div class="actions"><a class="button" href="https://github.com/AbhinavMishra32/browserheap">GitHub</a><a class="button quiet" href="research.html">Read the research</a></div>
+      <span class="prompt">~/<b>your-agent</b> $</span>
+      <h2>Let your agent keep its tabs. <span class="dim">All of them.</span></h2>
+      <span class="install"><code>npx browserheap install</code><button class="copy" type="button" data-copy="npx browserheap install">copy</button></span>
+      <div class="actions"><a class="button" href="https://github.com/AbhinavMishra32/browserheap">Star on GitHub</a><a class="button quiet" href="research.html">Read the research</a></div>
     </div>
   </section>
 </main>
 
 <footer class="foot" style="margin-top: 0">
-  <div class="wrap"><span>Browserheap · MIT</span><a href="research.html">Research</a><a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a><span>Benchmarks measured 15 Oct 2026</span></div>
+  <div class="wrap"><span>browserheap · MIT</span><a href="research.html">Research</a><a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a><a href="https://www.npmjs.com/package/browserheap">npm</a><span>Benchmarks measured 15 Oct 2026</span></div>
 </footer>
 
 <script src="data.js" charset="utf-8"></script>
 <script src="charts.js" charset="utf-8"></script>
 <script>
+const B = window.BENCH
 const ours = memoryRun("browserheap --live 2")
 const chrome = memoryRun("chrome-shell")
 const agentBrowser = memoryRun("agent-browser")
+
+// The field of > behind the hero, like data streaming past.
+let arrowText = ""
+for (let row = 0; row < 40; row++) {
+  let line = ""
+  for (let col = 0; col < 90; col++) {
+    line += (col + row) % 6 === 0 ? ">" : " "
+  }
+  arrowText += `${line}\n`
+}
+document.getElementById("arrows").textContent = arrowText
 
 // The replay: the real run, one tab at a time. The last 2 opened are live.
 const strip = document.getElementById("strip")
@@ -457,11 +496,27 @@ const chips = ours.perTab.map((tab) => {
   strip.append(chip)
   return chip
 })
-const meterMax = Math.max(...chrome.perTab.map((tab) => tab.mb), ...agentBrowser.perTab.map((tab) => tab.mb))
+const barMax = Math.max(...chrome.perTab.map((tab) => tab.mb), ...agentBrowser.perTab.map((tab) => tab.mb))
 
-function setMeter(id, mb) {
-  document.getElementById(`fill-${id}`).style.width = `${(mb / meterMax) * 100}%`
-  document.getElementById(`mb-${id}`).textContent = formatMb(mb)
+// One bar per tab: memory after that tab opened.
+function makeBars(id) {
+  const holder = document.getElementById(id)
+  const bars = []
+  for (let i = 0; i < 30; i++) {
+    const bar = document.createElement("i")
+    holder.append(bar)
+    bars.push(bar)
+  }
+  return bars
+}
+const logBars = { ours: makeBars("bars-ours"), chrome: makeBars("bars-chrome"), ab: makeBars("bars-ab") }
+
+function setLog(id, run, opened) {
+  logBars[id].forEach((bar, i) => {
+    const height = i < opened ? (run.perTab[i].mb / barMax) * 100 : 0
+    bar.style.height = `${height}%`
+  })
+  document.getElementById(`mb-${id}`).textContent = formatMb(run.perTab[opened - 1].mb)
 }
 
 function showStep(opened) {
@@ -473,12 +528,11 @@ function showStep(opened) {
       chip.classList.add("live")
     }
   })
-  const last = opened - 1
-  setMeter("ours", ours.perTab[last].mb)
-  setMeter("chrome", chrome.perTab[last].mb)
-  setMeter("ab", agentBrowser.perTab[last].mb)
-  document.getElementById("replay-count").textContent = `${opened} of 30 tabs`
-  document.getElementById("replay-site").textContent = `+ ${siteName(ours.perTab[last].url)}`
+  setLog("ours", ours, opened)
+  setLog("chrome", chrome, opened)
+  setLog("ab", agentBrowser, opened)
+  document.getElementById("replay-count").innerHTML = `<b>${opened}</b> of 30 tabs open`
+  document.getElementById("replay-site").textContent = `+ ${siteName(ours.perTab[opened - 1].url)}`
 }
 
 let timer = null
@@ -492,16 +546,43 @@ function play() {
     if (opened === 30) {
       clearInterval(timer)
     }
-  }, 340)
+  }, 300)
 }
 
-// At rest the page shows the finished run; the replay starts after a moment.
+// At rest the panel shows the finished run; the replay starts after a moment.
 showStep(30)
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 if (!reduceMotion) {
   setTimeout(play, 900)
 }
-document.getElementById("replay-again").addEventListener("click", play)
+document.getElementById("replay-again").addEventListener("click", () => {
+  document.querySelector('[data-view="replay"]').click()
+  play()
+})
+
+// The panel's other views: memory at 30 tabs and idle CPU, every browser.
+function fillHbars(id, rows, format) {
+  const max = Math.max(...rows.map((row) => row.value))
+  let html = ""
+  for (const row of rows) {
+    html += `<div class="hbar${row.ours ? " ours" : ""}"><span>${row.name}</span><span class="track"><span class="fill" style="width:${Math.max(0.6, (row.value / max) * 100)}%"></span></span><span class="n">${format(row.value)}</span></div>`
+  }
+  document.getElementById(id).innerHTML = html
+}
+const memoryRows = TOOLS.map((tool) => ({ name: tool.name.toLowerCase(), ours: tool.ours, value: memoryRun(tool.id).finalMb }))
+memoryRows.sort((a, b) => a.value - b.value)
+fillHbars("hbars-memory", memoryRows, formatMb)
+if (B.idle.length > 0) {
+  const cpuRows = B.idle.map((run) => {
+    const tool = toolOf(run.browser)
+    const average = run.samples.reduce((sum, sample) => sum + sample.cpu, 0) / Math.max(1, run.samples.length)
+    return { name: tool.name.toLowerCase(), ours: tool.ours, value: Math.round(average) }
+  })
+  cpuRows.sort((a, b) => a.value - b.value)
+  fillHbars("hbars-cpu", cpuRows, (value) => `${value}%`)
+} else {
+  document.querySelector('[data-view="cpu"]').hidden = true
+}
 
 // Headline numbers.
 document.getElementById("h-ours").textContent = formatMb(ours.finalMb)
@@ -510,30 +591,29 @@ document.getElementById("wake-ms").firstChild.textContent = ours.wake.ms
 const otherSlopes = TOOLS.filter((tool) => !tool.ours).map((tool) => mbPerTab(memoryRun(tool.id)))
 const lowest = Math.min(...TOOLS.filter((tool) => !tool.ours).map((tool) => memoryRun(tool.id).finalMb))
 const stats = [
-  { value: ours.finalMb.toLocaleString("en-US"), unit: "MB", label: `with 30 real sites open, ${(lowest / ours.finalMb).toFixed(1)}× less than the lightest other browser`, lead: true },
+  { value: ours.finalMb.toLocaleString("en-US"), unit: "MB", label: `with 30 real sites open, ${(lowest / ours.finalMb).toFixed(1)}× less than the lightest other browser` },
   { value: mbPerTab(ours).toFixed(0), unit: "MB", label: `per extra tab, against ${Math.round(Math.min(...otherSlopes))}–${Math.round(Math.max(...otherSlopes))} MB` },
   { value: ours.wake.ms, unit: "ms", label: "to wake a sleeping tab" },
 ]
-const scaleOurs = window.BENCH.scale.find((run) => toolOf(run.browser).ours)
+const scaleOurs = B.scale.find((run) => toolOf(run.browser).ours)
 if (scaleOurs !== undefined) {
-  const othersReached = window.BENCH.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
+  const othersReached = B.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
   stats.splice(1, 0, { value: scaleOurs.perTab.length, unit: "tabs", label: `in ${formatMb(scaleOurs.perTab[scaleOurs.perTab.length - 1].mb)}; the others filled 6.5 GB by tab ${Math.max(...othersReached)}` })
 } else {
   stats.splice(1, 0, { value: `${(lowest / ours.finalMb).toFixed(1)}×`, unit: "", label: "less memory than the lightest other browser" })
 }
 for (const stat of stats) {
   const div = document.createElement("div")
-  div.className = stat.lead ? "stat lead" : "stat"
+  div.className = "stat"
   div.innerHTML = `<div class="value">${stat.value}<small>${stat.unit}</small></div><div class="label">${stat.label}</div>`
   document.getElementById("stats").append(div)
 }
 
-// Memory charts, switched by the tabs above them.
+// Memory charts, switched by the tab bar above them.
 drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"))
 drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb))
 drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`)
 
-const B = window.BENCH
 const CAPTIONS = {
   line: "Hover the chart to see every browser at each tab. Lightpanda starts lighter for the first few tabs, then grows by about 1 GB on each heavy news site.",
   final: "Memory with all 30 tabs open, after a 5 second settle.",
@@ -603,10 +683,11 @@ function wireTabs(buttonAttr, panelAttr) {
     })
   }
 }
+wireTabs("data-view", "data-view-panel")
 wireTabs("data-chart", "data-panel")
 wireTabs("data-way", "data-way-panel")
 
-// Still a full browser: small score bars.
+// Still a full browser: score rows.
 function fillScore(id, rows) {
   const max = Math.max(...rows.map((row) => row.of))
   let html = ""
@@ -615,16 +696,16 @@ function fillScore(id, rows) {
   }
   document.getElementById(id).innerHTML = html
 }
-fillScore("score-actions", ENGINES.map((engine) => ({ name: engine.name, ours: engine.ours, value: actionRun(engine.id).passed, of: actionRun(engine.id).of })))
+fillScore("score-actions", ENGINES.map((engine) => ({ name: engine.name.toLowerCase(), ours: engine.ours, value: actionRun(engine.id).passed, of: actionRun(engine.id).of })))
 fillScore("score-sites", ENGINES.filter((engine) => engine.id !== "chrome").map((engine) => {
   const s = siteSummary(engine.id)
-  return { name: engine.name, ours: engine.ours, value: s.same, of: s.compared }
+  return { name: engine.name.toLowerCase(), ours: engine.ours, value: s.same, of: s.compared }
 }))
 const buOurs = buSetup("browserheap")
 const buChrome = buSetup("chrome")
 fillScore("score-bu", [
-  { name: "Browserheap", ours: true, value: buOurs.passed, of: buOurs.total },
-  { name: "Chrome", value: buChrome.passed, of: buChrome.total },
+  { name: "browserheap", ours: true, value: buOurs.passed, of: buOurs.total },
+  { name: "chrome", value: buChrome.passed, of: buChrome.total },
 ])
 document.getElementById("bu-note").textContent = `Same tasks solved with ${Math.round((1 - buOurs.averageMb / buChrome.averageMb) * 100)}% less memory and ${Math.round((1 - buOurs.minutes / buChrome.minutes) * 100)}% less time. A first run of 10 tasks; the full 100-task run is next.`
 
