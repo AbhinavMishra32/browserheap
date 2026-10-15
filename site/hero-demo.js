@@ -413,6 +413,36 @@ function userClick(key) {
 
 els.replay.addEventListener("click", restart)
 
+// On phones the agent window is a sheet fixed to the bottom of the screen,
+// like an iOS drawer: it rises while the demo is on screen and slides away
+// after. Tapping its head folds it down to just the head, and back.
+const agent = document.querySelector(".agent")
+const phone = window.matchMedia("(max-width: 900px)")
+
+function placeAgentSheet() {
+  // It rises once the demo comes on screen. The demo keeps room below it
+  // for the sheet (its margin); when that room scrolls up to the bottom of
+  // the screen, the sheet settles into it and scrolls away with the page.
+  if (!phone.matches) {
+    agent.classList.remove("shown", "docked")
+    agent.style.bottom = ""
+    return
+  }
+  const box = els.app.getBoundingClientRect()
+  const roomBottom = box.bottom + agent.offsetHeight + 16
+  const lift = Math.max(0, innerHeight - 8 - roomBottom)
+  agent.classList.toggle("shown", box.top < innerHeight - 200)
+  agent.classList.toggle("docked", lift > 0)
+  agent.style.bottom = lift > 0 ? `${8 + lift}px` : ""
+}
+
+agent.querySelector(".agent-head").addEventListener("click", () => {
+  agent.classList.toggle("folded")
+})
+addEventListener("scroll", placeAgentSheet, { passive: true })
+addEventListener("resize", placeAgentSheet)
+placeAgentSheet()
+
 // Reduced motion: the finished session at once, still clickable.
 if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   restart()

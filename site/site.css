@@ -50,7 +50,7 @@
 * { box-sizing: border-box; }
 /* `hidden` wins over any display a class sets. */
 [hidden] { display: none !important; }
-html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+html { -webkit-text-size-adjust: 100%; background: var(--bg); overflow-x: clip; }
 body {
   margin: 0;
   min-height: 100%;
