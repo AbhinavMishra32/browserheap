@@ -9,10 +9,20 @@
  *   tab.saved                          what the agent last saw: url, title, scroll, text
  *   await browser.close()
  *
- * Start reading at browser.ts, then tab.ts, then sleep.ts, then engine.ts.
+ * Or a whole session for an agent tool: the browser and a JavaScript REPL
+ * whose pages and locators keep working while their tabs sleep and wake:
+ *
+ *   const session = await startSession()
+ *   await session.run(`await openTab("react.dev"); console.log((await snapshot(page)).tree)`)
+ *
+ * Start reading at browser.ts, then tab.ts, then sleep.ts, then engine.ts;
+ * for the REPL, repl/session.ts, then repl/agent-page.ts, then repl/repl.ts.
  */
 
 export { type BlockedCounts, type BlockingOptions, startBlocking } from "./blocking.ts"
 export { type AgentBrowser, type LaunchOptions, launch } from "./browser.ts"
 export type { EngineOptions } from "./engine.ts"
+export { AgentLocator, AgentPage } from "./repl/agent-page.ts"
+export type { ReplPart, ReplResult } from "./repl/repl.ts"
+export { type Session, startSession } from "./repl/session.ts"
 export type { SavedTab, Tab, TabState } from "./tab.ts"
