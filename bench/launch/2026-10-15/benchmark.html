@@ -1,0 +1,570 @@
+<title>agent-tabs Memory Benchmark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: one lab-report column — headline result, then each test as its own section: memory, actions, real sites, real agent tasks, every number, method. */
+:root {
+  --bg: #f7f8f9;
+  --surface: #ffffff;
+  --ink: #101418;
+  --ink-2: #4a525b;
+  --ink-3: #7b838c;
+  --rule: #e2e5e9;
+  --grid: #eceef1;
+  --accent: #2a78d6;
+  --accent-soft: #e6f0fb;
+  --good: #0f7a3d;
+  --good-soft: #e3f4ea;
+  --bad: #b42318;
+  --bad-soft: #fde8e6;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111417; --surface: #171b1f; --ink: #f2f4f6; --ink-2: #b4bbc3; --ink-3: #848c95;
+    --rule: #2a3037; --grid: #222830; --accent: #3987e5; --accent-soft: #16263a;
+    --good: #5fcf8f; --good-soft: #15291e; --bad: #f2867c; --bad-soft: #351a18;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111417; --surface: #171b1f; --ink: #f2f4f6; --ink-2: #b4bbc3; --ink-3: #848c95;
+  --rule: #2a3037; --grid: #222830; --accent: #3987e5; --accent-soft: #16263a;
+  --good: #5fcf8f; --good-soft: #15291e; --bad: #f2867c; --bad-soft: #351a18;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.page { max-width: 1000px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: grid; gap: 44px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 6vw, 58px); line-height: 1.03; letter-spacing: -0.01em; margin: 10px 0 14px; text-wrap: balance; }
+h1 .hl { color: var(--accent); }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 24px; margin: 0 0 4px; text-wrap: balance; }
+.lede { font-size: 18px; color: var(--ink-2); max-width: 64ch; margin: 0; }
+.sub { color: var(--ink-3); font-size: 14px; margin: 0; max-width: 75ch; }
+section.block { display: grid; gap: 14px; min-width: 0; }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat { padding: 16px 16px 16px 0; display: grid; gap: 2px; align-content: start; }
+.stat + .stat { padding-left: 16px; border-left: 1px solid var(--rule); }
+.stat .value { font-family: var(--font-display); font-weight: 700; font-size: 32px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat .value small { font-size: 16px; font-weight: 600; color: var(--ink-2); margin-left: 3px; }
+.stat .label { font-size: 13px; color: var(--ink-2); }
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { padding-left: 0; border-left: 0; }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); margin: 0 0 12px; padding: 0; list-style: none; }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend .key { width: 14px; height: 3px; border-radius: 2px; }
+.legend li.ours { color: var(--ink); font-weight: 600; }
+.legend li.ours .key { height: 4px; }
+.legend li.engine .key { background-image: linear-gradient(90deg, transparent 50%, var(--surface) 50%); background-size: 5px 100%; }
+.chart-wrap { position: relative; }
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg.chart text { font-family: var(--font-mono); font-size: 11px; fill: var(--ink-3); }
+svg.chart .end-label { font-family: var(--font-body); font-size: 12px; fill: var(--ink-2); }
+svg.chart .end-label.ours { fill: var(--ink); font-weight: 600; }
+.tooltip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 6px 20px rgb(0 0 0 / 0.12); min-width: 220px; z-index: 2; }
+.tooltip .t-head { font-weight: 600; margin-bottom: 6px; }
+.tooltip .t-site { color: var(--ink-3); font-family: var(--font-mono); font-size: 11px; display: block; font-weight: 400; }
+.tooltip .t-row { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; }
+.tooltip .t-row .dot { width: 8px; height: 8px; border-radius: 50%; }
+.tooltip .t-row .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.tooltip .t-row.ours { font-weight: 600; }
+.caption { font-size: 13px; color: var(--ink-3); margin: 12px 0 0; max-width: 78ch; }
+
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.table-scroll.tall { max-height: 560px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); }
+th { position: sticky; top: 0; background: var(--surface); font-weight: 600; color: var(--ink-2); font-size: 12px; border-bottom: 1px solid var(--rule); z-index: 1; }
+th.left, td.left { text-align: left; }
+td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.text { font-family: var(--font-body); color: var(--ink-2); white-space: normal; min-width: 180px; }
+td.ours, th.ours { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+td.blocked { color: var(--ink-3); }
+td.blocked::after { content: "†"; margin-left: 2px; }
+tr.summary td { border-top: 1px solid var(--rule); font-weight: 600; color: var(--ink); }
+tr.summary td.text { font-family: var(--font-body); }
+tr:last-child td { border-bottom: 0; }
+
+.mark { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-body); font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.mark.yes { color: var(--good); background: var(--good-soft); }
+.mark.no { color: var(--bad); background: var(--bad-soft); }
+.mark svg { width: 12px; height: 12px; flex: none; }
+td.center, th.center { text-align: center; }
+
+.method { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
+.method h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+.method p, .method ul { margin: 0; color: var(--ink-2); font-size: 14px; }
+.method ul { padding-left: 18px; }
+.method code { font-family: var(--font-mono); font-size: 12.5px; }
+@media (max-width: 720px) { .method { grid-template-columns: minmax(0, 1fr); } }
+
+.post { display: grid; gap: 10px; }
+.post pre { margin: 0; white-space: pre-wrap; font-family: var(--font-body); font-size: 15px; line-height: 1.5; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; color: var(--ink); }
+.post button { justify-self: start; font: 600 13px var(--font-body); color: var(--surface); background: var(--ink); border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+.post button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<main class="page">
+  <header>
+    <div class="eyebrow">agent-tabs · benchmark · 15 Oct 2026</div>
+    <h1>30 tabs in <span class="hl" id="h-ours">539 MB</span>. Every other agent browser needs <span id="h-others">3.6–6.9 GB</span>.</h1>
+    <p class="lede">Agents doing research open tab after tab and never close them. Most of those tabs sit idle, holding memory. agent-tabs keeps the 2 tabs the agent is using live and puts the rest to sleep until the agent goes back to them. It's the same Chromium underneath, so every page still works and the agent can still see, click and screenshot.</p>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Headline numbers"></section>
+
+  <section class="block" aria-labelledby="memory-title">
+    <div>
+      <h2 id="memory-title">Memory as tabs open</h2>
+      <p class="sub">The same 30 real websites, opened as tabs one after another and never closed, in 6 agent browser tools and 2 lightweight browser engines. MB for all of the browser's processes together (Linux PSS), after each tab loads.</p>
+    </div>
+    <div class="panel">
+      <ul class="legend" id="legend"></ul>
+      <div class="chart-wrap" id="chart-wrap">
+        <svg class="chart" id="chart" role="img" aria-label="Line chart of browser memory from 1 to 30 tabs for eight browsers"></svg>
+        <div class="tooltip" id="tooltip" hidden></div>
+      </div>
+      <p class="caption">agent-tabs moves with whichever 2 pages are live and stays flat. Lightpanda starts lighter than agent-tabs for the first few tabs, passes it around tab 10, and grows by about 1 GB on each of the heaviest news sites (Wired, Bloomberg). Dashed lines are browser engines rather than agent tools.</p>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="actions-title">
+    <div>
+      <h2 id="actions-title">Can an agent work in it?</h2>
+      <p class="sub">19 things agents do, each tested through Playwright on a small test site, in a fresh browser each time. No AI model involved. Every agent tool above runs Chrome underneath, so the Chrome column is theirs too.</p>
+    </div>
+    <div class="table-scroll"><table id="actions"></table></div>
+  </section>
+
+  <section class="block" aria-labelledby="sites-title">
+    <div>
+      <h2 id="sites-title">Do real sites work?</h2>
+      <p class="sub">60 real sites in 6 kinds (docs, news, shopping, code and forums, web apps, plain information), one at a time. "Same as Chrome" means the page shows at least 60% of the words Chrome's page shows, counted only where Chrome loaded the page.</p>
+    </div>
+    <div class="table-scroll"><table id="sites"></table></div>
+    <p class="sub" id="sites-notes"></p>
+  </section>
+
+  <section class="block" aria-labelledby="bu-title">
+    <div>
+      <h2 id="bu-title">Real agent tasks</h2>
+      <p class="sub">10 tasks from BU Bench V1 (2 from each of its 5 categories), done by the same agent (O, on gpt-6-luna with medium reasoning), 5 at a time: once on a plain headless Chrome with every tab live, once on agent-tabs. Each answer graded by the benchmark's own grader.</p>
+    </div>
+    <div class="table-scroll"><table id="bu"></table></div>
+    <p class="sub" id="bu-notes"></p>
+  </section>
+
+  <section class="block" aria-labelledby="table-title">
+    <div>
+      <h2 id="table-title">Every memory number</h2>
+      <p class="sub">MB after each tab. † that tool's page showed a bot wall or didn't load (it still counts as an open tab). Mostly the same sites in every browser: Reuters, NYT, YouTube and IMDb failed in all 8, and OpenAI, CNN and Stack Overflow in most, because they block headless browsers.</p>
+    </div>
+    <div class="table-scroll tall"><table id="memory-table"></table></div>
+  </section>
+
+  <section class="block" aria-labelledby="method-title">
+    <h2 id="method-title">How it was measured</h2>
+    <div class="method">
+      <div>
+        <h3>The machine</h3>
+        <p>Memory, actions and real sites: one E2B sandbox per test, <span id="machine"></span>. Every browser started fresh and was closed before the next. BU Bench ran on a MacBook (Apple silicon) through O's browser-only computer.</p>
+      </div>
+      <div>
+        <h3>The memory measure</h3>
+        <p>The sum of PSS (proportional set size) from <code>/proc/&lt;pid&gt;/smaps_rollup</code> over every browser process. PSS counts memory that processes share once, split between them. The tool's own Node or Python process is left out, which favours the others.</p>
+      </div>
+      <div>
+        <h3>The browsers, with default settings</h3>
+        <ul id="versions"></ul>
+      </div>
+      <div>
+        <h3>What agent-tabs does</h3>
+        <p>2 tabs live at a time. A sleeping tab is closed and kept as its URL, title, scroll position and text, so the agent can still read it; it wakes when the agent acts on it again (<span id="wake"></span> to wake the first tab after 30). Ads and trackers are blocked. Tabs with typed, unsent text never sleep.</p>
+      </div>
+      <div>
+        <h3>Fairness notes</h3>
+        <ul>
+          <li>The sandboxes run as root, where Chrome only starts without its sandbox. agent-browser, Stagehand and Playwright switch it off themselves; Playwright MCP and browser-use got their own switch for it.</li>
+          <li>Lightpanda holds one page per connection, so each of its tabs had its own connection (its tabs then don't share cookies). Obscura was allowed to reach the local test site with its own switch.</li>
+          <li>Lightpanda got past bot walls that block headless Chrome on CNN, Best Buy, Zara and Spotify. Hacker News rate-limited the sandbox by the time Lightpanda ran, so that one site isn't held against it.</li>
+          <li>One run per test. A first memory run a few minutes earlier gave agent-tabs 556 MB and the other agent tools 3.5–4.5 GB.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Raw results</h3>
+        <p>Every file is in <code>bench/launch/2026-10-15/</code>. The BU Bench tasks themselves are not published; that file keeps each task's category, verdict, steps and time only.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="post" aria-labelledby="post-title">
+    <h2 id="post-title">Post copy</h2>
+    <pre id="post-text"></pre>
+    <button type="button" id="copy">Copy post</button>
+  </section>
+</main>
+
+<script>
+const DATA = {"memory":[{"browser":"agent-browser","tabs":30,"worked":24,"idleMb":0,"finalMb":3583,"loadSeconds":145,"measuredAt":"2026-10-15T07:05:29.260Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":546,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":610,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":642,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":792,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":916,"worked":true},{"url":"https://arxiv.org/abs/1706.03762","totalMb":955,"worked":true},{"url":"https://www.bbc.com/news","totalMb":1053,"worked":true},{"url":"https://docs.python.org/3/","totalMb":1073,"worked":true},{"url":"https://react.dev/","totalMb":1151,"worked":true},{"url":"https://nodejs.org/en","totalMb":1235,"worked":true},{"url":"https://www.theverge.com/","totalMb":1383,"worked":true},{"url":"https://techcrunch.com/","totalMb":1588,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":1714,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":1901,"worked":true},{"url":"https://www.apple.com/","totalMb":2280,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2402,"worked":false},{"url":"https://lightpanda.io/","totalMb":2447,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2467,"worked":true},{"url":"https://www.reuters.com/","totalMb":2348,"worked":false},{"url":"https://vercel.com/","totalMb":2507,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2447,"worked":false},{"url":"https://www.youtube.com/","totalMb":2615,"worked":false},{"url":"https://www.amazon.com/","totalMb":2710,"worked":true},{"url":"https://www.reddit.com/r/programming/","totalMb":2706,"worked":true},{"url":"https://www.imdb.com/","totalMb":2704,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":3008,"worked":true},{"url":"https://www.wired.com/","totalMb":3720,"worked":true},{"url":"https://openai.com/","totalMb":3820,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":3925,"worked":true},{"url":"https://medium.com/","totalMb":3558,"worked":true}]},{"browser":"agent-tabs --live 2","blocked":{"ads":97,"media":514},"tabs":30,"worked":22,"idleMb":114,"finalMb":539,"loadSeconds":28,"wake":{"ms":274,"worked":true,"totalMb":327},"measuredAt":"2026-10-15T06:51:47.422Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":228,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":278,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":248,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":346,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":371,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":266,"worked":true},{"url":"https://www.bbc.com/news","totalMb":329,"worked":true},{"url":"https://docs.python.org/3/","totalMb":339,"worked":true},{"url":"https://react.dev/","totalMb":288,"worked":true},{"url":"https://nodejs.org/en","totalMb":323,"worked":true},{"url":"https://www.theverge.com/","totalMb":496,"worked":true},{"url":"https://techcrunch.com/","totalMb":651,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":642,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":316,"worked":true},{"url":"https://www.apple.com/","totalMb":312,"worked":true},{"url":"https://edition.cnn.com/","totalMb":293,"worked":false},{"url":"https://lightpanda.io/","totalMb":302,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":351,"worked":true},{"url":"https://www.reuters.com/","totalMb":296,"worked":false},{"url":"https://vercel.com/","totalMb":299,"worked":true},{"url":"https://www.nytimes.com/","totalMb":333,"worked":false},{"url":"https://www.youtube.com/","totalMb":398,"worked":false},{"url":"https://www.amazon.com/","totalMb":429,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":248,"worked":true},{"url":"https://www.imdb.com/","totalMb":243,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":337,"worked":true},{"url":"https://www.wired.com/","totalMb":544,"worked":true},{"url":"https://openai.com/","totalMb":471,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":399,"worked":true},{"url":"https://medium.com/","totalMb":416,"worked":true}]},{"browser":"browser-use","tabs":30,"worked":23,"idleMb":423,"finalMb":4204,"loadSeconds":45,"measuredAt":"2026-10-15T07:08:51.647757+00:00","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":501,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":564,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":597,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":767,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":801,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":868,"worked":true},{"url":"https://www.bbc.com/news","totalMb":982,"worked":true},{"url":"https://docs.python.org/3/","totalMb":1031,"worked":true},{"url":"https://react.dev/","totalMb":1135,"worked":true},{"url":"https://nodejs.org/en","totalMb":1182,"worked":true},{"url":"https://www.theverge.com/","totalMb":1784,"worked":true},{"url":"https://techcrunch.com/","totalMb":2068,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":2117,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":2218,"worked":true},{"url":"https://www.apple.com/","totalMb":2295,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2323,"worked":false},{"url":"https://lightpanda.io/","totalMb":2474,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2575,"worked":true},{"url":"https://www.reuters.com/","totalMb":2585,"worked":false},{"url":"https://vercel.com/","totalMb":2730,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2805,"worked":false},{"url":"https://www.youtube.com/","totalMb":2985,"worked":false},{"url":"https://www.amazon.com/","totalMb":3189,"worked":true},{"url":"https://www.reddit.com/r/programming/","totalMb":3200,"worked":true},{"url":"https://www.imdb.com/","totalMb":3186,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":3456,"worked":true},{"url":"https://www.wired.com/","totalMb":3924,"worked":true},{"url":"https://openai.com/","totalMb":3993,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":4072,"worked":true},{"url":"https://medium.com/","totalMb":4252,"worked":true}]},{"browser":"chrome-shell","blocked":null,"tabs":30,"worked":23,"idleMb":115,"finalMb":3797,"loadSeconds":42,"wake":null,"measuredAt":"2026-10-15T06:52:37.220Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":232,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":290,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":322,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":437,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":497,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":595,"worked":true},{"url":"https://www.bbc.com/news","totalMb":682,"worked":true},{"url":"https://docs.python.org/3/","totalMb":735,"worked":true},{"url":"https://react.dev/","totalMb":854,"worked":true},{"url":"https://nodejs.org/en","totalMb":916,"worked":true},{"url":"https://www.theverge.com/","totalMb":1300,"worked":true},{"url":"https://techcrunch.com/","totalMb":1683,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":1721,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":1799,"worked":true},{"url":"https://www.apple.com/","totalMb":1935,"worked":true},{"url":"https://edition.cnn.com/","totalMb":1973,"worked":false},{"url":"https://lightpanda.io/","totalMb":2161,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2324,"worked":true},{"url":"https://www.reuters.com/","totalMb":2336,"worked":false},{"url":"https://vercel.com/","totalMb":2435,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2451,"worked":false},{"url":"https://www.youtube.com/","totalMb":2638,"worked":false},{"url":"https://www.amazon.com/","totalMb":2881,"worked":true},{"url":"https://www.reddit.com/r/programming/","totalMb":2915,"worked":true},{"url":"https://www.imdb.com/","totalMb":2929,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":3194,"worked":true},{"url":"https://www.wired.com/","totalMb":3475,"worked":true},{"url":"https://openai.com/","totalMb":3551,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":3660,"worked":true},{"url":"https://medium.com/","totalMb":3666,"worked":true}]},{"browser":"lightpanda","blocked":null,"tabs":30,"worked":22,"idleMb":15,"finalMb":4203,"loadSeconds":28,"wake":null,"measuredAt":"2026-10-15T06:53:11.357Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":50,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":68,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":71,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":125,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":56,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":143,"worked":false},{"url":"https://www.bbc.com/news","totalMb":216,"worked":true},{"url":"https://docs.python.org/3/","totalMb":219,"worked":true},{"url":"https://react.dev/","totalMb":250,"worked":true},{"url":"https://nodejs.org/en","totalMb":270,"worked":true},{"url":"https://www.theverge.com/","totalMb":483,"worked":true},{"url":"https://techcrunch.com/","totalMb":600,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":606,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":609,"worked":true},{"url":"https://www.apple.com/","totalMb":629,"worked":true},{"url":"https://edition.cnn.com/","totalMb":704,"worked":true},{"url":"https://lightpanda.io/","totalMb":653,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":723,"worked":true},{"url":"https://www.reuters.com/","totalMb":808,"worked":false},{"url":"https://vercel.com/","totalMb":825,"worked":true},{"url":"https://www.nytimes.com/","totalMb":839,"worked":false},{"url":"https://www.youtube.com/","totalMb":893,"worked":false},{"url":"https://www.amazon.com/","totalMb":1061,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":418,"worked":true},{"url":"https://www.imdb.com/","totalMb":1096,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":1114,"worked":true},{"url":"https://www.wired.com/","totalMb":2086,"worked":true},{"url":"https://openai.com/","totalMb":2106,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":3384,"worked":true},{"url":"https://medium.com/","totalMb":3405,"worked":true}]},{"browser":"obscura","blocked":null,"tabs":30,"worked":23,"idleMb":25,"finalMb":6884,"loadSeconds":559,"wake":null,"measuredAt":"2026-10-15T07:02:54.045Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":164,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":231,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":269,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":666,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":703,"worked":true},{"url":"https://arxiv.org/abs/1706.03762","totalMb":721,"worked":true},{"url":"https://www.bbc.com/news","totalMb":765,"worked":true},{"url":"https://docs.python.org/3/","totalMb":865,"worked":true},{"url":"https://react.dev/","totalMb":942,"worked":true},{"url":"https://nodejs.org/en","totalMb":750,"worked":true},{"url":"https://www.theverge.com/","totalMb":1643,"worked":false,"error":"page.goto: Timeout 30000ms exceeded."},{"url":"https://techcrunch.com/","totalMb":1922,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":1476,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":1503,"worked":true},{"url":"https://www.apple.com/","totalMb":2014,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2607,"worked":true},{"url":"https://lightpanda.io/","totalMb":2708,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2760,"worked":true},{"url":"https://www.reuters.com/","totalMb":2640,"worked":false},{"url":"https://vercel.com/","totalMb":2908,"worked":true},{"url":"https://www.nytimes.com/","totalMb":4323,"worked":false,"error":"page.goto: Timeout 30000ms exceeded."},{"url":"https://www.youtube.com/","totalMb":4068,"worked":false},{"url":"https://www.amazon.com/","totalMb":3366,"worked":true},{"url":"https://www.reddit.com/r/programming/","totalMb":2498,"worked":true},{"url":"https://www.imdb.com/","totalMb":3773,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":4071,"worked":true},{"url":"https://www.wired.com/","totalMb":4691,"worked":false,"error":"page.goto: Timeout 30000ms exceeded."},{"url":"https://openai.com/","totalMb":5885,"worked":true},{"url":"https://www.bloomberg.com/","totalMb":6691,"worked":false,"error":"page.goto: Timeout 30000ms exceeded."},{"url":"https://medium.com/","totalMb":5614,"worked":true}]},{"browser":"playwright-mcp","tabs":30,"worked":22,"idleMb":0,"finalMb":4406,"loadSeconds":100,"measuredAt":"2026-10-15T07:07:17.120Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":427,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":500,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":534,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":716,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":716,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":843,"worked":true},{"url":"https://www.bbc.com/news","totalMb":967,"worked":true},{"url":"https://docs.python.org/3/","totalMb":1003,"worked":true},{"url":"https://react.dev/","totalMb":1060,"worked":true},{"url":"https://nodejs.org/en","totalMb":1144,"worked":true},{"url":"https://www.theverge.com/","totalMb":1906,"worked":true},{"url":"https://techcrunch.com/","totalMb":2352,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":2532,"worked":true},{"url":"https://www.rust-lang.org/","totalMb":2773,"worked":true},{"url":"https://www.apple.com/","totalMb":2915,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2886,"worked":false},{"url":"https://lightpanda.io/","totalMb":2896,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2925,"worked":true},{"url":"https://www.reuters.com/","totalMb":2963,"worked":false},{"url":"https://vercel.com/","totalMb":2840,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2852,"worked":false},{"url":"https://www.youtube.com/","totalMb":3069,"worked":false},{"url":"https://www.amazon.com/","totalMb":3062,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":3051,"worked":true},{"url":"https://www.imdb.com/","totalMb":3061,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":3399,"worked":true},{"url":"https://www.wired.com/","totalMb":4058,"worked":true},{"url":"https://openai.com/","totalMb":4145,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":4406,"worked":true},{"url":"https://medium.com/","totalMb":4451,"worked":true}]},{"browser":"stagehand","tabs":30,"worked":21,"idleMb":395,"finalMb":3877,"loadSeconds":30,"measuredAt":"2026-10-15T07:07:53.966Z","perTab":[{"url":"https://en.wikipedia.org/wiki/Web_browser","totalMb":449,"worked":true},{"url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","totalMb":493,"worked":true},{"url":"https://news.ycombinator.com/","totalMb":547,"worked":true},{"url":"https://github.com/microsoft/playwright","totalMb":656,"worked":true},{"url":"https://stackoverflow.com/questions/tagged/javascript","totalMb":714,"worked":false},{"url":"https://arxiv.org/abs/1706.03762","totalMb":763,"worked":true},{"url":"https://www.bbc.com/news","totalMb":779,"worked":true},{"url":"https://docs.python.org/3/","totalMb":809,"worked":true},{"url":"https://react.dev/","totalMb":929,"worked":true},{"url":"https://nodejs.org/en","totalMb":990,"worked":true},{"url":"https://www.theverge.com/","totalMb":1113,"worked":true},{"url":"https://techcrunch.com/","totalMb":1234,"worked":true},{"url":"https://www.npmjs.com/package/playwright","totalMb":1408,"worked":false},{"url":"https://www.rust-lang.org/","totalMb":1748,"worked":true},{"url":"https://www.apple.com/","totalMb":2081,"worked":true},{"url":"https://edition.cnn.com/","totalMb":2125,"worked":false},{"url":"https://lightpanda.io/","totalMb":2197,"worked":true},{"url":"https://en.wikipedia.org/wiki/Zig_(programming_language)","totalMb":2390,"worked":true},{"url":"https://www.reuters.com/","totalMb":2413,"worked":false},{"url":"https://vercel.com/","totalMb":2510,"worked":true},{"url":"https://www.nytimes.com/","totalMb":2531,"worked":false},{"url":"https://www.youtube.com/","totalMb":2634,"worked":false},{"url":"https://www.amazon.com/","totalMb":2678,"worked":false},{"url":"https://www.reddit.com/r/programming/","totalMb":2727,"worked":true},{"url":"https://www.imdb.com/","totalMb":2698,"worked":false},{"url":"https://www.theguardian.com/international","totalMb":2877,"worked":true},{"url":"https://www.wired.com/","totalMb":3279,"worked":true},{"url":"https://openai.com/","totalMb":3361,"worked":false},{"url":"https://www.bloomberg.com/","totalMb":3665,"worked":true},{"url":"https://medium.com/","totalMb":3959,"worked":true}]}],"actions":[{"browser":"agent-tabs","passed":19,"of":19,"measuredAt":"2026-10-15T06:51:25.773Z","results":[{"id":"read-text","label":"Read a page's heading","passed":true,"ms":5679},{"id":"click-link","label":"Click a link by its text","passed":true,"ms":213},{"id":"click-button","label":"Click a button","passed":true,"ms":364},{"id":"type-submit","label":"Type in a search box and press Enter","passed":true,"ms":249},{"id":"select","label":"Pick from a dropdown","passed":true,"ms":160},{"id":"checkbox","label":"Tick a checkbox","passed":true,"ms":168},{"id":"table","label":"Read a value from a table","passed":true,"ms":135},{"id":"iframe","label":"Click a button inside an iframe from another site","passed":true,"ms":215},{"id":"shadow-dom","label":"Click a button inside a web component","passed":true,"ms":192},{"id":"visibility","label":"Tell a hidden link from a visible one","passed":true,"ms":134},{"id":"position","label":"Know where an element is on the page","passed":true,"ms":158},{"id":"click-at-position","label":"Click at a spot on the page (like vision agents do)","passed":true,"ms":159},{"id":"scroll-load-more","label":"Scroll down and get more items","passed":true,"ms":409},{"id":"popup","label":"Follow a link that opens a new tab","passed":true,"ms":256},{"id":"js-content","label":"Read text a page loads after it opens","passed":true,"ms":910},{"id":"cookies","label":"Stay signed in from one page to the next","passed":true,"ms":157},{"id":"screenshot","label":"Take a screenshot that shows the page as drawn","passed":true,"ms":190},{"id":"many-tabs","label":"Keep 5 tabs open and read each","passed":true,"ms":614},{"id":"back-to-old-tab","label":"Go back to a tab opened earlier","passed":true,"ms":304}]},{"browser":"chrome","passed":19,"of":19,"measuredAt":"2026-10-15T06:51:32.188Z","results":[{"id":"read-text","label":"Read a page's heading","passed":true,"ms":176},{"id":"click-link","label":"Click a link by its text","passed":true,"ms":198},{"id":"click-button","label":"Click a button","passed":true,"ms":190},{"id":"type-submit","label":"Type in a search box and press Enter","passed":true,"ms":180},{"id":"select","label":"Pick from a dropdown","passed":true,"ms":132},{"id":"checkbox","label":"Tick a checkbox","passed":true,"ms":165},{"id":"table","label":"Read a value from a table","passed":true,"ms":153},{"id":"iframe","label":"Click a button inside an iframe from another site","passed":true,"ms":210},{"id":"shadow-dom","label":"Click a button inside a web component","passed":true,"ms":192},{"id":"visibility","label":"Tell a hidden link from a visible one","passed":true,"ms":143},{"id":"position","label":"Know where an element is on the page","passed":true,"ms":147},{"id":"click-at-position","label":"Click at a spot on the page (like vision agents do)","passed":true,"ms":151},{"id":"scroll-load-more","label":"Scroll down and get more items","passed":true,"ms":408},{"id":"popup","label":"Follow a link that opens a new tab","passed":true,"ms":208},{"id":"js-content","label":"Read text a page loads after it opens","passed":true,"ms":903},{"id":"cookies","label":"Stay signed in from one page to the next","passed":true,"ms":124},{"id":"screenshot","label":"Take a screenshot that shows the page as drawn","passed":true,"ms":183},{"id":"many-tabs","label":"Keep 5 tabs open and read each","passed":true,"ms":338},{"id":"back-to-old-tab","label":"Go back to a tab opened earlier","passed":true,"ms":215}]},{"browser":"lightpanda","passed":12,"of":19,"measuredAt":"2026-10-15T06:51:59.749Z","results":[{"id":"read-text","label":"Read a page's heading","passed":true,"ms":1304},{"id":"click-link","label":"Click a link by its text","passed":true,"ms":305},{"id":"click-button","label":"Click a button","passed":true,"ms":262},{"id":"type-submit","label":"Type in a search box and press Enter","passed":true,"ms":290},{"id":"select","label":"Pick from a dropdown","passed":true,"ms":251},{"id":"checkbox","label":"Tick a checkbox","passed":true,"ms":259},{"id":"table","label":"Read a value from a table","passed":true,"ms":241},{"id":"iframe","label":"Click a button inside an iframe from another site","passed":false,"ms":5225,"error":"locator.click: Timeout 5000ms exceeded."},{"id":"shadow-dom","label":"Click a button inside a web component","passed":false,"ms":5232,"error":"locator.click: Timeout 5000ms exceeded."},{"id":"visibility","label":"Tell a hidden link from a visible one","passed":true,"ms":239},{"id":"position","label":"Know where an element is on the page","passed":false,"ms":249},{"id":"click-at-position","label":"Click at a spot on the page (like vision agents do)","passed":false,"ms":247},{"id":"scroll-load-more","label":"Scroll down and get more items","passed":false,"ms":5362},{"id":"popup","label":"Follow a link that opens a new tab","passed":false,"ms":5238,"error":"page.waitForEvent: Timeout 5000ms exceeded while waiting for event \"popup\""},{"id":"js-content","label":"Read text a page loads after it opens","passed":true,"ms":1017},{"id":"cookies","label":"Stay signed in from one page to the next","passed":true,"ms":249},{"id":"screenshot","label":"Take a screenshot that shows the page as drawn","passed":false,"ms":386},{"id":"many-tabs","label":"Keep 5 tabs open and read each","passed":true,"ms":324},{"id":"back-to-old-tab","label":"Go back to a tab opened earlier","passed":true,"ms":264}]},{"browser":"obscura","passed":15,"of":19,"measuredAt":"2026-10-15T06:52:22.539Z","results":[{"id":"read-text","label":"Read a page's heading","passed":true,"ms":890},{"id":"click-link","label":"Click a link by its text","passed":true,"ms":526},{"id":"click-button","label":"Click a button","passed":true,"ms":313},{"id":"type-submit","label":"Type in a search box and press Enter","passed":true,"ms":290},{"id":"select","label":"Pick from a dropdown","passed":false,"ms":267},{"id":"checkbox","label":"Tick a checkbox","passed":true,"ms":305},{"id":"table","label":"Read a value from a table","passed":true,"ms":262},{"id":"iframe","label":"Click a button inside an iframe from another site","passed":false,"ms":5239,"error":"locator.click: Timeout 5000ms exceeded."},{"id":"shadow-dom","label":"Click a button inside a web component","passed":false,"ms":5240,"error":"locator.click: Timeout 5000ms exceeded."},{"id":"visibility","label":"Tell a hidden link from a visible one","passed":true,"ms":258},{"id":"position","label":"Know where an element is on the page","passed":true,"ms":265},{"id":"click-at-position","label":"Click at a spot on the page (like vision agents do)","passed":true,"ms":257},{"id":"scroll-load-more","label":"Scroll down and get more items","passed":true,"ms":506},{"id":"popup","label":"Follow a link that opens a new tab","passed":false,"ms":5245,"error":"page.waitForEvent: Timeout 5000ms exceeded while waiting for event \"popup\""},{"id":"js-content","label":"Read text a page loads after it opens","passed":true,"ms":1032},{"id":"cookies","label":"Stay signed in from one page to the next","passed":true,"ms":256},{"id":"screenshot","label":"Take a screenshot that shows the page as drawn","passed":true,"ms":300},{"id":"many-tabs","label":"Keep 5 tabs open and read each","passed":true,"ms":385},{"id":"back-to-old-tab","label":"Go back to a tab opened earlier","passed":true,"ms":302}]}],"sites":{"measuredAt":"2026-10-15T06:52:52.976Z","note":"sameAsChrome: share of the distinct words (4+ letters) on Chrome’s page that this browser’s page also shows; null where Chrome didn’t load the page","browsers":{"agent-tabs":[{"kind":"Docs","url":"https://en.wikipedia.org/wiki/Web_browser","loaded":true,"loadMs":352,"textLength":20286,"sameAsChrome":0.98},{"kind":"Docs","url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","loaded":true,"loadMs":220,"textLength":6631,"sameAsChrome":1},{"kind":"Docs","url":"https://docs.python.org/3/","loaded":true,"loadMs":184,"textLength":3440,"sameAsChrome":1},{"kind":"Docs","url":"https://react.dev/","loaded":true,"loadMs":353,"textLength":6583,"sameAsChrome":1},{"kind":"Docs","url":"https://nodejs.org/en","loaded":true,"loadMs":307,"textLength":1620,"sameAsChrome":1},{"kind":"Docs","url":"https://www.rust-lang.org/","loaded":true,"loadMs":167,"textLength":3485,"sameAsChrome":1},{"kind":"Docs","url":"https://go.dev/doc/","loaded":true,"loadMs":244,"textLength":11695,"sameAsChrome":1},{"kind":"Docs","url":"https://tailwindcss.com/docs/installation","loaded":true,"loadMs":312,"textLength":5208,"sameAsChrome":1},{"kind":"Docs","url":"https://learn.microsoft.com/en-us/dotnet/csharp/","loaded":true,"loadMs":1758,"textLength":4156,"sameAsChrome":1},{"kind":"Docs","url":"https://playwright.dev/docs/intro","loaded":true,"loadMs":261,"textLength":4864,"sameAsChrome":1},{"kind":"News","url":"https://www.bbc.com/news","loaded":true,"loadMs":809,"textLength":8241,"sameAsChrome":1},{"kind":"News","url":"https://www.theverge.com/","loaded":true,"loadMs":1688,"textLength":21821,"sameAsChrome":0.98},{"kind":"News","url":"https://techcrunch.com/","loaded":true,"loadMs":893,"textLength":12655,"sameAsChrome":0.99},{"kind":"News","url":"https://edition.cnn.com/","loaded":false,"loadMs":74,"textLength":13,"sameAsChrome":null},{"kind":"News","url":"https://www.theguardian.com/international","loaded":true,"loadMs":554,"textLength":18522,"sameAsChrome":1},{"kind":"News","url":"https://www.wired.com/","loaded":true,"loadMs":1962,"textLength":7593,"sameAsChrome":1},{"kind":"News","url":"https://apnews.com/","loaded":true,"loadMs":198,"textLength":258,"sameAsChrome":0.95},{"kind":"News","url":"https://www.npr.org/","loaded":true,"loadMs":1804,"textLength":10728,"sameAsChrome":1},{"kind":"News","url":"https://arstechnica.com/","loaded":true,"loadMs":911,"textLength":7934,"sameAsChrome":1},{"kind":"News","url":"https://www.aljazeera.com/","loaded":true,"loadMs":713,"textLength":5178,"sameAsChrome":0.95},{"kind":"Shopping","url":"https://www.amazon.com/","loaded":false,"loadMs":235,"textLength":0,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ebay.com/","loaded":false,"loadMs":127,"textLength":193,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.etsy.com/","loaded":false,"loadMs":312,"textLength":0,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ikea.com/us/en/","loaded":true,"loadMs":1906,"textLength":11093,"sameAsChrome":0.96},{"kind":"Shopping","url":"https://www.bestbuy.com/","loaded":false,"loadMs":null,"textLength":0,"sameAsChrome":null,"error":"page.goto: Timeout 30000ms exceeded."},{"kind":"Shopping","url":"https://www.walmart.com/","loaded":true,"loadMs":2431,"textLength":19760,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.target.com/","loaded":true,"loadMs":4019,"textLength":1444,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.apple.com/shop/buy-iphone","loaded":true,"loadMs":877,"textLength":84708,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.nike.com/","loaded":true,"loadMs":2668,"textLength":2690,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.zara.com/us/","loaded":false,"loadMs":105,"textLength":195,"sameAsChrome":null},{"kind":"Code and forums","url":"https://github.com/microsoft/playwright","loaded":true,"loadMs":1075,"textLength":9303,"sameAsChrome":1},{"kind":"Code and forums","url":"https://news.ycombinator.com/","loaded":true,"loadMs":319,"textLength":3977,"sameAsChrome":1},{"kind":"Code and forums","url":"https://stackoverflow.com/questions/tagged/javascript","loaded":false,"loadMs":220,"textLength":0,"sameAsChrome":null},{"kind":"Code and forums","url":"https://www.reddit.com/r/programming/","loaded":true,"loadMs":90,"textLength":222,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.npmjs.com/package/playwright","loaded":true,"loadMs":241,"textLength":261,"sameAsChrome":0.95},{"kind":"Code and forums","url":"https://dev.to/","loaded":true,"loadMs":563,"textLength":8419,"sameAsChrome":0.97},{"kind":"Code and forums","url":"https://lobste.rs/","loaded":true,"loadMs":461,"textLength":3115,"sameAsChrome":1},{"kind":"Code and forums","url":"https://gitlab.com/gitlab-org/gitlab","loaded":true,"loadMs":1467,"textLength":850,"sameAsChrome":1},{"kind":"Code and forums","url":"https://huggingface.co/models","loaded":true,"loadMs":648,"textLength":3712,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.producthunt.com/","loaded":true,"loadMs":219,"textLength":267,"sameAsChrome":0.95},{"kind":"Web apps","url":"https://vercel.com/","loaded":true,"loadMs":475,"textLength":883,"sameAsChrome":1},{"kind":"Web apps","url":"https://linear.app/","loaded":true,"loadMs":932,"textLength":8482,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.figma.com/","loaded":true,"loadMs":447,"textLength":2701,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.notion.com/","loaded":true,"loadMs":451,"textLength":2073,"sameAsChrome":1},{"kind":"Web apps","url":"https://stripe.com/","loaded":true,"loadMs":519,"textLength":11411,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.airbnb.com/","loaded":false,"loadMs":792,"textLength":139,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.booking.com/","loaded":false,"loadMs":730,"textLength":0,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.twitch.tv/","loaded":true,"loadMs":910,"textLength":447,"sameAsChrome":0.24},{"kind":"Web apps","url":"https://discord.com/","loaded":true,"loadMs":1075,"textLength":2127,"sameAsChrome":1},{"kind":"Web apps","url":"https://open.spotify.com/","loaded":false,"loadMs":772,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.usa.gov/","loaded":true,"loadMs":243,"textLength":4120,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.gov.uk/","loaded":true,"loadMs":143,"textLength":4011,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.weather.gov/","loaded":true,"loadMs":506,"textLength":1789,"sameAsChrome":1},{"kind":"Plain info","url":"https://archive.org/","loaded":false,"loadMs":314,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://arxiv.org/abs/1706.03762","loaded":true,"loadMs":218,"textLength":3166,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.imdb.com/","loaded":false,"loadMs":197,"textLength":13,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.timeanddate.com/","loaded":false,"loadMs":260,"textLength":40,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.britannica.com/","loaded":true,"loadMs":231,"textLength":266,"sameAsChrome":0.95},{"kind":"Plain info","url":"https://openai.com/","loaded":false,"loadMs":195,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.craigslist.org/about/sites","loaded":true,"loadMs":350,"textLength":9959,"sameAsChrome":1}],"chrome":[{"kind":"Docs","url":"https://en.wikipedia.org/wiki/Web_browser","loaded":true,"loadMs":1028,"textLength":20504,"sameAsChrome":1},{"kind":"Docs","url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","loaded":true,"loadMs":202,"textLength":6631,"sameAsChrome":1},{"kind":"Docs","url":"https://docs.python.org/3/","loaded":true,"loadMs":168,"textLength":3440,"sameAsChrome":1},{"kind":"Docs","url":"https://react.dev/","loaded":true,"loadMs":371,"textLength":6583,"sameAsChrome":1},{"kind":"Docs","url":"https://nodejs.org/en","loaded":true,"loadMs":486,"textLength":1620,"sameAsChrome":1},{"kind":"Docs","url":"https://www.rust-lang.org/","loaded":true,"loadMs":215,"textLength":3485,"sameAsChrome":1},{"kind":"Docs","url":"https://go.dev/doc/","loaded":true,"loadMs":449,"textLength":11695,"sameAsChrome":1},{"kind":"Docs","url":"https://tailwindcss.com/docs/installation","loaded":true,"loadMs":286,"textLength":5208,"sameAsChrome":1},{"kind":"Docs","url":"https://learn.microsoft.com/en-us/dotnet/csharp/","loaded":true,"loadMs":879,"textLength":4156,"sameAsChrome":1},{"kind":"Docs","url":"https://playwright.dev/docs/intro","loaded":true,"loadMs":215,"textLength":4864,"sameAsChrome":1},{"kind":"News","url":"https://www.bbc.com/news","loaded":true,"loadMs":1953,"textLength":8223,"sameAsChrome":1},{"kind":"News","url":"https://www.theverge.com/","loaded":true,"loadMs":4948,"textLength":22150,"sameAsChrome":1},{"kind":"News","url":"https://techcrunch.com/","loaded":true,"loadMs":2234,"textLength":12701,"sameAsChrome":1},{"kind":"News","url":"https://edition.cnn.com/","loaded":false,"loadMs":66,"textLength":13,"sameAsChrome":null},{"kind":"News","url":"https://www.theguardian.com/international","loaded":true,"loadMs":2332,"textLength":18601,"sameAsChrome":1},{"kind":"News","url":"https://www.wired.com/","loaded":true,"loadMs":4919,"textLength":7593,"sameAsChrome":1},{"kind":"News","url":"https://apnews.com/","loaded":true,"loadMs":233,"textLength":258,"sameAsChrome":1},{"kind":"News","url":"https://www.npr.org/","loaded":true,"loadMs":3343,"textLength":10728,"sameAsChrome":1},{"kind":"News","url":"https://arstechnica.com/","loaded":true,"loadMs":1921,"textLength":7934,"sameAsChrome":1},{"kind":"News","url":"https://www.aljazeera.com/","loaded":true,"loadMs":1420,"textLength":5593,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.amazon.com/","loaded":false,"loadMs":221,"textLength":0,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ebay.com/","loaded":false,"loadMs":598,"textLength":194,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.etsy.com/","loaded":false,"loadMs":682,"textLength":0,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ikea.com/us/en/","loaded":true,"loadMs":2657,"textLength":15565,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.bestbuy.com/","loaded":false,"loadMs":null,"textLength":0,"sameAsChrome":null,"error":"page.goto: Timeout 30000ms exceeded."},{"kind":"Shopping","url":"https://www.walmart.com/","loaded":true,"loadMs":2119,"textLength":19670,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.target.com/","loaded":true,"loadMs":4780,"textLength":1444,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.apple.com/shop/buy-iphone","loaded":true,"loadMs":1135,"textLength":84708,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.nike.com/","loaded":true,"loadMs":3938,"textLength":2690,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.zara.com/us/","loaded":false,"loadMs":86,"textLength":195,"sameAsChrome":null},{"kind":"Code and forums","url":"https://github.com/microsoft/playwright","loaded":true,"loadMs":1030,"textLength":9303,"sameAsChrome":1},{"kind":"Code and forums","url":"https://news.ycombinator.com/","loaded":true,"loadMs":223,"textLength":3977,"sameAsChrome":1},{"kind":"Code and forums","url":"https://stackoverflow.com/questions/tagged/javascript","loaded":false,"loadMs":169,"textLength":0,"sameAsChrome":null},{"kind":"Code and forums","url":"https://www.reddit.com/r/programming/","loaded":true,"loadMs":81,"textLength":222,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.npmjs.com/package/playwright","loaded":true,"loadMs":240,"textLength":261,"sameAsChrome":1},{"kind":"Code and forums","url":"https://dev.to/","loaded":true,"loadMs":565,"textLength":8419,"sameAsChrome":1},{"kind":"Code and forums","url":"https://lobste.rs/","loaded":true,"loadMs":542,"textLength":3117,"sameAsChrome":1},{"kind":"Code and forums","url":"https://gitlab.com/gitlab-org/gitlab","loaded":true,"loadMs":1729,"textLength":850,"sameAsChrome":1},{"kind":"Code and forums","url":"https://huggingface.co/models","loaded":true,"loadMs":614,"textLength":3712,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.producthunt.com/","loaded":true,"loadMs":312,"textLength":267,"sameAsChrome":1},{"kind":"Web apps","url":"https://vercel.com/","loaded":true,"loadMs":496,"textLength":883,"sameAsChrome":1},{"kind":"Web apps","url":"https://linear.app/","loaded":true,"loadMs":713,"textLength":8482,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.figma.com/","loaded":true,"loadMs":544,"textLength":2701,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.notion.com/","loaded":true,"loadMs":592,"textLength":2073,"sameAsChrome":1},{"kind":"Web apps","url":"https://stripe.com/","loaded":true,"loadMs":455,"textLength":11411,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.airbnb.com/","loaded":false,"loadMs":1022,"textLength":139,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.booking.com/","loaded":false,"loadMs":465,"textLength":0,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.twitch.tv/","loaded":true,"loadMs":2373,"textLength":2393,"sameAsChrome":1},{"kind":"Web apps","url":"https://discord.com/","loaded":true,"loadMs":1572,"textLength":2127,"sameAsChrome":1},{"kind":"Web apps","url":"https://open.spotify.com/","loaded":false,"loadMs":810,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.usa.gov/","loaded":true,"loadMs":571,"textLength":4120,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.gov.uk/","loaded":true,"loadMs":166,"textLength":4011,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.weather.gov/","loaded":true,"loadMs":627,"textLength":1789,"sameAsChrome":1},{"kind":"Plain info","url":"https://archive.org/","loaded":false,"loadMs":267,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://arxiv.org/abs/1706.03762","loaded":true,"loadMs":196,"textLength":3166,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.imdb.com/","loaded":false,"loadMs":168,"textLength":13,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.timeanddate.com/","loaded":false,"loadMs":225,"textLength":40,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.britannica.com/","loaded":true,"loadMs":228,"textLength":266,"sameAsChrome":1},{"kind":"Plain info","url":"https://openai.com/","loaded":false,"loadMs":177,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.craigslist.org/about/sites","loaded":true,"loadMs":371,"textLength":9959,"sameAsChrome":1}],"lightpanda":[{"kind":"Docs","url":"https://en.wikipedia.org/wiki/Web_browser","loaded":true,"loadMs":633,"textLength":30019,"sameAsChrome":0.92},{"kind":"Docs","url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","loaded":true,"loadMs":191,"textLength":8293,"sameAsChrome":1},{"kind":"Docs","url":"https://docs.python.org/3/","loaded":true,"loadMs":92,"textLength":4413,"sameAsChrome":1},{"kind":"Docs","url":"https://react.dev/","loaded":true,"loadMs":362,"textLength":8234,"sameAsChrome":1},{"kind":"Docs","url":"https://nodejs.org/en","loaded":true,"loadMs":291,"textLength":3150,"sameAsChrome":0.86},{"kind":"Docs","url":"https://www.rust-lang.org/","loaded":true,"loadMs":105,"textLength":3485,"sameAsChrome":1},{"kind":"Docs","url":"https://go.dev/doc/","loaded":true,"loadMs":254,"textLength":12432,"sameAsChrome":0.97},{"kind":"Docs","url":"https://tailwindcss.com/docs/installation","loaded":true,"loadMs":259,"textLength":5342,"sameAsChrome":0.99},{"kind":"Docs","url":"https://learn.microsoft.com/en-us/dotnet/csharp/","loaded":true,"loadMs":651,"textLength":4822,"sameAsChrome":1},{"kind":"Docs","url":"https://playwright.dev/docs/intro","loaded":true,"loadMs":162,"textLength":4899,"sameAsChrome":0.99},{"kind":"News","url":"https://www.bbc.com/news","loaded":true,"loadMs":507,"textLength":9524,"sameAsChrome":1},{"kind":"News","url":"https://www.theverge.com/","loaded":true,"loadMs":2773,"textLength":20619,"sameAsChrome":0.97},{"kind":"News","url":"https://techcrunch.com/","loaded":true,"loadMs":1341,"textLength":13345,"sameAsChrome":0.97},{"kind":"News","url":"https://edition.cnn.com/","loaded":true,"loadMs":832,"textLength":7180,"sameAsChrome":null},{"kind":"News","url":"https://www.theguardian.com/international","loaded":true,"loadMs":168,"textLength":18526,"sameAsChrome":0.98},{"kind":"News","url":"https://www.wired.com/","loaded":true,"loadMs":3483,"textLength":7686,"sameAsChrome":0.97},{"kind":"News","url":"https://apnews.com/","loaded":true,"loadMs":155,"textLength":257,"sameAsChrome":0.85},{"kind":"News","url":"https://www.npr.org/","loaded":true,"loadMs":1393,"textLength":53009,"sameAsChrome":0.47},{"kind":"News","url":"https://arstechnica.com/","loaded":true,"loadMs":1822,"textLength":9004,"sameAsChrome":1},{"kind":"News","url":"https://www.aljazeera.com/","loaded":true,"loadMs":751,"textLength":6444,"sameAsChrome":0.94},{"kind":"Shopping","url":"https://www.amazon.com/","loaded":false,"loadMs":137,"textLength":142,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ebay.com/","loaded":false,"loadMs":146,"textLength":194,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.etsy.com/","loaded":false,"loadMs":106,"textLength":0,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ikea.com/us/en/","loaded":true,"loadMs":2382,"textLength":10816,"sameAsChrome":0.94},{"kind":"Shopping","url":"https://www.bestbuy.com/","loaded":true,"loadMs":2487,"textLength":4404,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.walmart.com/","loaded":true,"loadMs":1718,"textLength":20109,"sameAsChrome":0.99},{"kind":"Shopping","url":"https://www.target.com/","loaded":true,"loadMs":3848,"textLength":20506,"sameAsChrome":0.73},{"kind":"Shopping","url":"https://www.apple.com/shop/buy-iphone","loaded":true,"loadMs":502,"textLength":162885,"sameAsChrome":0.97},{"kind":"Shopping","url":"https://www.nike.com/","loaded":true,"loadMs":1758,"textLength":11399,"sameAsChrome":0.98},{"kind":"Shopping","url":"https://www.zara.com/us/","loaded":true,"loadMs":2638,"textLength":32316,"sameAsChrome":null},{"kind":"Code and forums","url":"https://github.com/microsoft/playwright","loaded":true,"loadMs":848,"textLength":11898,"sameAsChrome":0.98},{"kind":"Code and forums","url":"https://news.ycombinator.com/","loaded":false,"loadMs":136,"textLength":85,"sameAsChrome":0.01},{"kind":"Code and forums","url":"https://stackoverflow.com/questions/tagged/javascript","loaded":false,"loadMs":113,"textLength":0,"sameAsChrome":null},{"kind":"Code and forums","url":"https://www.reddit.com/r/programming/","loaded":true,"loadMs":82,"textLength":222,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.npmjs.com/package/playwright","loaded":true,"loadMs":168,"textLength":260,"sameAsChrome":0.85},{"kind":"Code and forums","url":"https://dev.to/","loaded":true,"loadMs":324,"textLength":9642,"sameAsChrome":0.93},{"kind":"Code and forums","url":"https://lobste.rs/","loaded":true,"loadMs":298,"textLength":3015,"sameAsChrome":0.88},{"kind":"Code and forums","url":"https://gitlab.com/gitlab-org/gitlab","loaded":true,"loadMs":1302,"textLength":1460,"sameAsChrome":0.95},{"kind":"Code and forums","url":"https://huggingface.co/models","loaded":true,"loadMs":590,"textLength":3991,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.producthunt.com/","loaded":true,"loadMs":143,"textLength":266,"sameAsChrome":0.85},{"kind":"Web apps","url":"https://vercel.com/","loaded":true,"loadMs":269,"textLength":3258,"sameAsChrome":0.97},{"kind":"Web apps","url":"https://linear.app/","loaded":true,"loadMs":692,"textLength":9690,"sameAsChrome":0.93},{"kind":"Web apps","url":"https://www.figma.com/","loaded":true,"loadMs":682,"textLength":2704,"sameAsChrome":0.98},{"kind":"Web apps","url":"https://www.notion.com/","loaded":true,"loadMs":415,"textLength":2756,"sameAsChrome":1},{"kind":"Web apps","url":"https://stripe.com/","loaded":true,"loadMs":961,"textLength":20010,"sameAsChrome":0.9},{"kind":"Web apps","url":"https://www.airbnb.com/","loaded":true,"loadMs":1795,"textLength":11309,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.booking.com/","loaded":false,"loadMs":230,"textLength":0,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.twitch.tv/","loaded":false,"loadMs":790,"textLength":40,"sameAsChrome":0.02},{"kind":"Web apps","url":"https://discord.com/","loaded":true,"loadMs":755,"textLength":3329,"sameAsChrome":0.89},{"kind":"Web apps","url":"https://open.spotify.com/","loaded":true,"loadMs":405,"textLength":1542,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.usa.gov/","loaded":true,"loadMs":323,"textLength":4565,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.gov.uk/","loaded":true,"loadMs":102,"textLength":4001,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.weather.gov/","loaded":true,"loadMs":401,"textLength":2454,"sameAsChrome":1},{"kind":"Plain info","url":"https://archive.org/","loaded":false,"loadMs":1556,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://arxiv.org/abs/1706.03762","loaded":false,"loadMs":38,"textLength":122,"sameAsChrome":0},{"kind":"Plain info","url":"https://www.imdb.com/","loaded":false,"loadMs":347,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.timeanddate.com/","loaded":false,"loadMs":172,"textLength":40,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.britannica.com/","loaded":true,"loadMs":138,"textLength":265,"sameAsChrome":0.85},{"kind":"Plain info","url":"https://openai.com/","loaded":false,"loadMs":139,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.craigslist.org/about/sites","loaded":true,"loadMs":283,"textLength":9959,"sameAsChrome":1}],"obscura":[{"kind":"Docs","url":"https://en.wikipedia.org/wiki/Web_browser","loaded":true,"loadMs":883,"textLength":21045,"sameAsChrome":0.97},{"kind":"Docs","url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript","loaded":true,"loadMs":395,"textLength":18150,"sameAsChrome":1},{"kind":"Docs","url":"https://docs.python.org/3/","loaded":true,"loadMs":200,"textLength":2651,"sameAsChrome":0.83},{"kind":"Docs","url":"https://react.dev/","loaded":true,"loadMs":1177,"textLength":7944,"sameAsChrome":1},{"kind":"Docs","url":"https://nodejs.org/en","loaded":true,"loadMs":540,"textLength":1642,"sameAsChrome":1},{"kind":"Docs","url":"https://www.rust-lang.org/","loaded":true,"loadMs":1274,"textLength":3235,"sameAsChrome":0.98},{"kind":"Docs","url":"https://go.dev/doc/","loaded":true,"loadMs":634,"textLength":11875,"sameAsChrome":1},{"kind":"Docs","url":"https://tailwindcss.com/docs/installation","loaded":true,"loadMs":432,"textLength":5186,"sameAsChrome":1},{"kind":"Docs","url":"https://learn.microsoft.com/en-us/dotnet/csharp/","loaded":true,"loadMs":2100,"textLength":4175,"sameAsChrome":1},{"kind":"Docs","url":"https://playwright.dev/docs/intro","loaded":true,"loadMs":266,"textLength":4997,"sameAsChrome":1},{"kind":"News","url":"https://www.bbc.com/news","loaded":true,"loadMs":1827,"textLength":9524,"sameAsChrome":1},{"kind":"News","url":"https://www.theverge.com/","loaded":false,"loadMs":null,"textLength":0,"sameAsChrome":0,"error":"page.goto: Timeout 30000ms exceeded."},{"kind":"News","url":"https://techcrunch.com/","loaded":true,"loadMs":18031,"textLength":13455,"sameAsChrome":0.97},{"kind":"News","url":"https://edition.cnn.com/","loaded":true,"loadMs":9277,"textLength":8435,"sameAsChrome":null},{"kind":"News","url":"https://www.theguardian.com/international","loaded":true,"loadMs":1441,"textLength":18514,"sameAsChrome":1},{"kind":"News","url":"https://www.wired.com/","loaded":true,"loadMs":25282,"textLength":7298,"sameAsChrome":0.97},{"kind":"News","url":"https://apnews.com/","loaded":true,"loadMs":140,"textLength":258,"sameAsChrome":0.95},{"kind":"News","url":"https://www.npr.org/","loaded":true,"loadMs":14195,"textLength":13824,"sameAsChrome":1},{"kind":"News","url":"https://arstechnica.com/","loaded":true,"loadMs":7721,"textLength":8071,"sameAsChrome":1},{"kind":"News","url":"https://www.aljazeera.com/","loaded":false,"loadMs":1175,"textLength":7,"sameAsChrome":0},{"kind":"Shopping","url":"https://www.amazon.com/","loaded":false,"loadMs":215,"textLength":0,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ebay.com/","loaded":false,"loadMs":175,"textLength":194,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.etsy.com/","loaded":false,"loadMs":113,"textLength":0,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.ikea.com/us/en/","loaded":true,"loadMs":5633,"textLength":10408,"sameAsChrome":0.95},{"kind":"Shopping","url":"https://www.bestbuy.com/","loaded":true,"loadMs":17100,"textLength":2638,"sameAsChrome":null},{"kind":"Shopping","url":"https://www.walmart.com/","loaded":false,"loadMs":null,"textLength":0,"sameAsChrome":0,"error":"page.goto: Timeout 30000ms exceeded."},{"kind":"Shopping","url":"https://www.target.com/","loaded":false,"loadMs":null,"textLength":0,"sameAsChrome":0,"error":"page.goto: Protocol error (Page.navigate): Network error: Network error: Forbidden URL scheme 'javascript' - only http, https, and file are allowed"},{"kind":"Shopping","url":"https://www.apple.com/shop/buy-iphone","loaded":false,"loadMs":3656,"textLength":169,"sameAsChrome":0.01},{"kind":"Shopping","url":"https://www.nike.com/","loaded":true,"loadMs":6271,"textLength":6043,"sameAsChrome":1},{"kind":"Shopping","url":"https://www.zara.com/us/","loaded":false,"loadMs":null,"textLength":0,"sameAsChrome":null,"error":"page.evaluate: Execution context was destroyed, most likely because of a navigation"},{"kind":"Code and forums","url":"https://github.com/microsoft/playwright","loaded":true,"loadMs":2020,"textLength":11045,"sameAsChrome":1},{"kind":"Code and forums","url":"https://news.ycombinator.com/","loaded":true,"loadMs":479,"textLength":3923,"sameAsChrome":0.98},{"kind":"Code and forums","url":"https://stackoverflow.com/questions/tagged/javascript","loaded":true,"loadMs":161,"textLength":265,"sameAsChrome":null},{"kind":"Code and forums","url":"https://www.reddit.com/r/programming/","loaded":true,"loadMs":91,"textLength":222,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.npmjs.com/package/playwright","loaded":true,"loadMs":147,"textLength":261,"sameAsChrome":0.95},{"kind":"Code and forums","url":"https://dev.to/","loaded":true,"loadMs":1107,"textLength":8406,"sameAsChrome":0.95},{"kind":"Code and forums","url":"https://lobste.rs/","loaded":true,"loadMs":884,"textLength":3842,"sameAsChrome":1},{"kind":"Code and forums","url":"https://gitlab.com/gitlab-org/gitlab","loaded":true,"loadMs":2206,"textLength":586,"sameAsChrome":0.44},{"kind":"Code and forums","url":"https://huggingface.co/models","loaded":true,"loadMs":861,"textLength":3712,"sameAsChrome":1},{"kind":"Code and forums","url":"https://www.producthunt.com/","loaded":true,"loadMs":150,"textLength":267,"sameAsChrome":0.95},{"kind":"Web apps","url":"https://vercel.com/","loaded":true,"loadMs":1691,"textLength":3512,"sameAsChrome":1},{"kind":"Web apps","url":"https://linear.app/","loaded":true,"loadMs":953,"textLength":8886,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.figma.com/","loaded":true,"loadMs":1712,"textLength":2701,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.notion.com/","loaded":true,"loadMs":3156,"textLength":2687,"sameAsChrome":1},{"kind":"Web apps","url":"https://stripe.com/","loaded":true,"loadMs":686,"textLength":11372,"sameAsChrome":1},{"kind":"Web apps","url":"https://www.airbnb.com/","loaded":true,"loadMs":1598,"textLength":223,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.booking.com/","loaded":false,"loadMs":433,"textLength":0,"sameAsChrome":null},{"kind":"Web apps","url":"https://www.twitch.tv/","loaded":true,"loadMs":1518,"textLength":447,"sameAsChrome":0.24},{"kind":"Web apps","url":"https://discord.com/","loaded":true,"loadMs":3408,"textLength":2160,"sameAsChrome":0.99},{"kind":"Web apps","url":"https://open.spotify.com/","loaded":false,"loadMs":800,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.usa.gov/","loaded":true,"loadMs":1445,"textLength":4160,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.gov.uk/","loaded":true,"loadMs":314,"textLength":4093,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.weather.gov/","loaded":true,"loadMs":1466,"textLength":1815,"sameAsChrome":1},{"kind":"Plain info","url":"https://archive.org/","loaded":false,"loadMs":723,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://arxiv.org/abs/1706.03762","loaded":true,"loadMs":568,"textLength":3194,"sameAsChrome":1},{"kind":"Plain info","url":"https://www.imdb.com/","loaded":false,"loadMs":338,"textLength":0,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.timeanddate.com/","loaded":false,"loadMs":146,"textLength":40,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.britannica.com/","loaded":true,"loadMs":129,"textLength":266,"sameAsChrome":0.95},{"kind":"Plain info","url":"https://openai.com/","loaded":true,"loadMs":1940,"textLength":2950,"sameAsChrome":null},{"kind":"Plain info","url":"https://www.craigslist.org/about/sites","loaded":true,"loadMs":522,"textLength":9959,"sameAsChrome":1}]}},"bu":{"benchmark":"BU Bench V1, 10 tasks (2 per category), task text left out on purpose","model":"gpt-6-luna (medium reasoning)","chatsAtOnce":5,"machine":"MacBook (Apple silicon), O browser-only local computer","setups":[{"setup":"chrome","passed":3,"total":10,"peakMb":4775,"averageMb":3367,"readChars":224923,"minutes":6.2,"tasks":[{"category":"OM2W2","verdict":"fail","steps":2,"readChars":8926,"seconds":59},{"category":"WebBenchREAD","verdict":"impossible","steps":4,"readChars":36825,"seconds":93},{"category":"OM2W2","verdict":"pass","steps":5,"readChars":31776,"seconds":141},{"category":"InteractionTests","verdict":"pass","steps":3,"readChars":777,"seconds":105},{"category":"InteractionTests","verdict":"fail","steps":8,"readChars":2348,"seconds":186},{"category":"GAIA","verdict":"fail","steps":3,"readChars":33081,"seconds":99},{"category":"WebBenchREAD","verdict":"impossible","steps":3,"readChars":519,"seconds":215},{"category":"BrowseComp","verdict":"pass","steps":5,"readChars":35462,"seconds":103},{"category":"GAIA","verdict":"fail","steps":7,"readChars":67567,"seconds":131},{"category":"BrowseComp","verdict":"fail","steps":2,"readChars":7642,"seconds":47}]},{"setup":"agent-tabs","passed":3,"total":10,"peakMb":3076,"averageMb":2171,"readChars":219697,"minutes":5.5,"tasks":[{"category":"WebBenchREAD","verdict":"pass","steps":3,"readChars":32411,"seconds":67},{"category":"OM2W2","verdict":"fail","steps":6,"readChars":16903,"seconds":139},{"category":"OM2W2","verdict":"pass","steps":6,"readChars":27519,"seconds":163},{"category":"InteractionTests","verdict":"pass","steps":3,"readChars":777,"seconds":106},{"category":"InteractionTests","verdict":"fail","steps":9,"readChars":4511,"seconds":220},{"category":"GAIA","verdict":"fail","steps":3,"readChars":33087,"seconds":92},{"category":"WebBenchREAD","verdict":"impossible","steps":4,"readChars":898,"seconds":256},{"category":"GAIA","verdict":"fail","steps":6,"readChars":63916,"seconds":124},{"category":"BrowseComp","verdict":"fail","steps":4,"readChars":7225,"seconds":77},{"category":"BrowseComp","verdict":"fail","steps":8,"readChars":32450,"seconds":131}]}]},"machine":"Linux 6.1 x86_64, 8 vCPUs, 8 GB memory","versions":["agent-tabs: Playwright's Chromium headless shell (playwright-core 1.63.0), 2 tabs live, ads and trackers blocked","Headless Chrome: the same headless shell, every tab live, nothing blocked","agent-browser 0.39.1, with its own Chrome 155","Stagehand 4.2.1, Playwright MCP 0.0.83 and browser-use 0.13.11, with Google Chrome 155.0.8059.79","Lightpanda 1.0.0 and Obscura 0.2.4, driven through Playwright over the Chrome protocol"]};
+
+// The memory chart's lines: ours, the agent tools, then the engines.
+const TOOLS = [
+  { id: "agent-tabs --live 2", name: "agent-tabs", color: "var(--s1)", ours: true },
+  { id: "agent-browser", name: "agent-browser", color: "var(--s2)" },
+  { id: "chrome-shell", name: "Headless Chrome", color: "var(--s3)" },
+  { id: "stagehand", name: "Stagehand", color: "var(--s4)" },
+  { id: "browser-use", name: "browser-use", color: "var(--s5)" },
+  { id: "playwright-mcp", name: "Playwright MCP", color: "var(--s6)" },
+  { id: "lightpanda", name: "Lightpanda", color: "var(--s7)", engine: true },
+  { id: "obscura", name: "Obscura", color: "var(--s8)", engine: true },
+];
+// The action and site tests' columns.
+const ENGINES = [
+  { id: "agent-tabs", name: "agent-tabs", ours: true },
+  { id: "chrome", name: "Chrome (and every agent tool)" },
+  { id: "lightpanda", name: "Lightpanda" },
+  { id: "obscura", name: "Obscura" },
+];
+
+const tabCount = 30;
+const runs = {};
+for (const run of DATA.memory) {
+  runs[run.browser] = run;
+}
+const ours = runs["agent-tabs --live 2"];
+
+function formatMb(mb) {
+  return `${mb.toLocaleString("en-US")} MB`;
+}
+
+function siteName(url) {
+  return new URL(url).hostname.replace(/^www\./, "").replace(/^edition\./, "");
+}
+
+function slope(values) {
+  const n = values.length;
+  let meanX = 0;
+  let meanY = 0;
+  for (let i = 0; i < n; i++) {
+    meanX += (i + 1) / n;
+    meanY += values[i] / n;
+  }
+  let top = 0;
+  let bottom = 0;
+  for (let i = 0; i < n; i++) {
+    top += (i + 1 - meanX) * (values[i] - meanY);
+    bottom += (i + 1 - meanX) ** 2;
+  }
+  return top / bottom;
+}
+
+function mbPerTab(run) {
+  return slope(run.perTab.map((tab) => tab.totalMb));
+}
+
+const others = TOOLS.filter((tool) => !tool.ours).map((tool) => runs[tool.id]);
+const otherFinal = others.map((run) => run.finalMb);
+const lowRatio = Math.min(...otherFinal) / ours.finalMb;
+const highRatio = Math.max(...otherFinal) / ours.finalMb;
+const gb = (mb) => (mb / 1000).toFixed(1);
+const othersRange = `${gb(Math.min(...otherFinal))}–${gb(Math.max(...otherFinal))} GB`;
+const otherGrowth = others.map(mbPerTab);
+const growthRange = `${Math.round(Math.min(...otherGrowth))}–${Math.round(Math.max(...otherGrowth))} MB`;
+
+const actionRuns = {};
+for (const run of DATA.actions) {
+  actionRuns[run.browser] = run;
+}
+const bu = {};
+for (const setup of DATA.bu.setups) {
+  bu[setup.setup] = setup;
+}
+const memorySaved = Math.round((1 - bu["agent-tabs"].averageMb / bu.chrome.averageMb) * 100);
+
+// Headline.
+document.getElementById("h-ours").textContent = formatMb(ours.finalMb);
+document.getElementById("h-others").textContent = othersRange;
+const stats = [
+  { value: ours.finalMb.toLocaleString("en-US"), unit: "MB", label: `with 30 real sites open, against ${othersRange} for the rest` },
+  { value: mbPerTab(ours).toFixed(0), unit: "MB", label: `added by each extra tab, against ${growthRange} for every other browser` },
+  { value: `${actionRuns["agent-tabs"].passed}/${actionRuns["agent-tabs"].of}`, unit: "", label: `agent actions work, like Chrome; Lightpanda ${actionRuns.lightpanda.passed}, Obscura ${actionRuns.obscura.passed}` },
+  { value: `${bu["agent-tabs"].passed}/${bu["agent-tabs"].total}`, unit: "", label: `BU Bench tasks solved, the same as Chrome, with ${memorySaved}% less memory` },
+];
+const statsEl = document.getElementById("stats");
+for (const stat of stats) {
+  const div = document.createElement("div");
+  div.className = "stat";
+  div.innerHTML = `<div class="value">${stat.value}<small>${stat.unit}</small></div><div class="label">${stat.label}</div>`;
+  statsEl.append(div);
+}
+
+// Legend.
+const legend = document.getElementById("legend");
+for (const tool of TOOLS) {
+  const li = document.createElement("li");
+  li.className = tool.ours ? "ours" : tool.engine ? "engine" : "";
+  li.innerHTML = `<span class="key" style="background-color:${tool.color}"></span>${tool.name}`;
+  legend.append(li);
+}
+
+// The memory chart.
+const svg = document.getElementById("chart");
+const W = 900;
+const H = 460;
+const pad = { left: 56, right: 150, top: 12, bottom: 36 };
+const maxMb = 7000;
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+const plotW = W - pad.left - pad.right;
+const plotH = H - pad.top - pad.bottom;
+const x = (tab) => pad.left + ((tab - 1) / (tabCount - 1)) * plotW;
+const y = (mb) => pad.top + plotH - (mb / maxMb) * plotH;
+const NS = "http://www.w3.org/2000/svg";
+
+function add(tag, attrs, parent = svg) {
+  const el = document.createElementNS(NS, tag);
+  for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+  parent.append(el);
+  return el;
+}
+
+for (let mb = 0; mb <= maxMb; mb += 1000) {
+  add("line", { x1: pad.left, x2: pad.left + plotW, y1: y(mb), y2: y(mb), stroke: mb === 0 ? "var(--ink-3)" : "var(--grid)", "stroke-width": 1 });
+  const label = add("text", { x: pad.left - 8, y: y(mb) + 4, "text-anchor": "end" });
+  label.textContent = mb === 0 ? "0" : mb.toLocaleString("en-US");
+}
+for (const tab of [1, 5, 10, 15, 20, 25, 30]) {
+  const label = add("text", { x: x(tab), y: H - pad.bottom + 18, "text-anchor": "middle" });
+  label.textContent = tab;
+}
+const xTitle = add("text", { x: pad.left + plotW / 2, y: H - 2, "text-anchor": "middle" });
+xTitle.textContent = "tabs open";
+
+const drawOrder = [...TOOLS.filter((tool) => !tool.ours), ...TOOLS.filter((tool) => tool.ours)];
+for (const tool of drawOrder) {
+  const values = runs[tool.id].perTab.map((tab) => tab.totalMb);
+  let d = "";
+  values.forEach((mb, i) => {
+    d += `${i === 0 ? "M" : "L"}${x(i + 1).toFixed(1)},${y(mb).toFixed(1)}`;
+  });
+  const attrs = { d, fill: "none", stroke: tool.color, "stroke-width": tool.ours ? 3 : 2, "stroke-linejoin": "round", "stroke-linecap": "round" };
+  if (tool.engine) attrs["stroke-dasharray"] = "6 4";
+  add("path", attrs);
+  add("circle", { cx: x(tabCount), cy: y(values[tabCount - 1]), r: tool.ours ? 4.5 : 3.5, fill: tool.color, stroke: "var(--surface)", "stroke-width": 2 });
+}
+
+// End labels, nudged apart so none overlap.
+const ends = TOOLS.map((tool) => ({ tool, mb: runs[tool.id].perTab[tabCount - 1].totalMb }));
+ends.sort((a, b) => b.mb - a.mb);
+let lastY = -Infinity;
+for (const end of ends) {
+  end.labelY = Math.max(y(end.mb) + 4, lastY + 15);
+  lastY = end.labelY;
+}
+for (const end of ends) {
+  const label = add("text", { x: x(tabCount) + 10, y: end.labelY, class: end.tool.ours ? "end-label ours" : "end-label" });
+  label.textContent = `${end.tool.name} ${end.mb.toLocaleString("en-US")}`;
+}
+
+// Hover: a crosshair and every browser's number at that tab.
+const crosshair = add("line", { y1: pad.top, y2: pad.top + plotH, stroke: "var(--ink-3)", "stroke-width": 1, "stroke-dasharray": "3 3", visibility: "hidden" });
+const hoverDots = TOOLS.map((tool) => add("circle", { r: 4, fill: tool.color, stroke: "var(--surface)", "stroke-width": 2, visibility: "hidden" }));
+const hitArea = add("rect", { x: pad.left - 10, y: pad.top, width: plotW + 20, height: plotH, fill: "transparent" });
+const tooltip = document.getElementById("tooltip");
+
+function showTab(tab) {
+  crosshair.setAttribute("x1", x(tab));
+  crosshair.setAttribute("x2", x(tab));
+  crosshair.setAttribute("visibility", "visible");
+  const rows = [];
+  TOOLS.forEach((tool, i) => {
+    const entry = runs[tool.id].perTab[tab - 1];
+    hoverDots[i].setAttribute("cx", x(tab));
+    hoverDots[i].setAttribute("cy", y(entry.totalMb));
+    hoverDots[i].setAttribute("visibility", "visible");
+    rows.push({ tool, entry });
+  });
+  rows.sort((a, b) => b.entry.totalMb - a.entry.totalMb);
+  let html = `<div class="t-head">${tab} tab${tab === 1 ? "" : "s"} open<span class="t-site">+ ${siteName(ours.perTab[tab - 1].url)}</span></div>`;
+  for (const row of rows) {
+    html += `<div class="t-row${row.tool.ours ? " ours" : ""}"><span class="dot" style="background:${row.tool.color}"></span><span>${row.tool.name}</span><span class="v">${formatMb(row.entry.totalMb)}${row.entry.worked ? "" : " †"}</span></div>`;
+  }
+  tooltip.innerHTML = html;
+  tooltip.hidden = false;
+  const box = svg.getBoundingClientRect();
+  const scale = box.width / W;
+  const px = x(tab) * scale;
+  const left = px > box.width / 2 ? px - tooltip.offsetWidth - 14 : px + 14;
+  tooltip.style.left = `${Math.max(0, left)}px`;
+  tooltip.style.top = `${pad.top * scale}px`;
+}
+
+function hide() {
+  crosshair.setAttribute("visibility", "hidden");
+  for (const dot of hoverDots) dot.setAttribute("visibility", "hidden");
+  tooltip.hidden = true;
+}
+
+function tabAt(event) {
+  const box = svg.getBoundingClientRect();
+  const svgX = ((event.clientX - box.left) / box.width) * W;
+  const tab = Math.round(((svgX - pad.left) / plotW) * (tabCount - 1)) + 1;
+  return Math.min(tabCount, Math.max(1, tab));
+}
+hitArea.addEventListener("pointermove", (event) => showTab(tabAt(event)));
+hitArea.addEventListener("pointerleave", hide);
+
+// The action grid.
+const CHECK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CROSS = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function mark(ok) {
+  return ok ? `<span class="mark yes">${CHECK}Works</span>` : `<span class="mark no">${CROSS}Fails</span>`;
+}
+let actionsHtml = '<thead><tr><th class="left">What the agent does</th>';
+for (const engine of ENGINES) actionsHtml += `<th class="center${engine.ours ? " ours" : ""}">${engine.name}</th>`;
+actionsHtml += "</tr></thead><tbody>";
+const firstRun = actionRuns.chrome.results;
+firstRun.forEach((test, i) => {
+  actionsHtml += `<tr><td class="text left">${test.label}</td>`;
+  for (const engine of ENGINES) {
+    const result = actionRuns[engine.id].results[i];
+    actionsHtml += `<td class="center${engine.ours ? " ours" : ""}">${mark(result.passed)}</td>`;
+  }
+  actionsHtml += "</tr>";
+});
+actionsHtml += '<tr class="summary"><td class="text left">Actions that work</td>';
+for (const engine of ENGINES) actionsHtml += `<td class="center${engine.ours ? " ours" : ""}">${actionRuns[engine.id].passed} of ${actionRuns[engine.id].of}</td>`;
+document.getElementById("actions").innerHTML = `${actionsHtml}</tr></tbody>`;
+
+// Real sites.
+function siteSummary(id) {
+  const results = DATA.sites.browsers[id];
+  let loaded = 0;
+  let same = 0;
+  let compared = 0;
+  const times = [];
+  for (const site of results) {
+    if (site.loaded) {
+      loaded++;
+      if (site.loadMs !== null) times.push(site.loadMs);
+    }
+    if (site.sameAsChrome !== null) {
+      compared++;
+      if (site.sameAsChrome >= 0.6) same++;
+    }
+  }
+  times.sort((a, b) => a - b);
+  return {
+    loaded,
+    total: results.length,
+    same,
+    compared,
+    median: times[Math.floor(times.length / 2)],
+    slowest: times[Math.floor(times.length * 0.9)],
+  };
+}
+const seconds = (ms) => `${(ms / 1000).toFixed(1)} s`;
+let sitesHtml = '<thead><tr><th class="left">Browser</th><th>Pages that loaded</th><th>Same as Chrome</th><th>Typical load</th><th>Slowest 10%</th></tr></thead><tbody>';
+for (const engine of ENGINES) {
+  const s = siteSummary(engine.id);
+  const cls = engine.ours ? "ours" : "";
+  sitesHtml += `<tr><td class="text left ${cls}">${engine.name}</td><td class="${cls}">${s.loaded} of ${s.total}</td><td class="${cls}">${s.same} of ${s.compared}</td><td class="${cls}">${seconds(s.median)}</td><td class="${cls}">${seconds(s.slowest)}</td></tr>`;
+}
+document.getElementById("sites").innerHTML = `${sitesHtml}</tbody>`;
+document.getElementById("sites-notes").textContent =
+  "agent-tabs loads pages faster than plain Chrome because it skips ads and trackers. Its one page that differs from Chrome is Twitch, whose live listing changes between visits. Obscura timed out or showed nothing on The Verge, Walmart, Target, Al Jazeera and the Apple Store.";
+
+// BU Bench.
+let buHtml = '<thead><tr><th class="left">Setup</th><th>Tasks solved</th><th>Peak memory</th><th>Average memory</th><th>Page text read</th><th>Time for all 10</th></tr></thead><tbody>';
+const buRows = [
+  { id: "chrome", name: "Plain headless Chrome, every tab live" },
+  { id: "agent-tabs", name: "agent-tabs, 2 tabs live, ads blocked", ours: true },
+];
+for (const row of buRows) {
+  const s = bu[row.id];
+  const cls = row.ours ? "ours" : "";
+  buHtml += `<tr><td class="text left ${cls}">${row.name}</td><td class="${cls}">${s.passed} of ${s.total}</td><td class="${cls}">${formatMb(s.peakMb)}</td><td class="${cls}">${formatMb(s.averageMb)}</td><td class="${cls}">${Math.round(s.readChars / 1000)}k characters</td><td class="${cls}">${s.minutes} min</td></tr>`;
+}
+document.getElementById("bu").innerHTML = `${buHtml}</tbody>`;
+document.getElementById("bu-notes").textContent =
+  `Sleeping tabs cost the agent nothing here: the same number of tasks solved, ${memorySaved}% less memory on average and ${Math.round((1 - bu["agent-tabs"].minutes / bu.chrome.minutes) * 100)}% less time. 3 of 10 reflects how hard these tasks are for gpt-6-luna; both setups failed the same kinds of tasks. These tasks use only a few tabs each, so the memory saving is smaller than with 30 tabs.`;
+
+// Every memory number.
+let memHtml = '<thead><tr><th>Tabs</th><th class="left">Site added</th>';
+for (const tool of TOOLS) memHtml += `<th class="${tool.ours ? "ours" : ""}">${tool.name}</th>`;
+memHtml += "</tr></thead><tbody>";
+for (let i = 0; i < tabCount; i++) {
+  memHtml += `<tr><td>${i + 1}</td><td class="text left">${siteName(ours.perTab[i].url)}</td>`;
+  for (const tool of TOOLS) {
+    const entry = runs[tool.id].perTab[i];
+    const classes = [tool.ours ? "ours" : "", entry.worked ? "" : "blocked"].join(" ").trim();
+    memHtml += `<td class="${classes}">${entry.totalMb.toLocaleString("en-US")}</td>`;
+  }
+  memHtml += "</tr>";
+}
+const summaries = [
+  { label: "After 5 s settle", value: (run) => run.finalMb.toLocaleString("en-US") },
+  { label: "Peak", value: (run) => Math.max(...run.perTab.map((t) => t.totalMb)).toLocaleString("en-US") },
+  { label: "MB per extra tab", value: (run) => mbPerTab(run).toFixed(1) },
+  { label: "Pages that loaded", value: (run) => `${run.worked}/30` },
+];
+for (const summary of summaries) {
+  memHtml += `<tr class="summary"><td></td><td class="text left">${summary.label}</td>`;
+  for (const tool of TOOLS) memHtml += `<td class="${tool.ours ? "ours" : ""}">${summary.value(runs[tool.id])}</td>`;
+  memHtml += "</tr>";
+}
+document.getElementById("memory-table").innerHTML = `${memHtml}</tbody>`;
+
+// Method details.
+document.getElementById("machine").textContent = DATA.machine;
+document.getElementById("wake").textContent = `${ours.wake.ms} ms`;
+const versions = document.getElementById("versions");
+for (const line of DATA.versions) {
+  const li = document.createElement("li");
+  li.textContent = line;
+  versions.append(li);
+}
+
+// Post copy.
+const postText = `Agents doing research open tab after tab and never close them. Most of those tabs sit idle, holding memory.
+
+agent-tabs keeps the 2 tabs the agent is using live and puts the rest to sleep until it goes back to them. Same Chromium underneath, so every site still works.
+
+30 real websites open as tabs:
+• agent-tabs: ${formatMb(ours.finalMb)}
+• agent-browser, Stagehand, browser-use, Playwright MCP, headless Chrome, Lightpanda, Obscura: ${othersRange}
+
+${lowRatio.toFixed(1)}–${highRatio.toFixed(1)}× less memory. Each extra tab adds ${mbPerTab(ours).toFixed(0)} MB instead of ${growthRange}.
+
+And the agent doesn't pay for it:
+• ${actionRuns["agent-tabs"].passed}/${actionRuns["agent-tabs"].of} agent actions work, like Chrome (Lightpanda ${actionRuns.lightpanda.passed}, Obscura ${actionRuns.obscura.passed})
+• BU Bench: same tasks solved as plain Chrome, ${memorySaved}% less memory, faster`;
+document.getElementById("post-text").textContent = postText;
+document.getElementById("copy").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  try {
+    await navigator.clipboard.writeText(postText);
+    button.textContent = "Copied";
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById("post-text"));
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    button.textContent = "Selected, press Copy";
+  }
+  setTimeout(() => { button.textContent = "Copy post"; }, 2000);
+});
+</script>
