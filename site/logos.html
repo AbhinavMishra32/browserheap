@@ -51,13 +51,19 @@ p.lede { margin: 0; color: var(--ink-2); max-width: 70ch; }
   <h1>Browserheap logos</h1>
   <p class="lede">Every option has a name: say "M4 with F7", or "L3". Marks are shown large, then at 16, 24 and 32 px on dark and on light, the sizes a favicon and a README get.</p>
 
-  <h2>Marks</h2>
+  <h2>Simple marks</h2>
+  <div class="grid" id="simple"></div>
+
+  <h2>Simple lockups</h2>
+  <div class="word-grid big" id="simple-lockups"></div>
+
+  <h2>Earlier: marks</h2>
   <div class="grid" id="marks"></div>
 
-  <h2>Wordmarks, with the current mark</h2>
+  <h2>Earlier: wordmarks, with the current mark</h2>
   <div class="word-grid" id="words"></div>
 
-  <h2>Lockups</h2>
+  <h2>Earlier: lockups</h2>
   <div class="word-grid big" id="lockups"></div>
 </main>
 
@@ -292,6 +298,70 @@ MARKS.push({ name: "Dot h: compact, for small sizes", svg: (() => {
   return cellMark(7, cells)
 })() })
 
+// ---- Simple marks: flat, one colour, a few shapes, nothing blurred ----
+
+/** A flat mark in a 32×32 box: `light` is the mark's colour, `dim` the colour of what sleeps. */
+function flatMark(inner) {
+  return `<svg xmlns="${NS}" viewBox="0 0 32 32">${inner}</svg>`
+}
+const ON = JADE
+const OFF = "currentColor"
+
+const SIMPLE = [
+  // S1: two tabs, the front one live, the one behind it just an outline.
+  { name: "Two tabs: one live, one behind", svg: flatMark(`
+    <rect x="10" y="4" width="18" height="18" rx="4" fill="none" stroke="${ON}" stroke-width="2.5" opacity="0.45"/>
+    <rect x="4" y="10" width="18" height="18" rx="4" fill="${ON}"/>`) },
+  // S2: three stacked bars: the top one live, the others thinner.
+  { name: "Stack: the top tab live", svg: flatMark(`
+    <rect x="4" y="5" width="24" height="8" rx="3" fill="${ON}"/>
+    <rect x="7" y="16" width="18" height="4" rx="2" fill="${ON}" opacity="0.5"/>
+    <rect x="10" y="23" width="12" height="4" rx="2" fill="${ON}" opacity="0.25"/>`) },
+  // S3: a circle, and a ring: awake and asleep.
+  { name: "Awake and asleep", svg: flatMark(`
+    <circle cx="11" cy="16" r="8" fill="${ON}"/>
+    <circle cx="23" cy="16" r="6.5" fill="none" stroke="${ON}" stroke-width="2.5" opacity="0.5"/>`) },
+  // S4: a moon in a rounded square: a tab that sleeps.
+  { name: "Moon tab", svg: flatMark(`
+    <mask id="s4"><rect width="32" height="32" fill="#fff"/><circle cx="19" cy="15" r="7" fill="#000"/><circle cx="22.5" cy="12.5" r="6" fill="#fff"/></mask>
+    <rect x="3" y="3" width="26" height="26" rx="7" fill="${ON}" mask="url(#s4)"/>`) },
+  // S5: a 2×2 of tiles, two filled and two outlined: two live, the rest asleep.
+  { name: "Four tabs, two live", svg: flatMark(`
+    <rect x="4" y="4" width="11" height="11" rx="3" fill="${ON}"/>
+    <rect x="17" y="4" width="11" height="11" rx="3" fill="${ON}"/>
+    <rect x="5.25" y="18.25" width="8.5" height="8.5" rx="2.5" fill="none" stroke="${ON}" stroke-width="2.5" opacity="0.4"/>
+    <rect x="18.25" y="18.25" width="8.5" height="8.5" rx="2.5" fill="none" stroke="${ON}" stroke-width="2.5" opacity="0.4"/>`) },
+  // S6: a browser tab's silhouette, solid.
+  { name: "Tab silhouette", svg: flatMark(`
+    <path d="M3 27h26v-2a2 2 0 0 1-2-2v-9a5 5 0 0 0-5-5H10a5 5 0 0 0-5 5v9a2 2 0 0 1-2 2Z" fill="${ON}"/>`) },
+  // S7: a geometric lower-case b: a stem and a bowl.
+  { name: "Letter b", svg: flatMark(`
+    <rect x="5" y="3" width="6" height="26" rx="3" fill="${ON}"/>
+    <path d="M8 18a9 9 0 1 1 9 9H8Z" fill="${ON}"/>
+    <circle cx="17" cy="18" r="3.4" fill="var(--knock, #0d1110)"/>`) },
+  // S8: a heap: three rounded blocks piled into a triangle.
+  { name: "Heap of three", svg: flatMark(`
+    <rect x="10" y="4" width="12" height="11" rx="3" fill="${ON}"/>
+    <rect x="3" y="17" width="12" height="11" rx="3" fill="${ON}" opacity="0.5"/>
+    <rect x="17" y="17" width="12" height="11" rx="3" fill="${ON}" opacity="0.5"/>`) },
+  // S9: a window with a half-filled page: what a sleeping tab keeps.
+  { name: "Half page", svg: flatMark(`
+    <rect x="4.25" y="4.25" width="23.5" height="23.5" rx="5" fill="none" stroke="${ON}" stroke-width="2.5"/>
+    <path d="M4.25 16h23.5v6.75a5 5 0 0 1-5 5H9.25a5 5 0 0 1-5-5Z" fill="${ON}"/>`) },
+  // S10: a single dot inside brackets: the one page that's live.
+  { name: "One live page", svg: flatMark(`
+    <path d="M11 5H7a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h4M21 5h4a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2h-4" fill="none" stroke="${ON}" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="16" cy="16" r="4.5" fill="${ON}"/>`) },
+  // S11: a quarter-lit square: a page dimming, in one cut.
+  { name: "Dimming square", svg: flatMark(`
+    <rect x="3" y="3" width="26" height="26" rx="7" fill="${ON}" opacity="0.3"/>
+    <path d="M10 3h12a7 7 0 0 1 7 7v12L3 3Z" fill="${ON}" transform="rotate(-90 16 16)"/>`) },
+  // S12: the tab strip, as two lines: one long and live, one short and dim.
+  { name: "Two lines", svg: flatMark(`
+    <rect x="4" y="9" width="24" height="6" rx="3" fill="${ON}"/>
+    <rect x="4" y="18" width="14" height="6" rx="3" fill="${ON}" opacity="0.4"/>`) },
+]
+
 // ---- Fonts for the wordmark ----
 
 const FONTS = [
@@ -320,6 +390,40 @@ function wordmark(font, text = "Browserheap") {
 }
 
 // ---- The sheet ----
+
+const simpleGrid = document.getElementById("simple")
+SIMPLE.forEach((mark, i) => {
+  const sizes = [16, 24, 32].map((px) => mark.svg.replace("<svg ", `<svg width="${px}" height="${px}" `)).join("")
+  simpleGrid.insertAdjacentHTML("beforeend", `
+    <div class="card">
+      <span class="id">S${i + 1}</span>
+      <div class="stage">${mark.svg}</div>
+      <div class="name">${mark.name}</div>
+      <div class="sizes">${sizes}<span class="light" style="--knock: #f4f6f5">${sizes}</span></div>
+    </div>`)
+})
+
+// Simple marks with plain, quiet fonts: [mark, font, dark or light].
+const SIMPLE_LOCKUPS = [
+  [1, 2, "dark"],
+  [4, 2, "dark"],
+  [5, 4, "dark"],
+  [7, 1, "dark"],
+  [9, 3, "dark"],
+  [12, 2, "dark"],
+  [1, 2, "light"],
+  [4, 4, "light"],
+]
+const simpleLockups = document.getElementById("simple-lockups")
+SIMPLE_LOCKUPS.forEach(([markNumber, fontNumber, ground], i) => {
+  const font = FONTS[fontNumber - 1]
+  simpleLockups.insertAdjacentHTML("beforeend", `
+    <div class="card ${ground === "light" ? "on-light" : ""}" ${ground === "light" ? 'style="--knock: #f4f6f5"' : ""}>
+      <span class="id">SL${i + 1}</span>
+      <div class="lockup">${SIMPLE[markNumber - 1].svg}${wordmark(font)}</div>
+      <div class="name">S${markNumber} with F${fontNumber} (${font.note}), on ${ground}</div>
+    </div>`)
+})
 
 const marksGrid = document.getElementById("marks")
 MARKS.forEach((mark, i) => {
