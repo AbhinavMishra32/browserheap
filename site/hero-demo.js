@@ -62,10 +62,11 @@ const STEPS = [
 const els = {
   app: document.getElementById("app"),
   grid: document.getElementById("tab-grid"),
-  omniIcon: document.getElementById("omni-icon"),
-  omniUrl: document.getElementById("omni-url"),
+  count: document.getElementById("demo-count"),
+  progress: document.getElementById("demo-progress"),
   thread: document.getElementById("thread"),
   status: document.getElementById("agent-status"),
+  spin: document.getElementById("cc-spin"),
   memOurs: document.getElementById("mem-ours"),
   memChrome: document.getElementById("mem-chrome"),
   fillOurs: document.getElementById("fill-ours"),
@@ -101,10 +102,6 @@ let hovered = null
 
 function tabOf(key) {
   return tabs.find((tab) => tab.key === key)
-}
-
-function hostOf(url) {
-  return new URL(url).hostname.replace(/^www\./, "")
 }
 
 function escapeHtml(text) {
@@ -178,6 +175,8 @@ function drawGrid() {
     if (tab.card === undefined) {
       tab.card = makeCard(tab)
       els.grid.append(tab.card)
+      // The tabs scroll inside the demo: bring the new one into view.
+      els.grid.scrollTo({ top: tab.card.offsetTop - 14, behavior: "smooth" })
     }
     drawCard(tab)
   }
@@ -203,69 +202,87 @@ function drawMeter() {
 function draw() {
   drawGrid()
   drawMeter()
-  drawAddress()
+  drawCount()
   if (hovered !== null) {
     showHovercard(hovered)
   }
 }
 
-/** The address bar shows the page the agent is on. */
-function drawAddress() {
-  if (current === null) {
-    els.omniIcon.hidden = true
-    els.omniUrl.textContent = "about:blank"
+/** Above the tabs: how many are open, and how many of them are awake. */
+function drawCount() {
+  if (tabs.length === 0) {
+    els.count.textContent = "No tabs yet"
     return
   }
-  const page = PAGES[current]
-  els.omniIcon.hidden = false
-  els.omniIcon.src = page.icon
-  els.omniUrl.textContent = page.url.replace(/^https:\/\//, "")
+  let awake = 0
+  for (const tab of tabs) {
+    if (tab.state !== "asleep") {
+      awake++
+    }
+  }
+  const noun = tabs.length === 1 ? "tab" : "tabs"
+  els.count.innerHTML = `${tabs.length} ${noun} open · <b>${awake} awake</b>`
 }
 
-/** One step in the agent's thread; the newest goes at the bottom. */
-function say(key, html) {
-  const step = document.createElement("div")
-  step.className = "step"
-  const icon = key === null ? '<span class="dot"></span>' : `<img src="${PAGES[key].icon}" alt="">`
-  step.innerHTML = `${icon}<span>${html}</span>`
-  els.thread.append(step)
-  els.thread.scrollTop = els.thread.scrollHeight
-}
+// The agent's thread, drawn the way Claude Code draws itself in a terminal:
+// a ⏺ for each thing it says or does, a ⎿ under a command for what came back.
 
-/** A thought: dim text with a rule beside it, like a model's visible reasoning. */
-function think(text) {
-  const thought = document.createElement("div")
-  thought.className = "thought"
-  thought.textContent = text
-  els.thread.append(thought)
-  els.thread.scrollTop = els.thread.scrollHeight
-}
-
-/** Something the agent tells you as it goes. */
-function message(text) {
+function addToThread(html, className) {
   const line = document.createElement("div")
-  line.className = "message"
-  line.textContent = text
+  line.className = className
+  line.innerHTML = html
   els.thread.append(line)
   els.thread.scrollTop = els.thread.scrollHeight
 }
 
-/** The agent's question at the top of its thread, and its answer at the end. */
+/** A browserheap command the agent ran, and what came back under it. */
+function say(command, html) {
+  if (command !== null) {
+    addToThread(`<span class="dot">⏺</span><span><b>Bash</b>(${escapeHtml(command)})</span>`, "line tool")
+  }
+  addToThread(`<span>  ⎿</span><span>${html}</span>`, "result")
+}
+
+/** A thought: dim and italic, the way Claude Code shows its thinking. */
+function think(text) {
+  addToThread(`<span class="dot">✻</span><span>${escapeHtml(text)}</span>`, "thought")
+}
+
+/** Something the agent tells you as it goes. */
+function message(text) {
+  addToThread(`<span class="dot">⏺</span><span>${escapeHtml(text)}</span>`, "line")
+}
+
+/** Your question at the top of the thread, and the agent's answer at the end. */
 function ask(text) {
-  els.thread.innerHTML = `<div class="ask">${escapeHtml(text)}</div>`
-  els.status.textContent = "Working"
-  els.status.classList.remove("done")
+  els.thread.innerHTML = ""
+  addToThread(`&gt; ${escapeHtml(text)}`, "prompt")
+  els.status.hidden = false
 }
 
 function answer(text) {
-  const message = document.createElement("div")
-  message.className = "answer"
-  message.textContent = text
-  els.thread.append(message)
-  els.thread.scrollTop = els.thread.scrollHeight
-  els.status.textContent = "Done"
-  els.status.classList.add("done")
+  message(text)
+  els.status.hidden = true
 }
+
+/** The command that opens a page, as the agent would type it. */
+function openCommand(key) {
+  return `browserheap open ${PAGES[key].url.replace(/^https:\/\//, "")}`
+}
+
+/** A command that works on a tab already open, by its place in the list. */
+function tabCommand(key, code) {
+  const index = tabs.indexOf(tabOf(key))
+  return `browserheap run 'await tabs[${index}]${code}'`
+}
+
+// The spinner beside "Browsing…", the characters Claude Code cycles through.
+const SPIN = ["·", "✢", "✳", "✶", "✻", "✽", "✻", "✶", "✳", "✢"]
+let spinIndex = 0
+setInterval(() => {
+  spinIndex = (spinIndex + 1) % SPIN.length
+  els.spin.textContent = SPIN[spinIndex]
+}, 120)
 
 function asleepText(keys) {
   if (keys.length === 0) {
@@ -281,22 +298,14 @@ function showHovercard(key) {
   const tab = tabOf(key)
   const page = PAGES[key]
   const card = els.hovercard
-  const firstShow = card.hidden || card.dataset.key !== key
-  card.dataset.key = key
   card.querySelector(".hc-icon").src = page.icon
-  card.querySelector(".hc-title").textContent = page.title
-  card.querySelector(".hc-host").textContent = hostOf(page.url)
+  card.querySelector(".hc-title").textContent = NAME[key]
   const foot = {
-    asleep: `<span class="chip plain">Asleep · ${ASLEEP_MB} MB</span><span>The agent still reads this. Click to wake.</span>`,
-    waking: '<span class="chip cyan">Waking</span>',
-    live: `<span class="chip ok">✓ Live · ${LIVE_MB} MB</span><span>A real Chromium page.</span>`,
+    asleep: `<b>Asleep · ${ASLEEP_MB} MB</b> · still readable, click to wake`,
+    waking: "<b>Waking…</b>",
+    live: `<b class="live">Live · ${LIVE_MB} MB</b>`,
   }
   card.querySelector(".hc-foot").innerHTML = foot[tab.state]
-  const text = page.text.length > 200 ? `${page.text.slice(0, 200)}…` : page.text
-  if (firstShow) {
-    // The text decodes in, as if the agent were reading it.
-    decode(card.querySelector(".hc-text"), text, 450)
-  }
   card.hidden = false
 
   // Under the tab, or above it when there's no room below.
@@ -333,17 +342,17 @@ function runStep(step, instant) {
     const key = step.open
     tabs.push({ key, state: "live", lastUsed: 0, note: null })
     const slept = use(key)
-    say(key, `Opened <b>${NAME[key]}</b>${asleepText(slept)}`)
+    say(openCommand(key), `Opened <b>${NAME[key]}</b>${asleepText(slept)}`)
   } else if (step.read !== undefined) {
     const key = step.read
     tabOf(key).note = "Read while asleep"
-    say(key, `Read <b>${NAME[key]}</b> <span class="muted">· without waking it</span>`)
+    say(tabCommand(key, ".text()"), `Read <b>${NAME[key]}</b> without waking it`)
     setTimeout(() => {
       tabOf(key).note = null
       draw()
     }, instant ? 0 : 1800)
   } else if (step.wake !== undefined) {
-    wake(step.wake, instant, "Clicked a link on")
+    wake(step.wake, instant, "Clicked a link on", tabCommand(step.wake, '.getByText("Comparison").click()'))
     return
   } else if (step.done !== undefined) {
     answer(step.done)
@@ -352,16 +361,16 @@ function runStep(step, instant) {
 }
 
 /** Wakes a sleeping tab: a moment of loading, then it's live and the oldest live tab sleeps. */
-function wake(key, instant, verb) {
+function wake(key, instant, verb, command) {
   const tab = tabOf(key)
-  // Most tabs woke in 0.2 to 0.4 s in the benchmark.
-  const ms = 220 + Math.round(Math.random() * 160)
+  // Most tabs woke in 0.4 to 0.9 s in the benchmark.
+  const ms = 400 + Math.round(Math.random() * 500)
   tab.state = "waking"
   current = key
   draw()
   const finish = () => {
     const slept = use(key)
-    say(key, `${verb} <b>${NAME[key]}</b> <span class="muted">· woke in ${ms} ms</span>${asleepText(slept)}`)
+    say(command, `${verb} <b>${NAME[key]}</b> <span class="muted">· woke in ${ms} ms</span>${asleepText(slept)}`)
     draw()
   }
   if (instant) {
@@ -373,6 +382,11 @@ function wake(key, instant, verb) {
 
 // ---- Playing ----
 
+/** The thin line under the demo's head: how far through the session the replay is. */
+function drawProgress() {
+  els.progress.style.width = `${(stepIndex / STEPS.length) * 100}%`
+}
+
 function scheduleNext() {
   clearTimeout(timer)
   if (!playing || stepIndex >= STEPS.length) {
@@ -381,6 +395,7 @@ function scheduleNext() {
   timer = setTimeout(() => {
     runStep(STEPS[stepIndex], false)
     stepIndex++
+    drawProgress()
     scheduleNext()
   }, STEP_MS)
 }
@@ -392,6 +407,7 @@ function restart() {
   clock = 0
   stepIndex = 0
   playing = true
+  drawProgress()
   els.grid.innerHTML = ""
   ask("Which headless browser should our agent use?")
   hideHovercard()
@@ -405,10 +421,10 @@ function userClick(key) {
   clearTimeout(timer)
   const tab = tabOf(key)
   if (tab.state === "asleep") {
-    wake(key, false, "You woke")
+    wake(key, false, "You woke", null)
   } else if (tab.state === "live") {
     use(key)
-    say(key, `You switched to <b>${NAME[key]}</b> <span class="muted">· already live</span>`)
+    say(null, `You switched to <b>${NAME[key]}</b> <span class="muted">· already live</span>`)
     draw()
   }
 }

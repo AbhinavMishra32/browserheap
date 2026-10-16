@@ -29,7 +29,7 @@ function buildHeap() {
     const tab = document.createElement("span")
     tab.className = "heap-tab"
     tab.textContent = HEAP_TITLES[i % HEAP_TITLES.length]
-    tab.addEventListener("pointerenter", () => wake(tab))
+    tab.addEventListener("pointerenter", () => wakeHeapTab(tab))
     heap.append(tab)
   }
   // Colour each tab's dots jade to cyan by where it sits, like the rest of the site.
@@ -40,8 +40,8 @@ function buildHeap() {
   }
   const shown = shownTabs()
   awake = []
-  wake(shown[3])
-  wake(shown[shown.length - 5])
+  wakeHeapTab(shown[3])
+  wakeHeapTab(shown[shown.length - 5])
   countHeap(shown.length)
 }
 
@@ -51,7 +51,7 @@ function shownTabs() {
 }
 
 /** Wakes a tab; the tab used longest ago goes back to sleep, so two stay awake. */
-function wake(tab) {
+function wakeHeapTab(tab) {
   if (awake.includes(tab)) {
     return
   }
@@ -83,6 +83,6 @@ if (!heapStill) {
       return
     }
     const shown = shownTabs()
-    wake(shown[Math.floor(Math.random() * shown.length)])
+    wakeHeapTab(shown[Math.floor(Math.random() * shown.length)])
   }, 1400)
 }

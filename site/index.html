@@ -2,7 +2,7 @@
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Browserheap</title>
-<meta name="description" content="The browser for AI agents. Idle tabs sleep, and the pages your agent holds keep working.">
+<meta name="description" content="A browser for long-running agents. Every tab is kept: the ones your agent isn't using sleep, stay readable, and wake when it comes back.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=DotGothic16&display=swap">
@@ -14,6 +14,22 @@
 .hero { position: relative; isolation: isolate; padding-top: 80px; text-align: center; overflow-x: clip; }
 .hero-copy { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 20px; max-width: 900px; margin: 0 auto; }
 .hero-copy .lede { max-width: 46rem; }
+/* Over a long run: three cards, each Browserheap's number and a bar per browser beside it. */
+.long-run { padding-top: 96px; }
+.long-run-head { max-width: 40rem; margin-bottom: 40px; }
+.long-run-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.lr-card { padding: 24px; }
+.lr-card .label { display: block; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.lr-card b { display: block; margin-top: 8px; font-size: 34px; font-weight: 400; letter-spacing: -0.03em; line-height: 1.1; color: var(--accent-light); }
+.lr-card .lr-note { margin-top: 8px; line-height: 1.5; font-size: 13px; color: var(--ink-2); }
+.lr-rows { display: grid; gap: 6px; margin-top: 24px; padding: 0; list-style: none; }
+.lr-row { display: grid; grid-template-columns: 108px minmax(0, 1fr) 52px; gap: 10px; align-items: center; font-size: 12px; color: var(--ink-3); }
+.lr-row.ours { margin: 0 -8px; padding: 4px 8px; border-radius: 6px; background: var(--accent-wash); color: var(--ink); font-weight: 500; }
+.lr-track { display: block; }
+.lr-bar { display: block; height: 10px; border-radius: 4px; background: var(--other); }
+.lr-row.ours .lr-bar { background: var(--live); }
+.lr-row .value { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 960px) { .long-run-grid { grid-template-columns: minmax(0, 1fr); } }
 .hero-product { position: relative; margin-top: 56px; text-align: left; }
 .hero-dither { position: absolute; left: -30%; right: -30%; top: -360px; bottom: 0; z-index: -1; }
 /* Under the window (z-index -1, after the dots), so it fades only the dots. */
@@ -21,7 +37,7 @@
 
 /* Getting it: one command per agent, ready to paste. The first thing the
    hero offers. */
-.get { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; margin-top: 12px; padding: 5px; box-shadow: 0 0 0 4px var(--accent-wash), 0 20px 50px rgb(0 0 0 / 0.5); text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
+.get { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; margin-top: 12px; padding: 5px; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
 .get-tabs { display: flex; gap: 2px; flex: none; }
 /* Icon-only tabs; the name is in the button's title and aria-label. */
 .get-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); opacity: 0.5; cursor: pointer; font: 500 13.5px var(--font-sans); white-space: nowrap; }
@@ -36,23 +52,35 @@
 
 /* The demo: an agent's browser as a dark app window. Tabs it isn't using
    turn to dots; the meter under them shows what that saves. */
-.demo { border-radius: 20px; overflow: visible; }
+/* The agent's thread on the left, its tabs on the right. */
+.demo { display: grid; grid-template-columns: 340px minmax(0, 1fr); height: 560px; border-radius: 20px; overflow: visible; }
+/* The tabs scroll inside the demo; it never grows. */
+.demo-main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; min-height: 0; }
 .demo-head { display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); min-width: 0; }
-.lights { display: inline-flex; gap: 7px; flex: none; }
-.lights i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
-.lights i:nth-child(2) { background: #febc2e; }
-.lights i:nth-child(3) { background: #28c840; }
-.address { display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-width: 0; max-width: 440px; height: 30px; margin: 0 auto; padding: 0 14px; border-radius: 8px; background: var(--line-soft); border: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
-.address img { width: 14px; height: 14px; border-radius: 3px; flex: none; }
-.address span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-count { font: 12.5px var(--font-mono); color: var(--ink-3); }
+.demo-count b { font-weight: 500; color: var(--accent); }
 .replay { margin-left: auto; flex: none; height: 28px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink-2); font: 500 12.5px var(--font-sans); cursor: pointer; }
 .replay:hover { color: var(--ink); border-color: var(--ink-4); }
 
-.tab-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: min-content; gap: 12px; padding: 16px; min-height: 380px; }
+/* The finish: a bezel around the window, light from above, a glow under it,
+   and cards that lift. Overrides the plainer rules above. */
+.demo { position: relative; background: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.01)), var(--bg); border: 0; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 0 8px rgb(255 255 255 / 0.025), 0 60px 120px -30px rgb(0 0 0 / 0.9); }
+.demo::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -70px; height: 140px; z-index: -1; background: radial-gradient(ellipse at center, rgb(31 216 164 / 0.22), transparent 70%); filter: blur(30px); pointer-events: none; }
+.demo-head { position: relative; gap: 12px; padding: 10px 14px; }
+.demo-brand { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.demo-count { white-space: nowrap; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; background: rgb(255 255 255 / 0.03); font-size: 11.5px; }
+.replay { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: rgb(255 255 255 / 0.03); }
+.demo-progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; }
+.demo-progress span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, transparent, var(--accent)); transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+
+.tab-grid { position: relative; background: radial-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px) 0 0 / 18px 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); grid-auto-rows: min-content; gap: 10px; padding: 14px; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ink-4) transparent; }
 .tab-card { position: relative; display: grid; padding: 0; text-align: left; color: var(--ink); font: inherit; background: rgb(238 244 241 / 0.02); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color 0.3s; animation: appear 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes appear { from { opacity: 0; transform: translateY(6px); } }
 .tab-card:hover { border-color: var(--ink-4); }
 .tab-card.current { border-color: var(--accent-line); }
+.tab-card { border-radius: 10px; background: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.01)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 10px 24px -14px rgb(0 0 0 / 0.9); transition: transform 0.25s, border-color 0.3s, box-shadow 0.3s; }
+.tab-card:hover { transform: translateY(-2px); }
+.tab-card.current { box-shadow: 0 0 0 1px var(--accent-line), 0 0 28px -6px rgb(31 216 164 / 0.4); }
 .thumb { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--panel); border-bottom: 1px solid var(--line); }
 .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; transition: opacity 0.5s, filter 0.5s; }
 .thumb .dots { opacity: 0; image-rendering: pixelated; background: var(--panel); }
@@ -61,7 +89,7 @@
 .tab-card.waking .preview { filter: blur(6px); }
 .tab-card.waking .dots { opacity: 0.6; }
 .note { position: absolute; left: 8px; bottom: 8px; padding: 2px 7px; border-radius: 6px; background: rgb(7 9 8 / 0.88); border: 1px solid var(--line); font-size: 11px; color: var(--ink); animation: appear 0.3s ease-out; }
-.tab-foot { display: flex; align-items: center; gap: 7px; padding: 8px 10px; font-size: 12.5px; font-weight: 500; min-width: 0; }
+.tab-foot { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 11.5px; font-weight: 500; min-width: 0; }
 .tab-foot img { width: 14px; height: 14px; border-radius: 3px; flex: none; }
 .tab-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 /* State: a dot and a few characters, so the tab's name keeps the room. */
@@ -72,42 +100,48 @@
 .tab-card.waking .tab-state { color: var(--cyan); }
 .tab-card.waking .tab-state::before { background: var(--cyan); }
 
-/* The agent: its thread, in a window of its own in front of the browser,
-   like the Claude or Codex apps. */
-.agent { position: absolute; left: -28px; bottom: -40px; z-index: 6; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: 350px; height: 380px; background: var(--bg-2); border: 1px solid var(--ink-4); border-radius: 16px; box-shadow: 0 30px 70px rgb(0 0 0 / 0.7); overflow: hidden; }
-.agent-head { display: flex; align-items: center; gap: 9px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 500; }
-.agent-avatar { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: rgb(217 119 87 / 0.14); border: 1px solid rgb(217 119 87 / 0.3); }
-.agent-status { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
-.agent-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
-.agent-status.done::before { animation: none; background: var(--ink-4); }
-@keyframes pulse { 50% { opacity: 0.25; } }
-.thread { display: flex; flex-direction: column; gap: 8px; padding: 14px; overflow-y: auto; scrollbar-width: none; }
-.thread .ask { align-self: flex-end; max-width: 85%; padding: 8px 12px; border-radius: 14px 14px 4px 14px; background: var(--bubble); font-size: 13px; line-height: 1.45; }
-.thread .step { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); animation: appear 0.35s ease-out; }
-.thread .step img, .thread .step .dot { width: 14px; height: 14px; margin-top: 2px; border-radius: 3px; }
-.thread .step b { color: var(--ink); font-weight: 500; }
-.thread .step .muted { color: var(--ink-3); }
-.thread .thought { padding-left: 10px; border-left: 2px solid var(--line); font-size: 12.5px; line-height: 1.5; font-style: italic; color: var(--ink-3); animation: appear 0.35s ease-out; }
-.thread .message { font-size: 13px; line-height: 1.5; color: var(--ink); animation: appear 0.35s ease-out; }
-.thread .answer { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.5; color: var(--ink); animation: appear 0.35s ease-out; }
-.agent-input { display: flex; align-items: center; justify-content: space-between; margin: 0 10px 10px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 12.5px; color: var(--ink-3); }
-.agent-input .send { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--line); color: var(--ink-2); font-size: 12px; }
+/* The agent: Claude Code in a terminal, in the demo's left column, drawn
+   the way the CLI draws itself. As tall as the tabs beside it. */
+.agent { --cc-orange: #d97757; --cc-green: #4eba65; display: flex; flex-direction: column; height: 100%; min-height: 0; background: linear-gradient(180deg, #101010, #0a0a0a); border-right: 1px solid var(--line); border-radius: 20px 0 0 20px; overflow: hidden; font: 12px/1.55 var(--font-mono); color: #e6e6e6; }
+/* Only on phones, where the agent is a sheet and its head folds it. */
+.agent-head { display: none; padding: 10px 14px; border-bottom: 1px solid #262626; font-weight: 600; }
+.cc-star { color: var(--cc-orange); }
+.thread { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 16px 14px 10px; overflow-y: auto; scrollbar-width: none; }
+.thread .prompt { padding: 2px 8px; background: #262626; color: #b8b8b8; }
+.thread .line { display: grid; grid-template-columns: 2ch minmax(0, 1fr); animation: appear 0.35s ease-out; }
+.thread .line .dot { color: #e6e6e6; }
+.thread .line.tool .dot { color: var(--cc-green); }
+.thread .line b { font-weight: 600; }
+.thread .result { display: grid; grid-template-columns: 5ch minmax(0, 1fr); color: #8a8a8a; animation: appear 0.35s ease-out; }
+.thread .thought { display: grid; grid-template-columns: 2ch minmax(0, 1fr); font-style: italic; color: #8a8a8a; animation: appear 0.35s ease-out; }
+.thread .thought .dot { font-style: normal; color: var(--cc-orange); }
+.cc-status { padding: 0 14px 6px; color: var(--cc-orange); }
+.cc-status[hidden] { display: none; }
+.cc-dim { color: #8a8a8a; }
+.agent-input { display: flex; align-items: center; gap: 1ch; margin: 0 10px; padding: 6px 10px; border: 1px solid #555; border-radius: 6px; color: #e6e6e6; }
+.cc-cursor { width: 1ch; height: 1.3em; background: #e6e6e6; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.cc-hint { padding: 4px 20px 12px; color: #8a8a8a; }
 
 /* The memory meter: these tabs in Browserheap, and in plain Chrome. */
-.meter { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 14px 16px 16px 350px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
+.meter { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 14px 16px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
 .meter .track { display: block; height: 8px; border-radius: 4px; background: var(--line-soft); overflow: hidden; }
 .meter .fill { display: block; height: 100%; width: 0; border-radius: 4px; background: var(--ink-4); transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
 .meter .fill.ours { background: var(--accent); }
 .meter b { font: 500 13px var(--font-mono); color: var(--ink); text-align: right; min-width: 72px; }
 .meter b.theirs { color: var(--ink-3); }
+.meter { background: rgb(255 255 255 / 0.015); }
+.meter .track { height: 6px; }
+.meter .fill.ours { background: linear-gradient(90deg, #12a07a, var(--accent)); box-shadow: 0 0 12px rgb(31 216 164 / 0.5); }
 
-.hovercard { position: absolute; z-index: 5; width: 300px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 16px 40px rgb(0 0 0 / 0.6); pointer-events: none; }
-.hc-head { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: start; }
-.hc-icon { width: 16px; height: 16px; border-radius: 3px; margin-top: 1px; }
-.hc-title { display: -webkit-box; font-size: 13px; font-weight: 600; line-height: 1.35; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.hc-host { display: block; font-size: 12px; color: var(--ink-3); }
-.hc-text { margin: 10px 0; font: 11.5px/1.55 var(--font-mono); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; min-height: 5.4em; }
-.hc-foot { display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-3); }
+/* A tab's hover: its name, and whether it's live or asleep. */
+.hovercard { position: absolute; z-index: 5; width: max-content; max-width: 240px; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgb(0 0 0 / 0.6); pointer-events: none; }
+.hc-head { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.hc-icon { width: 14px; height: 14px; border-radius: 3px; flex: none; }
+.hc-title { font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hc-foot { margin-top: 4px; font-size: 11.5px; color: var(--ink-3); }
+.hc-foot b { font-weight: 500; color: var(--ink-2); }
+.hc-foot b.live { color: var(--accent); }
 
 /* Measured against: a slow marquee of names */
 .compared { padding-block: 40px 24px; text-align: center; }
@@ -215,8 +249,7 @@
 .copy-btn:hover { color: var(--ink); border-color: var(--ink-4); }
 
 @media (max-width: 1240px) {
-  .agent { left: 12px; bottom: -28px; width: 300px; height: 340px; }
-  .meter { padding-left: 330px; }
+  .demo { grid-template-columns: 300px minmax(0, 1fr); }
 }
 @media (max-width: 1024px) {
   .feature .wrap, .feature.flip .wrap { grid-template-columns: minmax(0, 1fr); gap: 48px; }
@@ -230,21 +263,20 @@
   .bench-stat:nth-child(n + 3) { border-top: 1px solid var(--line); }
 }
 @media (max-width: 900px) {
-  .tab-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 0; }
+  .tab-grid { max-height: 440px; }
   /* On phones the agent is a bottom sheet, like iOS: it sticks to the bottom
      of the screen while the demo scrolls by, floating over the tabs. */
-  .agent { position: fixed; left: 8px; right: 8px; bottom: 8px; width: auto; height: 250px; border-radius: 22px; box-shadow: 0 -12px 40px rgb(0 0 0 / 0.75); z-index: 40; transform: translateY(calc(100% + 24px)); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
+  .demo { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .agent { position: fixed; left: 8px; right: 8px; bottom: 8px; width: auto; height: 250px; min-height: 0; border: 1px solid var(--ink-4); border-radius: 22px; box-shadow: 0 -12px 40px rgb(0 0 0 / 0.75); z-index: 40; transform: translateY(calc(100% + 24px)); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
   /* The hero sits above later sections so the sheet inside it is never painted under them. */
   .hero { z-index: 1; }
   .demo { margin-bottom: 266px !important; }
   .agent.shown { transform: none; }
   .agent.docked { transition: none; }
   .agent.shown.folded { transform: translateY(calc(100% - 54px)); }
-  .agent-head { cursor: pointer; }
+  .agent-head { display: block; cursor: pointer; }
   .agent::before { content: ""; position: absolute; top: 6px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--ink-4); }
   .agent-head { padding-top: 16px; }
-  .meter { padding-left: 16px; }
-  .address { display: none; }
   .get { display: grid; width: 100%; gap: 4px; }
   .get-tabs { justify-content: space-between; }
   .get-tabs button { flex: 1; padding: 0 6px; font-size: 12.5px; }
@@ -297,8 +329,8 @@
   <section class="hero">
     <div class="wrap">
       <div class="hero-copy">
-        <h1 class="g">Let your agent open every tab it wants.</h1>
-        <p class="lede">A browser for AI agents with no tab management. Hundreds of tabs, hours of work, nothing closed: the tabs your agent isn't using sleep in 3 MB, stay readable, and wake in a third of a second.</p>
+        <h1 class="g">A browser for long-running agents.</h1>
+        <p class="lede">Agents that work for hours open tabs and never close them, until the browser runs out of memory. Browserheap keeps every tab: the ones your agent isn't using sleep, stay readable, and wake when it comes back to them.</p>
         <div class="get">
           <div class="get-tabs" role="tablist" aria-label="Install for">
             <button type="button" role="tab" aria-selected="true" data-get="claude"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="#d97757" d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Claude Code</button>
@@ -313,29 +345,44 @@
       <div class="hero-product">
         <div class="hero-dither" aria-hidden="true"><canvas class="dither" id="hero-dither"></canvas></div>
         <figure class="panel demo" id="app" style="margin: 0" aria-label="An agent researching in Browserheap, replayed from real pages">
-          <div class="demo-head">
-            <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="address"><img id="omni-icon" alt="" hidden><span id="omni-url">about:blank</span></span>
-            <button type="button" class="replay" id="demo-replay">Replay</button>
-          </div>
-          <div class="tab-grid" id="tab-grid"></div>
+          <aside class="agent" aria-label="The agent: Claude Code in a terminal">
+            <div class="agent-head"><span class="cc-star">✻</span> Claude Code</div>
+            <div class="thread" id="thread" aria-live="polite"></div>
+            <div class="cc-status" id="agent-status"><span class="cc-spin" id="cc-spin">✻</span> Browsing… <span class="cc-dim">(esc to interrupt)</span></div>
+            <div class="agent-input"><span class="cc-caret">&gt;</span><span class="cc-cursor"></span></div>
+            <div class="cc-hint">? for shortcuts</div>
+          </aside>
+          <div class="demo-main">
+            <div class="demo-head">
+              <span class="demo-brand"><img src="logo.svg" alt="" width="16" height="16">Browserheap</span>
+              <span class="demo-count" id="demo-count">No tabs yet</span>
+              <button type="button" class="replay" id="demo-replay"><span aria-hidden="true">↻</span> Replay</button>
+              <span class="demo-progress" aria-hidden="true"><span id="demo-progress"></span></span>
+            </div>
+            <div class="tab-grid" id="tab-grid"></div>
           <div class="meter">
             <span>Browserheap</span><span class="track"><span class="fill ours" id="fill-ours"></span></span><b id="mem-ours">0 MB</b>
             <span>Plain Chrome</span><span class="track"><span class="fill" id="fill-chrome"></span></span><b class="theirs" id="mem-chrome">0 MB</b>
           </div>
-          <aside class="agent" aria-label="The agent's thread">
-            <div class="agent-head"><span class="agent-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="#d97757" d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg></span>Claude Code<span class="agent-status" id="agent-status">Working</span></div>
-            <div class="thread" id="thread" aria-live="polite"></div>
-            <div class="agent-input"><span>Reply…</span><span class="send" aria-hidden="true">↑</span></div>
-          </aside>
+          </div>
           <div class="hovercard" id="hovercard" hidden>
-            <div class="hc-head"><img class="hc-icon" alt=""><div><span class="hc-title"></span><span class="hc-host"></span></div></div>
-            <p class="hc-text"></p>
+            <div class="hc-head"><img class="hc-icon" alt=""><span class="hc-title"></span></div>
             <div class="hc-foot"></div>
           </div>
         </figure>
         <div class="dither-fade hero-fade" data-steps="4" data-solid="40px" aria-hidden="true"></div>
       </div>
+    </div>
+  </section>
+
+  <section class="long-run">
+    <div class="wrap">
+      <div class="long-run-head">
+        <p class="eyebrow">Over a long run</p>
+        <h2 class="g">Built for the part where others fall over</h2>
+        <p class="body">Same real websites, same 8 GB machine, every popular agent browser.</p>
+      </div>
+      <div class="long-run-grid" id="long-run-grid"></div>
     </div>
   </section>
 
@@ -720,7 +767,103 @@ tabsCanvas.addEventListener("pointermove", (event) => {
 // ---- Numbers ----
 // Everything on the page that shows Browserheap's numbers, drawn again when
 // the switch changes browser (Chromium or --headless-shell).
+/**
+ * Over a long run: for each measure, Browserheap's number, the best of the
+ * others under it, and one bar per browser, best first.
+ */
+function drawLongRun() {
+  const counted = (id) => !toolOf(id).baseline && TOOLS.some((tool) => tool.id === id)
+
+  const scaleRows = B.scale.filter((run) => counted(run.browser)).map((run) => ({
+    id: run.browser,
+    value: run.perTab.length,
+    peakMb: Math.max(...run.perTab.map((tab) => tab.mb)),
+    text: run.stopped === null ? `${run.perTab.length}+` : `${run.perTab.length} ✕`,
+  }))
+  const idleRows = B.idle.filter((run) => counted(run.browser)).map((run) => ({
+    id: run.browser,
+    value: settledCpu(run),
+    text: `${Math.round(settledCpu(run))}%`,
+  }))
+  const memoryRows = B.memory.filter((run) => counted(run.browser)).map((run) => ({
+    id: run.browser,
+    value: run.finalMb,
+    text: formatMb(run.finalMb),
+  }))
+
+  const cards = [
+    { why: "Long runs pile up tabs", rows: scaleRows, higherIsBetter: true, claim: scaleClaim },
+    { why: "Agents mostly think, not browse", rows: idleRows, higherIsBetter: false, claim: cpuClaim },
+    { why: "Every open tab costs memory", rows: memoryRows, higherIsBetter: false, claim: memoryClaim },
+  ]
+
+  const grid = document.getElementById("long-run-grid")
+  grid.replaceChildren()
+  for (const card of cards) {
+    if (card.higherIsBetter) {
+      card.rows.sort((a, b) => b.value - a.value)
+    } else {
+      card.rows.sort((a, b) => a.value - b.value)
+    }
+    const ours = card.rows.find((row) => toolOf(row.id).ours)
+    const others = card.rows.filter((row) => !toolOf(row.id).ours)
+    const claim = card.claim(ours, others)
+    const max = Math.max(...card.rows.map((row) => row.value))
+
+    let rowsHtml = ""
+    for (const row of card.rows) {
+      const tool = toolOf(row.id)
+      const width = Math.max(1, (row.value / max) * 100)
+      rowsHtml += `<li class="lr-row${tool.ours ? " ours" : ""}"><span>${tool.name}</span><span class="lr-track"><span class="lr-bar" style="width: ${width}%"></span></span><span class="value">${row.text}</span></li>`
+    }
+
+    const element = document.createElement("div")
+    element.className = "panel lr-card"
+    element.innerHTML = `<span class="label">${card.why}</span><b>${claim.big}</b><p class="lr-note">${claim.small}</p><ul class="lr-rows">${rowsHtml}</ul>`
+    grid.append(element)
+    decodeOnView(element.querySelector("b"), 600)
+  }
+}
+
+/** How many times better: "3.7×", or "214×" once it's past 10. */
+function times(ratio) {
+  if (ratio >= 10) {
+    return `${Math.round(ratio)}×`
+  }
+  return `${ratio.toFixed(1)}×`
+}
+
+function scaleClaim(ours, others) {
+  const lastOther = Math.max(...others.map((row) => row.value))
+  if (ours.text.endsWith("+")) {
+    return {
+      // The most it ever used, rounded up to a whole GB: memory moves with
+      // which tabs are awake, so the last tab's number alone would mislead.
+      big: `${ours.value} tabs, under ${Math.ceil(ours.peakMb / 1000)} GB`,
+      small: `Every other browser ran out of memory by tab ${lastOther}.`,
+    }
+  }
+  return { big: `${ours.value} tabs`, small: `The next best reached ${lastOther}.` }
+}
+
+function cpuClaim(ours, others) {
+  const nextBest = others[0]
+  return {
+    big: `${times(nextBest.value / ours.value)} less CPU`,
+    small: `${ours.text} vs ${nextBest.text} for ${toolOf(nextBest.id).name}, the next best.`,
+  }
+}
+
+function memoryClaim(ours, others) {
+  const nextBest = others[0]
+  return {
+    big: `${times(nextBest.value / ours.value)} less memory`,
+    small: `${ours.text} vs ${nextBest.text} for ${toolOf(nextBest.id).name}, the next best.`,
+  }
+}
+
 function drawNumbers() {
+  drawLongRun()
   const ours = memoryRun("browserheap --live 2")
   document.getElementById("bench-body").textContent = `We opened the same 30 real websites in every popular agent browser and two lightweight engines, one after another, and closed none. Browserheap ended at ${formatMb(ours.finalMb)}, the others between ${othersRange().replace("–", " and ")}. All on the same 8 GB E2B machine.`
 
