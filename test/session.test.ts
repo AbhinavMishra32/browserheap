@@ -3,8 +3,11 @@
  * code can do, and that its pages and locators keep working while their tabs
  * sleep and wake underneath.
  */
+import { writeFileSync } from "node:fs"
 import { createServer, type Server } from "node:http"
 import type { AddressInfo } from "node:net"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
 import { type Session, startSession } from "../src/repl/session.ts"
 
@@ -53,6 +56,35 @@ describe("session", () => {
     const printed = await run(`await openTab("${site}/docs"); console.log((await snapshot(page)).tree)`)
     expect(printed).toContain("docs")
     expect(printed).toMatch(/button "Save" \[ref=e\d+\]/)
+  })
+
+  it("puts a file into a file input", async () => {
+    session = await startSession({ block: false })
+    const file = join(tmpdir(), "browserheap-upload.txt")
+    writeFileSync(file, "hello")
+    const printed = await run(
+      `await openTab("${site}/form"); await page.evaluate("document.body.innerHTML = '<input type=file>'"); ` +
+        `await page.locator("input[type=file]").setInputFiles(${JSON.stringify(file)}); ` +
+        `console.log(await page.evaluate("document.querySelector('input').files[0].name"))`,
+    )
+    expect(printed).toBe("browserheap-upload.txt")
+  })
+
+  it("runs a function over every matching element", async () => {
+    session = await startSession({ block: false })
+    const printed = await run(
+      `await openTab("${site}/list"); console.log(await page.locator("p").evaluateAll((ps) => ps.length)); ` +
+        `console.log(await page.locator("h1").evaluate((h) => h.textContent))`,
+    )
+    expect(printed).toBe("2\nlist")
+  })
+
+  it("names a method a locator doesn't have, and what it has", async () => {
+    session = await startSession({ block: false })
+    await run(`await openTab("${site}/missing")`)
+    const result = await session.run(`await page.locator("h1").dragAndDropEverywhere()`)
+    expect(result.error).toContain("locator.dragAndDropEverywhere() isn't available here")
+    expect(result.error).toContain("click")
   })
 
   it("keeps a page working after its tab slept and woke", async () => {

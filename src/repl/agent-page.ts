@@ -297,6 +297,10 @@ export class AgentPage {
     return this.locator(selector).selectOption(values)
   }
 
+  setInputFiles(selector: string, files: string | string[]): Promise<void> {
+    return this.locator(selector).setInputFiles(files)
+  }
+
   textContent(selector: string): Promise<string | null> {
     return this.locator(selector).textContent()
   }
@@ -467,6 +471,11 @@ export class AgentLocator {
     return this.#act((locator) => locator.selectOption(values, { timeout: ACTION_TIMEOUT_MS }))
   }
 
+  /** Puts files into a file input. Paths are on the machine the browser runs on. */
+  setInputFiles(files: string | string[]): Promise<void> {
+    return this.#act((locator) => locator.setInputFiles(files, { timeout: ACTION_TIMEOUT_MS }))
+  }
+
   hover(): Promise<void> {
     return this.#act((locator) => locator.hover({ timeout: ACTION_TIMEOUT_MS }))
   }
@@ -561,6 +570,12 @@ export class AgentLocator {
     return this.#read((locator) => locator.evaluate(elementCallable(source), arg))
   }
 
+  /** Runs a function with every matching element (none is fine): `(elements) => …`. */
+  evaluateAll(pageFunction: string, arg?: unknown): Promise<unknown> {
+    const source = pageFunction
+    return this.#read((locator) => locator.evaluateAll(elementCallable(source), arg))
+  }
+
   /** A picture of just this element (JPEG unless you ask for PNG). */
   screenshot(options?: { type?: "png" | "jpeg"; quality?: number }): Promise<Buffer> {
     return this.#read((locator) =>
@@ -652,13 +667,20 @@ function callable(source: string, arg: unknown): string {
   return trimmed
 }
 
-/** For locator.evaluate, which calls it with the element: always a function. */
-function elementCallable(source: string): string {
-  const trimmed = source.trim()
-  if (/^(async\s+)?(function\b|\(|[\w$]+\s*=>)/.test(trimmed)) {
-    return trimmed
+/**
+ * For locator.evaluate and evaluateAll, which call it with the element(s).
+ * Playwright runs a string as an expression and never calls it, so this
+ * hands Playwright a stand-in function whose source is the agent's: Playwright
+ * sends that source to the page, and nothing runs here in Node.
+ */
+function elementCallable(source: string): () => unknown {
+  let trimmed = source.trim()
+  if (!/^(async\s+)?(function\b|\(|[\w$]+\s*=>)/.test(trimmed)) {
+    trimmed = `() => (${trimmed})`
   }
-  return `() => (${trimmed})`
+  const standIn = () => undefined
+  standIn.toString = () => trimmed
+  return standIn
 }
 
 /** Playwright's error, without its call log: the first lines are what the agent can act on. */

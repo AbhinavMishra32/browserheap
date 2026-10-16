@@ -436,6 +436,9 @@ export class Repl {
       return undefined
     }
     const value = (target as Record<string, unknown>)[key]
+    if (value === undefined && hasOwnClass(target)) {
+      return missingMethod(target, key)
+    }
     if (typeof value !== "function" || typeof target === "function") {
       return value
     }
@@ -628,6 +631,25 @@ export class Repl {
 }
 
 const BLOCKED_KEYS = new Set(["constructor", "__proto__", "prototype", "then"])
+
+/** An instance of one of our classes (a page, a locator), not a plain object or a function. */
+function hasOwnClass(value: unknown): value is object {
+  if (value === null || typeof value !== "object") return false
+  const proto = Object.getPrototypeOf(value)
+  return proto !== null && proto !== Object.prototype && proto !== Array.prototype
+}
+
+/**
+ * Stands in for a method a page or locator doesn't have, so calling it says
+ * which one and what there is, not just "not a function".
+ */
+function missingMethod(target: object, key: string): () => never {
+  const kind = target.constructor.name.replace(/^Agent/, "").toLowerCase()
+  return () => {
+    const names = publicKeys(target).filter((name) => !name.startsWith("_"))
+    throw new TypeError(`${kind}.${key}() isn't available here. A ${kind} has: ${names.join(", ")}`)
+  }
+}
 
 /** The public names on a host object: own fields and its class's methods. */
 function publicKeys(value: unknown): string[] {

@@ -51,7 +51,7 @@ For longer code, write it to a file and run `npx browserheap run --file steps.js
 Pages work like Playwright's: `goto`, `goBack`, `reload`, `title()`, `url()`, `text()`,
 `locator(...)`, `getByRole(role, { name })`, `getByText`, `getByLabel`, `getByPlaceholder`,
 `keyboard.press("Enter")`, `mouse.click(x, y)`, `screenshot()`, `evaluate(...)`, `waitForURL(...)`.
-Locators: `click`, `fill`, `type`, `press`, `check`, `selectOption`, `hover`, `textContent`,
+Locators: `click`, `fill`, `type`, `press`, `check`, `selectOption`, `setInputFiles` (file paths), `hover`, `textContent`,
 `innerText`, `inputValue`, `isVisible`, `count`, `first`, `nth`, `all`.
 
 `page.locator("e12")` uses a ref from your last snapshot; `f1e3` is a ref inside an iframe.
