@@ -383,7 +383,7 @@ function drawAll() {
       const tool = toolOf(run.browser)
       return { name: tool.name, ours: tool.ours, dashed: tool.engine, points: run.samples.map((sample) => ({ x: sample.seconds, y: measure(sample) })) }
     })
-    const half = { width: 560, height: 360, labelRoom: 130, xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (s) => `${s / 60}`, xLabel: "idle minutes", xTitle: (s) => `${(s / 60).toFixed(2).replace(/\.?0+$/, "")} min idle` }
+    const half = { width: 560, height: 360, labelRoom: 130, xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (s) => `${s / 60}`, xLabel: "idle minutes", xTitle: (s) => `${Math.floor(s / 60)} min ${Math.round(s % 60)} s idle` }
     const cpuTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.cpu))))
     drawLineChart(document.getElementById("cpu-chart"), document.getElementById("cpu-tooltip"), idleSeries((sample) => sample.cpu), {
       ...half, yMax: cpuTop.max, yStep: cpuTop.max / 5, yFormat: (v) => `${v}%`, valueFormat: (v) => `${v}%`,

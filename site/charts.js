@@ -573,8 +573,8 @@ function drawLineChart(svg, tooltip, series, options) {
     crosshair.setAttribute("visibility", "visible")
     const rows = []
     for (const one of series) {
-      const point = one.points.find((candidate) => candidate.x === at)
-      if (point !== undefined) {
+      const point = nearestPoint(one.points, at)
+      if (point !== null) {
         rows.push({ one, value: point.y })
       }
     }
@@ -645,6 +645,35 @@ function drawDotStrips(svg, rows, ticksMs) {
       value.textContent = median < 1000 ? `${median} ms` : `${(median / 1000).toFixed(1)} s`
     }
   })
+}
+
+/**
+ * A series' reading nearest to `at`, or null when it has none close by (it
+ * stopped earlier, or hadn't started). Runs take their readings at slightly
+ * different moments, so an exact match would leave most browsers out.
+ */
+function nearestPoint(points, at) {
+  if (points.length === 0) {
+    return null
+  }
+  let best = points[0]
+  for (const point of points) {
+    if (Math.abs(point.x - at) < Math.abs(best.x - at)) {
+      best = point
+    }
+  }
+  // Close by: within the usual gap between this series' readings, so one
+  // missed reading doesn't drop the browser from the list.
+  const gaps = []
+  for (let i = 1; i < points.length; i++) {
+    gaps.push(points[i].x - points[i - 1].x)
+  }
+  gaps.sort((a, b) => a - b)
+  const usualGap = gaps.length === 0 ? 1 : gaps[Math.floor(gaps.length / 2)]
+  if (Math.abs(best.x - at) > Math.max(usualGap, 0.5)) {
+    return null
+  }
+  return best
 }
 
 /** Real sites by kind: how many loaded in each browser, shaded by the share. */
