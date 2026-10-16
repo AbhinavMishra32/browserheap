@@ -51,7 +51,13 @@ p.lede { margin: 0; color: var(--ink-2); max-width: 70ch; }
 <body>
 <main>
   <h1>Browserheap logos</h1>
-  <p class="lede">Every option has a name: say "V5", or "V3 with F2". Marks are shown large, then at 16, 24 and 32 px on dark and on light, the sizes a favicon and a README get.</p>
+  <p class="lede">Every option has a name: say "I3", or "I1 with F2". Marks are shown large, then at 16, 24 and 32 px on dark and on light, the sizes a favicon and a README get.</p>
+
+  <h2>New ideas, in the current style</h2>
+  <div class="grid" id="ideas"></div>
+
+  <h2>New ideas as lockups</h2>
+  <div class="word-grid big" id="idea-lockups"></div>
 
   <h2>The current mark, varied</h2>
   <div class="grid" id="variants"></div>
@@ -309,6 +315,211 @@ MARKS.push({ name: "Dot h: compact, for small sizes", svg: (() => {
   return cellMark(7, cells)
 })() })
 
+// ---- New ideas, drawn the way the current mark is ----
+
+/**
+ * A mark from a brightness for each cell (0 to 1, or null for empty): bright
+ * cells are full squares, dim ones shrink and thin out through the same
+ * ordered dither as today's mark, coloured jade to cyan with a glow behind.
+ */
+function ditherMark(width, height, brightnessAt) {
+  const cells = []
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const brightness = brightnessAt(x, y)
+      if (brightness === null || brightness === undefined) {
+        continue
+      }
+      if (brightness >= 0.95 || dithered(x, y, brightness)) {
+        cells.push({ x, y, size: 1.3 + 1.4 * Math.min(1, Math.max(0, brightness)) })
+      }
+    }
+  }
+  return cellMark(Math.max(width, height), cells)
+}
+
+/** Pixel art as rows of characters: a digit is a brightness (9 is full), anything else is empty. */
+function artMark(rows) {
+  const height = rows.length
+  const width = Math.max(...rows.map((row) => row.length))
+  return ditherMark(width, height, (x, y) => {
+    const char = rows[y][x]
+    if (char === undefined || char < "0" || char > "9") {
+      return null
+    }
+    return Number(char) / 9
+  })
+}
+
+const IDEAS = [
+  // I1: a crescent moon: a disc with a disc cut from its upper right, lit along its outer edge.
+  { name: "Dither moon: a tab asleep", svg: ditherMark(9, 9, (x, y) => {
+    const fromCentre = Math.hypot(x - 4, y - 4)
+    const fromCut = Math.hypot(x - 6.2, y - 2.4)
+    if (fromCentre > 4.4 || fromCut < 3.9) return null
+    // Brightest far from the cut, fading toward its inner edge.
+    return Math.min(1, 0.35 + (fromCut - 3.9) / 3)
+  }) },
+  // I2: a stack of three windows, back ones fading.
+  { name: "Stack of windows, the back ones asleep", svg: artMark([
+    "....5555555",
+    "....5.....5",
+    "..777777775",
+    "..7.....7.5",
+    "999999999.5",
+    "9.......9..",
+    "9.......9..",
+    "9.......9..",
+    "999999999..",
+  ]) },
+  // I3: a pile of tabs: a heap shape, solid on top, dissolving toward the base.
+  { name: "Heap: solid at the top, asleep below", svg: artMark([
+    "....9....",
+    "...999...",
+    "...888...",
+    "..77777..",
+    "..66666..",
+    ".5555555.",
+    ".4444444.",
+    "333333333",
+    "222222222",
+  ]) },
+  // I4: three browser tabs in a row on a bar: the first live, the others fading.
+  { name: "Tab strip: one live, two fading", svg: artMark([
+    ".999......",
+    "99999.555.",
+    "99999555553",
+    "99999555553",
+    "99999999999",
+    "9.........9",
+    "9.........9",
+    "99999999999",
+  ]) },
+  // I5: two windows side by side: one awake, one dissolved.
+  { name: "Awake and asleep, side by side", svg: artMark([
+    "99999.44444",
+    "9...9.4...4",
+    "99999.4.3.4",
+    "99999.43.34",
+    "99999.4.3.4",
+    "99999.44444",
+  ]) },
+  // I6: a window with a z: the page sleeping inside it.
+  { name: "Window with a z", svg: artMark([
+    "999999999",
+    "9.......9",
+    "9.77777.9",
+    "9....7..9",
+    "9...6...9",
+    "9..5....9",
+    "9.44444.9",
+    "9.......9",
+    "999999999",
+  ]) },
+  // I7: an hourglass: time passing, sand dithering down.
+  { name: "Hourglass: the tab waits", svg: artMark([
+    "999999999",
+    ".9.....9.",
+    "..95559..",
+    "...939...",
+    "....9....",
+    "...9.9...",
+    "..92229..",
+    ".9888889.",
+    "999999999",
+  ]) },
+  // I8: a diamond, dissolving from its lower half.
+  { name: "Diamond, its lower half asleep", svg: ditherMark(9, 9, (x, y) => {
+    const distance = Math.abs(x - 4) + Math.abs(y - 4)
+    if (distance > 4) return null
+    return Math.min(1, 1.3 - y / 8)
+  }) },
+  // I9: a browser tab's shape, dissolving from its right edge.
+  { name: "Tab shape, dissolving to the right", svg: ditherMark(10, 8, (x, y) => {
+    const inTab = y < 3 ? x >= 1 && x <= 4 : y < 8
+    if (!inTab) return null
+    return Math.min(1, 1.25 - x / 9)
+  }) },
+  // I10: a pointer whose tail dissolves: the agent, clicking.
+  { name: "Pointer: the agent clicking", svg: artMark([
+    "9........",
+    "99.......",
+    "999......",
+    "9999.....",
+    "99999....",
+    "999999...",
+    "9999999..",
+    "9998.....",
+    "97.66....",
+    "6...54...",
+    ".....43..",
+    "......2..",
+  ]) },
+  // I11: eight tabs in a ring, two of them awake.
+  { name: "Ring of tabs, two awake", svg: artMark([
+    "...99.44...",
+    "...99.44...",
+    ".44.....44.",
+    ".44.....44.",
+    "...........",
+    "44.......44",
+    "44.......44",
+    "...........",
+    ".44.....44.",
+    ".44.....44.",
+    "...44.44...",
+  ]) },
+  // I12: a memory chart going down: bars getting shorter and fainter.
+  { name: "Bars falling: memory going down", svg: artMark([
+    "9........",
+    "9.8......",
+    "9.8.7....",
+    "9.8.7.6..",
+    "9.8.7.6.4",
+    "9.8.7.6.4",
+    "9.8.7.6.4",
+  ]) },
+  // I13: a pixel b whose bowl dissolves.
+  { name: "Pixel b, half asleep", svg: artMark([
+    "99.....",
+    "99.....",
+    "999876.",
+    "99...54",
+    "99...44",
+    "99...43",
+    "9998764",
+  ]) },
+  // I14: three slabs: the top one live, the lower ones thinner and dimmer.
+  { name: "Layers: one live slab on sleeping ones", svg: artMark([
+    "999999999",
+    "999999999",
+    ".........",
+    ".6666666.",
+    ".........",
+    "..33333..",
+    ".........",
+    "...222...",
+  ]) },
+  // I15: a window folding into one corner: the page shrinks toward bottom left.
+  { name: "Window shrinking into its corner", svg: ditherMark(9, 9, (x, y) => {
+    if (y === 0) return 1
+    if (y === 1) return null
+    return Math.min(1, 1.3 - Math.hypot(x, 8 - y) / 8)
+  }) },
+  // I16: a page as lines of text, fading line by line.
+  { name: "Page of text, fading line by line", svg: artMark([
+    "999999999",
+    ".........",
+    "88888888.",
+    ".........",
+    "6666666..",
+    ".........",
+    "44444....",
+    ".........",
+    "222......",
+  ]) },
+]
+
 // ---- The current mark, varied ----
 
 /**
@@ -497,6 +708,40 @@ function wordmark(font, text = "Browserheap") {
 }
 
 // ---- The sheet ----
+
+const ideaGrid = document.getElementById("ideas")
+IDEAS.forEach((idea, i) => {
+  const sizes = [16, 24, 32].map((px) => idea.svg.replace("<svg ", `<svg width="${px}" height="${px}" `)).join("")
+  ideaGrid.insertAdjacentHTML("beforeend", `
+    <div class="card">
+      <span class="id">I${i + 1}</span>
+      <div class="stage">${idea.svg}</div>
+      <div class="name">${idea.name}</div>
+      <div class="sizes">${sizes}<span class="light">${sizes}</span></div>
+    </div>`)
+})
+
+// Some of the ideas next to the name: [idea, font, ground].
+const IDEA_LOCKUPS = [
+  [1, 1, "dark"],
+  [2, 2, "dark"],
+  [3, 1, "dark"],
+  [5, 3, "dark"],
+  [13, 2, "dark"],
+  [16, 1, "dark"],
+  [1, 1, "light"],
+  [3, 2, "light"],
+]
+const ideaLockups = document.getElementById("idea-lockups")
+IDEA_LOCKUPS.forEach(([ideaNumber, fontNumber, ground], i) => {
+  const font = FONTS[fontNumber - 1]
+  ideaLockups.insertAdjacentHTML("beforeend", `
+    <div class="card ${ground === "light" ? "on-light" : ""}">
+      <span class="id">IL${i + 1}</span>
+      <div class="lockup">${IDEAS[ideaNumber - 1].svg}${wordmark(font)}</div>
+      <div class="name">I${ideaNumber} with F${fontNumber} (${font.note}), on ${ground}</div>
+    </div>`)
+})
 
 const variantGrid = document.getElementById("variants")
 VARIANTS.forEach((variant, i) => {
