@@ -13,7 +13,7 @@ function randomGlyph() {
 }
 
 /**
- * Splits a headline into letters. A glitching letter keeps its Inter glyph
+ * Splits a headline into letters. A glitching letter keeps its Instrument Sans glyph
  * (made transparent) to hold its place, and its pixel twin is drawn on top
  * as an overlay that takes no space, so nothing on the page ever moves.
  */

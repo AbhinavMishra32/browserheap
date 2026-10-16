@@ -1,7 +1,7 @@
 /* Browserheap's site. Near-black with a green cast, white type at a few
    opacities, and one green-to-blue family of colors taken from Radix's dark
    scales: jade for what's alive (our line, live tabs), teal and cyan for the
-   rest. Inter at weight 400 for headlines, with letters that flicker into a
+   rest. Instrument Sans at weight 400 for headlines, with letters that flicker into a
    pixel font (alive.js). Dot pictures are drawn by dither.js, shading from
    jade to cyan: things that sleep blur into dots and sharpen when woken. */
 :root {
@@ -26,7 +26,7 @@
   --cyan-line: rgb(76 204 230 / 0.32);
   --bubble: #1c6961;            /* teal 7 */
 
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, "URW Palladio L", serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --font-pixel: "DotGothic16", ui-monospace, monospace;
@@ -154,7 +154,7 @@ canvas.dither { display: block; width: 100%; height: 100%; image-rendering: pixe
 .dither-fade i { display: block; height: 16px; background: var(--bg); -webkit-mask-size: 4px 4px; mask-size: 4px 4px; image-rendering: pixelated; }
 
 /* Glitch headlines (alive.js). Every letter is its own box, always, so its
-   width never depends on its neighbors. The Inter letter holds the layout; a
+   width never depends on its neighbors. The Instrument Sans letter holds the layout; a
    glitching one turns transparent and its pixel twin is drawn over it,
    positioned absolutely, so it can never shift a line. */
 .glitch .word { white-space: nowrap; }
