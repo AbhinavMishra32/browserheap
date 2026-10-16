@@ -67,34 +67,31 @@ browser (Linux, 8 vCPUs, 8 GB), default settings, memory as PSS over all the bro
 
 | Browser | Memory at 30 tabs | Each extra tab adds |
 |---|---|---|
-| **Browserheap** | **539 MB** | **3 MB** |
-| agent-browser 0.39.1 | 3,583 MB | 113 MB |
-| Headless Chrome (Playwright) | 3,797 MB | 127 MB |
-| Stagehand 4.2.1 | 3,877 MB | 117 MB |
-| Lightpanda 1.0.0 | 4,203 MB | 80 MB |
-| browser-use 0.13.11 | 4,204 MB | 131 MB |
-| Playwright MCP 0.0.83 | 4,406 MB | 137 MB |
-| Obscura 0.2.4 | 6,884 MB | 193 MB |
+| **Browserheap** | **544 MB** | **3 MB** |
+| Headless Chrome with Browserheap's blocking | 3,053 MB | 95 MB |
+| agent-browser 0.39.1 | 3,618 MB | 111 MB |
+| Stagehand 4.2.1 | 3,786 MB | 118 MB |
+| Lightpanda 1.0.0 | 3,926 MB | 72 MB |
+| browser-use 0.13.11 | 4,227 MB | 131 MB |
+| Headless Chrome (Playwright) | 4,425 MB | 143 MB |
+| Playwright MCP 0.0.83 | 4,807 MB | 155 MB |
+| Obscura 0.2.4 | 6,342 MB | 206 MB |
 
-Lightpanda is lighter than Browserheap for the first few tabs and passes it around tab 10. Waking a
-sleeping tab took 274 ms.
+Lightpanda is lighter than Browserheap for the first few tabs and passes it around tab 11. Waking a
+sleeping tab takes 303 ms (median).
 
 **Agents can still do their work.** It's Chromium, so nothing an agent does breaks:
 
 | | Browserheap | Chrome (and every agent tool above) | Lightpanda | Obscura |
 |---|---|---|---|---|
 | Agent actions that work (19 tests) | **19** | 19 | 12 | 15 |
-| Real sites with the same content as Chrome | **45 / 46** | 46 / 46 | 42 / 46 | 39 / 46 |
-| Typical page load | **0.5 s** | 0.6 s | 0.5 s | 1.3 s |
+| Real sites with the same content as Chrome | **46 / 47** | 48 / 48 | 40 / 41 | 41 / 42 |
+| Typical page load | **0.5 s** | 0.6 s | 0.8 s | 1.2 s |
 
 Lightpanda can't report where elements are, click at a spot, scroll for more items, reach inside
 iframes or web components, follow popups, or take a screenshot that shows the page as drawn.
 
-In internal testing on BU Bench V1 (10 tasks, a pi agent on gpt-6-luna), the agent solved as many
-tasks with sleeping tabs as with a plain headless Chrome, using 36% less memory on average and 11%
-less time. The full 100-task run is in progress.
-
-Every number, and how it was measured: `bench/launch/2026-10-15/` (open `benchmark.html`).
+Every number, and how it was measured: [browserheap.com/research](https://browserheap.com/research). The raw results are in `bench/launch/2026-10-16/`.
 
 ## How it works
 
@@ -330,10 +327,6 @@ node --env-file=.env bench/e2b/run.ts memory 30
 node --env-file=.env bench/e2b/run.ts actions
 node --env-file=.env bench/e2b/run.ts compat
 ```
-
-**BU Bench** (`bench/o/`) runs a pi agent through the server of an app we haven't released yet, so it
-can't be rerun outside our setup for now. It runs in batches, saves after every task, and stops
-before your model provider's usage limit, so a long run picks up where it stopped.
 
 ## Reading order
 

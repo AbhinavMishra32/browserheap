@@ -45,8 +45,15 @@ function actionRun(id) {
   return window.BENCH.actions.find((run) => run.browser === id)
 }
 
-function buSetup(id) {
-  return window.BENCH.bu.setups.find((setup) => setup.setup === id)
+/** Average CPU over the idle minutes, as % of one core. */
+function idleCpu(id) {
+  const run = window.BENCH.idle.find((each) => each.browser === id)
+  const samples = run.samples.filter((sample) => sample.cpu !== null && sample.cpu !== undefined)
+  let total = 0
+  for (const sample of samples) {
+    total += sample.cpu
+  }
+  return total / samples.length
 }
 
 /** Memory the way you'd say it: "411 MB", "4.2 GB". */
@@ -301,20 +308,6 @@ function fillSitesTable(table) {
   table.innerHTML = `${html}</tbody>`
 }
 
-function fillBuTable(table) {
-  const rows = [
-    { id: "chrome", name: "Headless Chrome, every tab live" },
-    { id: "browserheap", name: "Browserheap, 2 tabs live", ours: true },
-  ]
-  let html = '<thead><tr><th class="left">Browser</th><th>Tasks solved</th><th>Peak memory</th><th>Average memory</th><th>Page text read</th><th>Time for all 10</th></tr></thead><tbody>'
-  for (const row of rows) {
-    const s = buSetup(row.id)
-    const cls = row.ours ? "ours" : ""
-    html += `<tr><td class="text left ${cls}">${row.name}</td><td class="${cls}">${s.passed} of ${s.total}</td><td class="${cls}">${formatMb(s.peakMb)}</td><td class="${cls}">${formatMb(s.averageMb)}</td><td class="${cls}">${Math.round(s.readChars / 1000)}k characters</td><td class="${cls}">${s.minutes} min</td></tr>`
-  }
-  table.innerHTML = `${html}</tbody>`
-}
-
 function fillMemoryTable(table) {
   const ours = memoryRun("browserheap --live 2")
   let html = '<thead><tr><th>Tabs</th><th class="left">Site added</th>'
@@ -537,44 +530,6 @@ function drawDotStrips(svg, rows, ticksMs) {
       add(svg, "line", { x1: x(median), x2: x(median), y1: middle - 15, y2: middle + 15, stroke: "var(--ink)", "stroke-width": 2.5, "stroke-linecap": "round" })
       const value = add(svg, "text", { x: x(median), y: middle - 19, "text-anchor": "middle", class: row.ours ? "bar-value ours" : "bar-value" })
       value.textContent = median < 1000 ? `${median} ms` : `${(median / 1000).toFixed(1)} s`
-    }
-  })
-}
-
-/**
- * Each task as a pair: how long Chrome took and how long Browserheap took.
- * A filled dot is a solved task, a ring an unsolved one.
- *
- *   rows  [{ label, chrome: { seconds, solved }, ours: { seconds, solved } }]
- */
-function drawPairs(svg, rows, maxSeconds) {
-  const W = 900
-  const rowH = 30
-  const pad = { left: 150, right: 40, top: 6, bottom: 30 }
-  const H = pad.top + rows.length * rowH + pad.bottom
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`)
-  const plotW = W - pad.left - pad.right
-  const x = (seconds) => pad.left + (seconds / maxSeconds) * plotW
-  const bottom = pad.top + rows.length * rowH
-  for (let seconds = 0; seconds <= maxSeconds; seconds += 60) {
-    add(svg, "line", { x1: x(seconds), x2: x(seconds), y1: pad.top, y2: bottom, stroke: "var(--grid)", "stroke-width": 1 })
-    const label = add(svg, "text", { x: x(seconds), y: bottom + 18, "text-anchor": "middle" })
-    label.textContent = `${seconds / 60} min`
-  }
-  rows.forEach((row, i) => {
-    const middle = pad.top + i * rowH + rowH / 2
-    const label = add(svg, "text", { x: pad.left - 14, y: middle + 4, "text-anchor": "end", class: "bar-label" })
-    label.textContent = row.label
-    add(svg, "line", { x1: x(row.chrome.seconds), x2: x(row.ours.seconds), y1: middle, y2: middle, stroke: "var(--rule)", "stroke-width": 3 })
-    for (const [run, color] of [[row.chrome, "var(--other)"], [row.ours, "var(--live)"]]) {
-      add(svg, "circle", {
-        cx: x(run.seconds),
-        cy: middle,
-        r: 6,
-        fill: run.solved ? color : "var(--surface)",
-        stroke: color,
-        "stroke-width": 2.5,
-      })
     }
   })
 }

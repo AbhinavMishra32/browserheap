@@ -5,7 +5,7 @@
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Idle Tabs Research</title>
-<meta name="description" content="What idle tabs cost an AI agent's browser, measured across 8 browsers, 19 agent actions, 60 sites and BU Bench.">
+<meta name="description" content="What idle tabs cost an AI agent's browser, measured across 8 browsers, 19 agent actions and 60 sites.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=DotGothic16&display=swap">
@@ -82,7 +82,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
       <p class="lede">We opened the same 30 websites in every popular agent browser, ran 19 agent actions and 60 real sites through the lightweight engines, and gave the same AI agent real tasks on two browsers. Here is everything we found, including where we lost.</p>
       <div class="byline"><span>16 October 2026</span><span>Abhinav Mishra</span><span>12 min read</span></div>
       <nav class="toc" aria-label="Sections">
-        <a href="#why">Why tabs pile up</a><a href="#setup">Setup</a><a href="#memory">Memory</a><a href="#agents">Many agents</a><a href="#waking">Waking</a><a href="#actions">Actions</a><a href="#sites">Real sites</a><a href="#tasks">Agent tasks</a><a href="#config">Configuration</a><a href="#limits">Limits</a><a href="#data">Raw data</a>
+        <a href="#why">Why tabs pile up</a><a href="#setup">Setup</a><a href="#memory">Memory</a><a href="#agents">Many agents</a><a href="#waking">Waking</a><a href="#actions">Actions</a><a href="#sites">Real sites</a><a href="#config">Configuration</a><a href="#limits">Limits</a><a href="#data">Raw data</a>
       </nav>
     </header>
 
@@ -204,32 +204,12 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
       </figure>
       <p>Browserheap loads faster than plain Chrome because it blocks ads and trackers. It missed one page Chrome loaded, Amazon, and one page showed different content from Chrome's: Target, whose deals change between visits. Lightpanda got past bot walls that stop headless Chrome on CNN, Best Buy, Zara, Airbnb and Spotify, which is a real advantage. Obscura timed out or showed nothing on The Verge, Al Jazeera, Amazon, Target, Booking and Twitch.</p>
 
-      <h2 id="tasks"><span class="num">07</span>Does sleeping hurt the agent?</h2>
-      <p>The tests above don't use a model. The question that matters is whether an agent doing real work does worse when most of its tabs are asleep. We ran tasks from <strong>BU Bench V1</strong> with the same agent, the same model and the same settings on two browsers: plain headless Chrome with every tab live, and Browserheap. The agent is a pi agent with one browser tool that runs JavaScript against the pages.</p>
-      <figure class="figure">
-        <div class="table-scroll"><table id="bu-table"></table></div>
-        <figcaption><b>Table 4.</b> 10 tasks, 2 from each of BU Bench's 5 categories, 5 running at once. Each answer graded by the benchmark's own grader.</figcaption>
-      </figure>
-      <figure class="figure">
-        <div class="table-scroll"><table id="bu-category"></table></div>
-        <figcaption><b>Table 5.</b> Tasks solved by category. "Impossible" is the grader's verdict for tasks it judged couldn't be done as written.</figcaption>
-      </figure>
-      <figure class="figure">
-        <div class="panel">
-          <ul class="legend"><li><span class="key ours"></span>Browserheap</li><li><span class="key"></span>headless Chrome</li><li>filled: solved · ring: not solved</li></ul>
-          <svg class="chart" id="pairs-chart" role="img" aria-label="Time per task on each browser"></svg>
-        </div>
-        <figcaption><b>Figure 9.</b> Each BU Bench task, how long the agent took on each browser.</figcaption>
-      </figure>
-      <p id="bu-text"></p>
-      <p>Ten tasks is a first look, not a score. We are running the full 100 tasks next, on E2B, and will publish every per-task result. We're not publishing task text, since the benchmark's tasks are meant to stay out of training data.</p>
-
-      <h2 id="config"><span class="num">08</span>Configuration</h2>
+      <h2 id="config"><span class="num">07</span>Configuration</h2>
       <figure class="figure">
         <div class="table-scroll"><table id="config-table"></table></div>
       </figure>
 
-      <h2 id="limits"><span class="num">09</span>Limits and fairness</h2>
+      <h2 id="limits"><span class="num">08</span>Limits and fairness</h2>
       <ul>
         <li><strong>Three runs where it matters, one elsewhere.</strong> Memory at 30 tabs and waking ran 3 times each; every chart shows the median run, and the raw data has all three. Idle, 100 tabs, many agents, actions and real sites ran once.</li>
         <li><strong>The sandboxes run as root</strong>, where Chrome only starts without its own sandbox. agent-browser, Stagehand and Playwright turn it off themselves; Playwright MCP and browser-use got their own flag for it.</li>
@@ -239,11 +219,10 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
         
         <li><strong>The later runs hit sites from up to 20 sandboxes at once.</strong> Some sites blocked more often in those runs, so their "pages that loaded" counts are a little lower than in the first memory run. A blocked page still counts as an open tab.</li>
         <li><strong>Waking was timed on the Browserheap side only.</strong> The first-load times next to it come from the same run, so both include the same network.</li>
-        <li><strong>The agent tasks ran on a MacBook</strong>, through the browser running locally, not on E2B. The full run will be on E2B.</li>
       </ul>
 
-      <h2 id="data"><span class="num">10</span>Raw data and how to reproduce</h2>
-      <p>Every result file is in the repository under <code>bench/launch/2026-10-16/</code>. The BU Bench file keeps each task's category, verdict, steps and time, without the task itself.</p>
+      <h2 id="data"><span class="num">09</span>Raw data and how to reproduce</h2>
+      <p>Every result file is in the repository under <code>bench/launch/2026-10-16/</code>.</p>
       <figure class="figure">
         <details>
           <summary>Every memory number, all 8 browsers, all 30 tabs</summary>
@@ -274,10 +253,6 @@ const others = RIVALS.map((tool) => memoryRun(tool.id))
 const otherFinals = others.map((run) => run.finalMb)
 const otherSlopes = others.map(mbPerTab)
 const lightest = Math.min(...otherFinals)
-const buOurs = buSetup("browserheap")
-const buChrome = buSetup("chrome")
-const memorySaved = Math.round((1 - buOurs.averageMb / buChrome.averageMb) * 100)
-const timeSaved = Math.round((1 - buOurs.minutes / buChrome.minutes) * 100)
 const oursSites = siteSummary("browserheap")
 
 // Summary
@@ -286,7 +261,6 @@ const summary = [
   `<strong>Each extra tab adds ${mbPerTab(ours).toFixed(0)} MB</strong>, against ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB. Waking a sleeping tab takes ${wakeMedianMs()} ms.`,
   `<strong>Nothing an agent does breaks.</strong> ${actionRun("browserheap").passed} of ${actionRun("browserheap").of} agent actions work, like Chrome. Lightpanda managed ${actionRun("lightpanda").passed}, Obscura ${actionRun("obscura").passed}.`,
   `<strong>Real sites look the same as in Chrome</strong>: ${oursSites.same} of ${oursSites.compared}.`,
-  `<strong>The agent doesn't notice.</strong> On BU Bench it solved the same number of tasks as on plain Chrome, with ${memorySaved}% less memory and ${timeSaved}% less time.`,
 ]
 // The later runs, when their results are in.
 const scaleOursRun = window.BENCH.scale.find((run) => toolOf(run.browser).ours)
@@ -328,32 +302,6 @@ document.getElementById("memory-text").textContent =
 fillActionsTable(document.getElementById("actions-table"))
 fillSitesTable(document.getElementById("sites-table"))
 
-// Agent tasks
-fillBuTable(document.getElementById("bu-table"))
-const categories = []
-for (const task of buChrome.tasks) {
-  if (!categories.includes(task.category)) {
-    categories.push(task.category)
-  }
-}
-function countVerdicts(setup, category, verdict) {
-  return setup.tasks.filter((task) => task.category === category && task.verdict === verdict).length
-}
-let categoryHtml = '<thead><tr><th class="left">Category</th><th>Chrome solved</th><th class="ours">Browserheap solved</th><th>Judged impossible (Chrome / Browserheap)</th></tr></thead><tbody>'
-for (const category of categories) {
-  const total = buChrome.tasks.filter((task) => task.category === category).length
-  categoryHtml += `<tr><td class="text left">${category}</td><td>${countVerdicts(buChrome, category, "pass")} of ${total}</td><td class="ours">${countVerdicts(buOurs, category, "pass")} of ${total}</td><td>${countVerdicts(buChrome, category, "impossible")} / ${countVerdicts(buOurs, category, "impossible")}</td></tr>`
-}
-document.getElementById("bu-category").innerHTML = `${categoryHtml}</tbody>`
-let matched = 0
-buChrome.tasks.forEach((task, i) => {
-  if ((task.verdict === "pass") === (buOurs.tasks[i].verdict === "pass")) {
-    matched++
-  }
-})
-document.getElementById("bu-text").textContent =
-  `Both browsers solved ${buOurs.passed} of ${buOurs.total}. The outcome matched on ${matched} of 10 tasks; on the other ${10 - matched}, one browser solved a task the other didn't, once in each direction, which is the noise you expect from a model run twice. Browserheap used ${memorySaved}% less memory on average and finished ${timeSaved}% sooner. These tasks only use a few tabs each, so the memory saving is smaller than in the 30-tab test.`
-
 // Configuration
 const config = [
   ["Memory, actions and sites", "One E2B sandbox per test: Linux 6.1 x86_64, 8 vCPUs, 8 GB. A fresh browser for every run."],
@@ -366,10 +314,6 @@ const config = [
   ["Chrome + same blocking", "The same headless shell, every tab live, with Browserheap's blocking"],
   ["Agent tools", "agent-browser 0.39.1 with its own Chrome 155; Stagehand 4.2.1, Playwright MCP 0.0.83 and browser-use 0.13.11 with Google Chrome 155.0.8059.84"],
   ["Engines", "Lightpanda 1.0.0 and Obscura 0.2.4, driven by Playwright over the Chrome DevTools Protocol"],
-  ["Agent", "pi agent (pi-agent-core 1.0.4, pi-ai 1.0.4), one JavaScript browser tool over Playwright"],
-  ["Model", `${window.BENCH.bu.model}`],
-  ["Agent tasks", `BU Bench V1, 10 tasks (2 per category), ${window.BENCH.bu.chatsAtOnce} at once, on a MacBook (Apple silicon)`],
-  ["Grader", "BU Bench's own grader"],
 ]
 let configHtml = '<thead><tr><th class="left">Setting</th><th class="left">Value</th></tr></thead><tbody>'
 for (const [name, value] of config) {
@@ -502,16 +446,6 @@ drawDotStrips(document.getElementById("load-chart"), ENGINES.map((engine) => ({
 })), [100, 300, 1000, 3000, 10000, 30000])
 fillKindGrid(document.getElementById("kind-grid"))
 
-// Figure 9: each BU Bench task on both browsers.
-// Two tasks per category: name them "GAIA 1", "GAIA 2".
-const seenCategory = {}
-const pairs = buChrome.tasks.map((task, i) => ({
-  label: `${task.category} ${(seenCategory[task.category] = (seenCategory[task.category] ?? 0) + 1)}`,
-  chrome: { seconds: task.seconds, solved: task.verdict === "pass" },
-  ours: { seconds: buOurs.tasks[i].seconds, solved: buOurs.tasks[i].verdict === "pass" },
-}))
-const longest = Math.max(...pairs.flatMap((pair) => [pair.chrome.seconds, pair.ours.seconds]))
-drawPairs(document.getElementById("pairs-chart"), pairs, Math.ceil(longest / 60) * 60)
 </script>
 </body>
 </html>

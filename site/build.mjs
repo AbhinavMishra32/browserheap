@@ -3,7 +3,7 @@
  *
  *   node site/build.mjs
  *
- * Only the numbers the pages draw go in: no page text, no BU Bench task text.
+ * Only the numbers the pages draw go in: no page text.
  *
  * Memory ran 3 times per browser and waking 3 times: each one's chart shows
  * its median run (by final memory, by median wake), and `runs` keeps every
@@ -109,8 +109,6 @@ function writeSitesJson(compat) {
   writeFileSync(new URL("sites.json", results), `${JSON.stringify({ note, browsers }, null, 2)}\n`)
 }
 
-const bu = readJson("bu-bench.json")
-
 // 30 tabs, then 10 idle minutes.
 const idle = readFolder("idle/").map((run) => ({
   browser: run.browser,
@@ -173,26 +171,6 @@ const data = {
   wakeAll,
   live,
   agents,
-  bu: {
-    model: bu.model,
-    machine: bu.machine,
-    chatsAtOnce: bu.chatsAtOnce,
-    setups: bu.setups.map((setup) => ({
-      setup: setup.setup,
-      passed: setup.passed,
-      total: setup.total,
-      peakMb: setup.peakMb,
-      averageMb: setup.averageMb,
-      readChars: setup.readChars,
-      minutes: setup.minutes,
-      tasks: setup.tasks.map((task) => ({
-        category: task.category,
-        verdict: task.verdict,
-        seconds: task.seconds,
-        steps: task.steps,
-      })),
-    })),
-  },
 }
 
 // Plain ASCII, so the file reads the same however a server labels it.

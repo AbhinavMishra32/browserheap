@@ -390,7 +390,7 @@
       <div class="fact-grid" id="fact-grid">
         <div class="fact"><h3><span class="n" id="f-actions"></span>Agent actions</h3><p>Iframes, web components, popups, infinite scroll, screenshots, clicking at a position.</p></div>
         <div class="fact"><h3><span class="n" id="f-sites"></span>Real sites</h3><p>Pages that show the same content Chrome shows, where Chrome loaded them.</p></div>
-        <div class="fact"><h3><span class="n" id="f-bu"></span>BU Bench tasks</h3><p id="f-bu-note">Same pi agent and model, on headless Chrome and on Browserheap.</p></div>
+        <div class="fact"><h3><span class="n" id="f-idle"></span>CPU while idle</h3><p id="f-idle-note">With 30 tabs open and nothing happening. Sleeping tabs run no code.</p></div>
         <div class="fact"><h3><span class="n" id="f-wake"></span>To wake</h3><p>From the agent's click on a sleeping tab to the page being ready to use.</p></div>
       </div>
       <p class="fact-label">What a tab wakes up with</p>
@@ -790,10 +790,8 @@ const actions = actionRun("browserheap")
 document.getElementById("f-actions").textContent = `${actions.passed}/${actions.of}`
 const sites = siteSummary("browserheap")
 document.getElementById("f-sites").textContent = `${sites.same}/${sites.compared}`
-const buOurs = buSetup("browserheap")
-const buChrome = buSetup("chrome")
-document.getElementById("f-bu").textContent = `${buOurs.passed}/${buOurs.total}`
-document.getElementById("f-bu-note").textContent = `Same tasks as headless Chrome solved, with ${Math.round((1 - buOurs.averageMb / buChrome.averageMb) * 100)}% less memory and ${Math.round((1 - buOurs.minutes / buChrome.minutes) * 100)}% less time.`
+document.getElementById("f-idle").textContent = `${idleCpu("browserheap --live 2").toFixed(1)}%`
+document.getElementById("f-idle-note").textContent = `Of one core, with 30 tabs open and nothing happening. Headless Chrome uses ${Math.round(idleCpu("chrome-shell"))}%. Sleeping tabs run no code.`
 document.getElementById("f-wake").textContent = `${wakeMedianMs()} ms`
 
 wireCopyButtons()
