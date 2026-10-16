@@ -8,7 +8,13 @@
  *                            snapshot refs (e12), for page-world.ts to reuse
  *   restoreAfterLoad()       runs once the woken page has loaded: fields,
  *                            scroll (the window's and every scrolled panel's),
- *                            focus, text selection, video and audio position
+ *                            focus, text selection, video and audio position.
+ *                            Run again, it only does what's still left (a
+ *                            page that renders late), and leaves the window
+ *                            alone once something else has scrolled it
+ *   rememberLoadHeight()     runs in every page: how tall it was when it
+ *                            loaded, so a feed that grew as it was scrolled
+ *                            can be told from a page that didn't
  *
  * Cookies, localStorage and IndexedDB need nothing here: every tab shares one
  * browser context, so they never left. Back/forward history is browser.ts's.
@@ -47,6 +53,8 @@ export interface PageState {
   scrollY: number
   /** How tall the page was, so content loaded while scrolling can be loaded again. */
   pageHeight: number
+  /** It grew by more than a screen after it loaded: a feed that loads more as it's scrolled. */
+  grewWhileOpen: boolean
   /** Panels scrolled inside the page: sidebars, chat lists, code views. */
   scrolled: Array<{ path: string; top: number; left: number }>
   fields: SavedField[]
@@ -89,6 +97,14 @@ export function capturePageState(): PageState {
       steps.unshift("body")
     }
     return steps.join(" > ")
+  }
+
+  function grewWhileOpen(): boolean {
+    const loadHeight = (globalThis as unknown as { __browserheapLoadHeight?: number }).__browserheapLoadHeight
+    if (loadHeight === undefined) {
+      return false
+    }
+    return document.documentElement.scrollHeight > loadHeight + window.innerHeight
   }
 
   const sessionItems: Array<[string, string]> = []
@@ -167,6 +183,7 @@ export function capturePageState(): PageState {
     scrollX: Math.round(window.scrollX),
     scrollY: Math.round(window.scrollY),
     pageHeight: document.documentElement.scrollHeight,
+    grewWhileOpen: grewWhileOpen(),
     scrolled,
     fields,
     focus,
@@ -201,12 +218,27 @@ export function restoreBeforeScripts(state: {
   window.name = state.windowName
 }
 
+/** What restoreAfterLoad couldn't do yet. */
+export interface RestoreLeft {
+  /** Saved things not on the page yet. */
+  missing: number
+  /** The window isn't scrolled to where it was yet (the page is still too short), and nothing else has scrolled it. */
+  scrollPending: boolean
+}
+
 /**
  * Runs once the woken page has loaded: puts fields, scroll, focus and media
- * back. Returns how many saved things it couldn't find yet (a page that
- * renders late), so the caller can try again a moment later.
+ * back. Run again, it only does what's still left, and only moves the window
+ * if nothing else has since (the agent may already be scrolling). Says
+ * what's left, so the caller can try again a moment later.
  */
-export function restoreAfterLoad(state: PageState): number {
+export function restoreAfterLoad(state: PageState): RestoreLeft {
+  // What's done so far, kept in the page between runs.
+  const holder = globalThis as unknown as {
+    __browserheapRestore?: { done: Set<string>; scrolledTo: number | null }
+  }
+  holder.__browserheapRestore ??= { done: new Set(), scrolledTo: null }
+  const memo = holder.__browserheapRestore
   let missing = 0
   const find = (path: string): Element | null => {
     try {
@@ -217,6 +249,9 @@ export function restoreAfterLoad(state: PageState): number {
   }
 
   for (const field of state.fields) {
+    if (memo.done.has(`field ${field.path}`)) {
+      continue
+    }
     const element = find(field.path)
     if (element === null) {
       missing++
@@ -237,13 +272,18 @@ export function restoreAfterLoad(state: PageState): number {
         element instanceof HTMLInputElement ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype
       Object.getOwnPropertyDescriptor(prototype, "value")?.set?.call(element, field.value)
     } else {
+      memo.done.add(`field ${field.path}`)
       continue
     }
     element.dispatchEvent(new Event("input", { bubbles: true }))
     element.dispatchEvent(new Event("change", { bubbles: true }))
+    memo.done.add(`field ${field.path}`)
   }
 
   for (const panel of state.scrolled) {
+    if (memo.done.has(`panel ${panel.path}`)) {
+      continue
+    }
     const element = find(panel.path)
     if (element === null) {
       missing++
@@ -251,20 +291,39 @@ export function restoreAfterLoad(state: PageState): number {
     }
     element.scrollTop = panel.top
     element.scrollLeft = panel.left
-  }
-
-  for (const saved of state.media) {
-    const element = find(saved.path)
-    if (element instanceof HTMLMediaElement) {
-      element.currentTime = saved.time
+    // Done once it's really there: a panel still filling in can't scroll that far yet.
+    if (Math.abs(element.scrollTop - panel.top) <= 2) {
+      memo.done.add(`panel ${panel.path}`)
     } else {
       missing++
     }
   }
 
-  window.scrollTo(state.scrollX, state.scrollY)
+  for (const saved of state.media) {
+    if (memo.done.has(`media ${saved.path}`)) {
+      continue
+    }
+    const element = find(saved.path)
+    if (element instanceof HTMLMediaElement) {
+      element.currentTime = saved.time
+      memo.done.add(`media ${saved.path}`)
+    } else {
+      missing++
+    }
+  }
 
-  if (state.focus !== null) {
+  // The window: the first time, and again only while it's where we left it.
+  let scrollPending = false
+  const untouched = memo.scrolledTo === null || Math.abs(window.scrollY - memo.scrolledTo) <= 2
+  if (untouched) {
+    window.scrollTo(state.scrollX, state.scrollY)
+    memo.scrolledTo = window.scrollY
+    scrollPending = Math.abs(window.scrollY - state.scrollY) > 2
+  }
+
+  // Focus, unless something else has the focus by now.
+  const nothingFocused = document.activeElement === null || document.activeElement === document.body
+  if (state.focus !== null && !memo.done.has("focus") && nothingFocused) {
     const element = find(state.focus.path)
     if (element instanceof HTMLElement) {
       element.focus({ preventScroll: true })
@@ -280,9 +339,18 @@ export function restoreAfterLoad(state: PageState): number {
           // Inputs like type=number have no selection.
         }
       }
+      memo.done.add("focus")
     } else {
       missing++
     }
   }
-  return missing
+  return { missing, scrollPending }
+}
+
+/** Runs in every page before its own scripts: remembers how tall the page was when it loaded. */
+export function rememberLoadHeight(): void {
+  addEventListener("load", () => {
+    const holder = globalThis as unknown as { __browserheapLoadHeight?: number }
+    holder.__browserheapLoadHeight = document.documentElement.scrollHeight
+  })
 }

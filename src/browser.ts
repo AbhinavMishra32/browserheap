@@ -36,7 +36,7 @@
 import type { BrowserContext, BrowserContextOptions, Page } from "playwright-core"
 import { type BlockedCounts, type BlockingOptions, startBlocking } from "./blocking.ts"
 import { type Engine, type EngineOptions, startEngine } from "./engine.ts"
-import { type PageState, restoreAfterLoad, restoreBeforeScripts } from "./page-state.ts"
+import { type PageState, rememberLoadHeight, restoreAfterLoad, restoreBeforeScripts } from "./page-state.ts"
 import { tabsToSleep } from "./sleep.ts"
 import {
   AgentTab,
@@ -83,9 +83,9 @@ export interface AgentBrowser {
 export const DEFAULT_MAX_LIVE = 2
 const VIEWPORT = { width: 1280, height: 800 }
 const NAVIGATION_TIMEOUT_MS = 30_000
-/** How long a woken page gets to render what the saved state points at (fields, panels) before we stop looking. */
-const RESTORE_WAIT_MS = 600
-/** How long a woken page may spend loading again what it loaded as it was scrolled (infinite scroll). */
+/** How long, after a wake, we keep putting back what a late-rendering page didn't have yet. In the background. */
+const RESTORE_WAIT_MS = 2_000
+/** How long a woken feed may spend loading again what it loaded as it was scrolled. The wake waits for this. */
 const SCROLL_CATCH_UP_MS = 1_000
 /** The most history entries a tab brings back. */
 const MAX_HISTORY = 50
@@ -108,6 +108,7 @@ export async function launch(options: LaunchOptions = {}): Promise<AgentBrowser>
   })
   context.setDefaultNavigationTimeout(NAVIGATION_TIMEOUT_MS)
   await context.addInitScript(trackTyping)
+  await context.addInitScript(rememberLoadHeight)
 
   let blocked: BlockedCounts | null = null
   if (blocking !== false) {
@@ -397,31 +398,49 @@ class TabbedBrowser implements AgentBrowser, TabOwner {
 }
 
 /**
- * Puts the saved state back on a woken page. A page that renders late gets
- * a few more tries; a page that loads as it's scrolled (infinite scroll) is
- * scrolled down until it's as tall as it was, for a moment at most.
+ * Puts the saved state back on a woken page, without making the wake wait:
+ * one pass now, then the rest in the background while the page finishes
+ * rendering. Only a feed (a page that grew as it was scrolled) makes the
+ * wake wait, while it's scrolled until it's as tall as it was, for a moment
+ * at most: otherwise the agent would land above what it was reading.
  */
 async function restoreState(page: Page, state: PageState): Promise<void> {
-  const started = Date.now()
-  let missing = await page.evaluate(restoreAfterLoad, state).catch(() => 0)
-  while (missing > 0 && Date.now() - started < RESTORE_WAIT_MS) {
-    await page.waitForTimeout(100)
-    missing = await page.evaluate(restoreAfterLoad, state).catch(() => 0)
+  const left = await page.evaluate(restoreAfterLoad, state).catch(() => null)
+  if (state.grewWhileOpen) {
+    await catchUpFeed(page, state)
   }
+  if (left !== null && (left.missing > 0 || left.scrollPending)) {
+    void keepRestoring(page, state)
+  }
+}
 
-  // Too short to scroll to where it was: what was there loaded as the page was scrolled.
+/** Tries again now and then, until everything's back or RESTORE_WAIT_MS is up. */
+async function keepRestoring(page: Page, state: PageState): Promise<void> {
+  const started = Date.now()
+  while (Date.now() - started < RESTORE_WAIT_MS) {
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    if (page.isClosed()) {
+      return
+    }
+    const left = await page.evaluate(restoreAfterLoad, state).catch(() => null)
+    if (left === null || (left.missing === 0 && !left.scrollPending)) {
+      return
+    }
+  }
+}
+
+/** Scrolls a woken feed down until it's tall enough to be where it was, then puts it there. */
+async function catchUpFeed(page: Page, state: PageState): Promise<void> {
+  const started = Date.now()
   const tooShort = () =>
     page
       .evaluate((y) => document.documentElement.scrollHeight < y + window.innerHeight, state.scrollY)
       .catch(() => false)
-  if (!(await tooShort())) {
-    return
-  }
   while (Date.now() - started < SCROLL_CATCH_UP_MS && (await tooShort())) {
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)).catch(() => {})
     await page.waitForTimeout(150)
   }
-  await page.evaluate(restoreAfterLoad, state).catch(() => {})
+  await page.evaluate((y) => window.scrollTo(0, y), state.scrollY).catch(() => {})
 }
 
 /** The page's own back/forward history, read from Chromium. Just where it is, for a browser that can't say. */
