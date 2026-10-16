@@ -30,5 +30,7 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 30.6 30.6">
 </svg>
 '''
 open("logo.svg", "w").write(svg)
+# The README's copy: room below the mark, so it sits level with the name beside it on GitHub.
+open("logo-readme.svg", "w").write(svg.replace('viewBox="-2 -2 30.6 30.6"', 'viewBox="-2 -2 30.6 34.6"'))
 for y in range(N):
     print("".join("█" if any(c[:2] == (x, y) for c in cells) else "·" for x in range(N)))

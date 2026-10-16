@@ -1,4 +1,4 @@
-<h1 align="center"><img src="https://browserheap.com/logo.svg" alt="" width="40" height="40" align="absmiddle">&nbsp;Browserheap</h1>
+<h1 align="center"><img src="https://browserheap.com/logo-readme.svg" alt="" width="40" height="45" align="absmiddle">&nbsp;Browserheap</h1>
 
 <p align="center"><b>Let your agent open every tab it wants.</b><br>
 A browser for AI agents with no tab management: tabs your agent isn't using sleep in 3 MB, stay readable, and wake in a third of a second.</p>
