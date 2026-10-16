@@ -236,7 +236,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
         <li><strong>Lightpanda holds one page per connection</strong>, so each of its tabs had its own connection, and its tabs didn't share cookies. Obscura needed its flag to reach the local test site.</li>
         <li><strong>The tools' own processes are left out.</strong> We count only browser processes, not the Node or Python process driving them. That favours the others.</li>
         <li><strong>Ads and trackers are blocked in Browserheap</strong> and not in the others, which run with defaults. Blocking makes each live page lighter too, so part of the gap per live page comes from it. The growth with tab count does not: Browserheap never has more than 2 live pages.</li>
-        <li><strong>Refs from a snapshot don't survive a wake.</strong> An agent that saved a ref like <code>e12</code> must take a new snapshot after the tab wakes. Role, text and CSS locators keep working.</li>
+        
         <li><strong>The later runs hit sites from up to 20 sandboxes at once.</strong> Some sites blocked more often in those runs, so their "pages that loaded" counts are a little lower than in the first memory run. A blocked page still counts as an open tab.</li>
         <li><strong>Waking was timed on the Browserheap side only.</strong> The first-load times next to it come from the same run, so both include the same network.</li>
         <li><strong>The agent tasks ran on a MacBook</strong>, through the browser running locally, not on E2B. The full run will be on E2B.</li>
