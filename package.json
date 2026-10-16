@@ -51,7 +51,7 @@
     }
   },
   "scripts": {
-    "setup": "playwright-core install --only-shell chromium",
+    "setup": "playwright-core install --no-shell chromium",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "biome check .",

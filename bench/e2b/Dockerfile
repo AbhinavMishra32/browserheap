@@ -16,12 +16,13 @@ RUN apt-get update \
 # Browsers go in one shared place, whoever runs them.
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 
-# browserheap' own packages, and Playwright's headless shell it runs on.
+# Browserheap's own packages, Playwright's full Chromium it runs on, and the
+# headless shell the plain-Chrome baseline runs on.
 WORKDIR /opt/bench
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm@10.23.0 \
   && pnpm install --frozen-lockfile \
-  && ./node_modules/.bin/playwright-core install --with-deps --only-shell chromium \
+  && ./node_modules/.bin/playwright-core install --with-deps chromium \
   && rm -rf /var/lib/apt/lists/*
 
 # The other tools, at the versions measured. They launch Google Chrome, as

@@ -102,6 +102,7 @@ export async function launch(options: LaunchOptions = {}): Promise<AgentBrowser>
   const blocking = options.block ?? {}
   const context = await engine.browser.newContext({
     viewport: VIEWPORT,
+    userAgent: engine.userAgent,
     ...options.context,
     // Requests from service workers can't be filtered, so with blocking there are none.
     serviceWorkers: blocking === false ? "allow" : "block",

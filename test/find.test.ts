@@ -76,5 +76,5 @@ describe("finding in tabs", () => {
     `)
     expect(result.error).toBeUndefined()
     expect(result.content[0]).toEqual({ type: "text", text: "Plans false saved just now true 1" })
-  })
+  }, 30_000)
 })

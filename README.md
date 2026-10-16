@@ -124,7 +124,7 @@ Not on npm yet. From a checkout:
 
 ```sh
 pnpm install
-pnpm setup        # downloads Playwright's Chromium headless shell
+pnpm setup        # downloads Playwright's Chromium
 ```
 
 ```ts

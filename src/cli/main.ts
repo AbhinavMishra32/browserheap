@@ -3,7 +3,7 @@
  * The browserheap command: a browser an agent drives from its shell, with
  * tabs that sleep while it isn't using them.
  *
- *   browserheap install                      downloads the browser (Playwright's Chromium headless shell)
+ *   browserheap install                      downloads the browser (Playwright's Chromium)
  *   browserheap skill <claude|codex|folder>  adds the skill to Claude Code, Codex or a folder, then downloads the browser
  *   browserheap open <url>                   opens a tab and prints the page as a tree with refs
  *   browserheap run '<code>'                 runs JavaScript in the REPL (also --file <path>, or piped in)
@@ -146,11 +146,11 @@ async function codeToRun(): Promise<string> {
   return code
 }
 
-/** Downloads Playwright's Chromium headless shell. Returns the exit status. */
+/** Downloads Playwright's Chromium (the full browser, not the headless shell). Returns the exit status. */
 function installBrowser(): number {
   const require = createRequire(import.meta.url)
   const cli = join(require.resolve("playwright-core/package.json"), "..", "cli.js")
-  const result = spawnSync(process.execPath, [cli, "install", "--only-shell", "chromium"], {
+  const result = spawnSync(process.execPath, [cli, "install", "--no-shell", "chromium"], {
     stdio: "inherit",
   })
   return result.status ?? 1
