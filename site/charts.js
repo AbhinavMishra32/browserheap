@@ -96,10 +96,11 @@ function fillBrowserSwitch(container, note, redraw) {
   const walls = window.BENCH.walls
   const sites = walls.sites
   if (SHOWS_SHELL) {
-    note.textContent = `Chromium's headless shell, with browserheap --headless-shell: the least memory and CPU, for sites that don't check for bots. Sites that do turned it away ${walls.dataCentre["browserheap-shell"]} times in ${sites} from a data centre and ${walls.home["browserheap-shell"]} from a home connection (the default: ${walls.dataCentre.browserheap} and ${walls.home.browserheap}).`
+    note.textContent = `browserheap --headless-shell: the least memory and CPU. Sites that check for bots turned it away ${walls.dataCentre["browserheap-shell"]} of ${sites} times from a data centre, ${walls.home["browserheap-shell"]} from home.`
   } else {
-    note.textContent = `The default: Chromium itself, which sites treat like a person's browser. Of ${sites} sites that check for bots, ${walls.dataCentre.browserheap} turned it away from a data centre and ${walls.home.browserheap} from a home connection (the headless shell: ${walls.dataCentre["browserheap-shell"]} and ${walls.home["browserheap-shell"]}).`
+    note.textContent = `The default. Sites that check for bots turned it away ${walls.dataCentre.browserheap} of ${sites} times from a data centre, ${walls.home.browserheap} from home.`
   }
+
 }
 
 // The memory run's browsers: ours, the agent tools, then the engines (dashed).

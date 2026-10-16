@@ -14,12 +14,32 @@
 /* The research post: a 760px reading column; figures widen to the page. */
 .narrow { max-width: calc(760px + 48px); }
 article { padding-block: 80px 0; }
-.post-head { display: grid; gap: 20px; padding-bottom: 40px; border-bottom: 1px solid var(--line); }
-.post-head h1 { font-size: clamp(36px, 4.4vw, 52px); }
-.byline { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13px; color: var(--ink-3); }
-.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; }
-.toc a { color: var(--ink-3); }
-.toc a:hover { color: var(--ink); }
+.post-head { display: grid; gap: 18px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
+.post-head h1 { font-size: clamp(34px, 4vw, 48px); line-height: 1.1; }
+.post-head .lede { font-size: 18px; max-width: 56ch; }
+.post-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--ink-3); }
+.post-meta .eyebrow { font-size: 13px; }
+/* "Numbers for" and the switch on one line, its note under them, small. */
+.browser-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 6px; }
+.pick-label { font-size: 13px; color: var(--ink-3); }
+.browser-pick .browser-note { flex-basis: 100%; margin: 0; font-size: 13px; }
+/* Contents: a one-line toggle; in the left margin on screens wide enough to have one. */
+.contents { border: 0; border-radius: 0; background: none; overflow: visible; }
+.contents summary { width: fit-content; padding: 0; font-size: 13px; color: var(--ink-3); cursor: pointer; list-style: none; }
+.contents summary::-webkit-details-marker { display: none; }
+.contents summary::after { content: " +"; }
+.contents[open] summary::after { content: " −"; }
+.contents summary:hover { color: var(--ink); }
+.contents nav { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; font-size: 13px; }
+.contents nav a { color: var(--ink-3); }
+.contents nav a:hover, .contents nav a[aria-current] { color: var(--ink); }
+@media (min-width: 1520px) {
+  .contents { position: fixed; top: 112px; left: calc(50% - 552px - 196px); width: 170px; }
+  .contents summary { display: none; }
+  .contents nav { flex-direction: column; gap: 2px; margin-top: 0; border-left: 1px solid var(--line); }
+  .contents nav a { padding: 4px 0 4px 14px; margin-left: -1px; border-left: 1px solid transparent; }
+  .contents nav a[aria-current] { border-left-color: var(--accent); }
+}
 .prose { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; padding-top: 48px; }
 .prose > p, .prose > ul, .prose > ol { margin: 0; color: var(--ink-2); font-size: 17px; line-height: 1.75; }
 .prose > ul, .prose > ol { padding-left: 22px; display: grid; gap: 10px; }
@@ -59,35 +79,49 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
 </style>
 </head>
 <body>
-<header class="bar">
-  <div class="wrap">
+<header class="bar" id="bar">
+  <div class="bar-inner">
     <a class="brand" href="index.html"><img class="brand-mark" src="logo.svg" alt="" width="24" height="24">Browserheap</a>
-    <nav aria-label="Main">
-      <a href="index.html">Home</a>
-      <a href="index.html#numbers">Benchmarks</a>
-      <a href="index.html#use">Docs</a>
+    <nav class="bar-links" aria-label="Main">
+      <a href="index.html#numbers" data-section="numbers">Benchmarks</a>
+      <a href="index.html#how" data-section="how">How it works</a>
+      <a href="research.html" aria-current="page">Research</a>
+      <a href="index.html#use" data-section="use">Docs</a>
     </nav>
-    <div class="right">
-      <a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
+    <div class="bar-right">
+      <a class="bar-version" href="https://www.npmjs.com/package/browserheap" title="browserheap on npm">v0.3.0</a>
+      <a class="bar-icon" href="https://github.com/AbhinavMishra32/browserheap" aria-label="Browserheap on GitHub"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
       <a class="button small" href="index.html#use">Get started</a>
+      <button class="bar-menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="bar-sheet"><span></span><span></span></button>
     </div>
   </div>
+  <nav class="bar-sheet" id="bar-sheet" aria-label="Main" hidden>
+    <a href="index.html#numbers">Benchmarks</a>
+    <a href="index.html#how">How it works</a>
+    <a href="research.html">Research</a>
+    <a href="index.html#use">Docs</a>
+    <a href="https://github.com/AbhinavMishra32/browserheap">GitHub</a>
+    <a href="https://www.npmjs.com/package/browserheap">npm · v0.3.0</a>
+  </nav>
 </header>
 
 <main class="wrap narrow">
   <article>
     <header class="post-head">
-      <p class="eyebrow">Research</p>
+      <p class="post-meta"><span class="eyebrow">Research</span><span>16 Oct 2026</span><span>Abhinav Mishra</span></p>
       <h1 class="g">Agents leave tabs open. We measured what that costs.</h1>
-      <p class="lede">We opened the same 30 websites in every popular agent browser, and ran 19 agent actions and 60 real sites through the lightweight engines. Here is everything we found, including where we lost.</p>
-      <div class="byline"><span>16 October 2026</span><span>Abhinav Mishra</span><span>12 min read</span></div>
-      <nav class="toc" aria-label="Sections">
-        <a href="#why">Why tabs pile up</a><a href="#setup">Setup</a><a href="#memory">Memory</a><a href="#agents">Many agents</a><a href="#waking">Waking</a><a href="#actions">Actions</a><a href="#sites">Real sites</a><a href="#config">Configuration</a><a href="#limits">Limits</a><a href="#data">Raw data</a>
-      </nav>
+      <p class="lede">The same 30 websites in Browserheap and seven other agent browsers, on one 8 GB machine. Everything we measured, including where we lost.</p>
       <div class="browser-pick">
+        <span class="pick-label">Numbers for</span>
         <nav class="segmented" id="browser-switch" aria-label="Which Browserheap"></nav>
         <p class="browser-note" id="browser-note"></p>
       </div>
+      <details class="contents" id="contents">
+        <summary>Contents</summary>
+        <nav aria-label="Sections">
+          <a href="#summary-title">Summary</a><a href="#why">Why tabs pile up</a><a href="#setup">Setup</a><a href="#memory">Memory</a><a href="#agents">Many agents</a><a href="#waking">Waking</a><a href="#actions">Actions</a><a href="#sites">Real sites</a><a href="#config">Configuration</a><a href="#limits">Limits</a><a href="#data">Raw data</a>
+        </nav>
+      </details>
     </header>
 
     <div class="prose">
@@ -249,6 +283,7 @@ node bench/e2b/run.ts compat</pre>
 <script src="data.js" charset="utf-8"></script>
 <script src="charts.js" charset="utf-8"></script>
 <script src="alive.js" charset="utf-8"></script>
+<script src="nav.js" charset="utf-8"></script>
 <script>
 glitchText(document.querySelector("h1.g"))
 
