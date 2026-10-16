@@ -61,9 +61,9 @@ to Claude Code and `npx browserheap skill codex` to Codex (both also download th
 it into `AGENTS.md`.
 
 The browser is Chromium's full build in headless mode, not the stripped-down headless shell, and it
-doesn't announce itself as automated, so sites that check for bots let it in far more often (on 22
-sites that check, 0 turned it away from a home connection; the headless shell was turned away by
-12). Cookies and site storage are kept between sessions in `~/.browserheap/`, so a site that let it
+doesn't announce itself as automated, so sites that check for bots let it in far more often (of 22
+sites that check, 3 turned it away from a data centre, against 12 for Playwright's usual headless
+shell, and none from a home connection). Cookies and site storage are kept between sessions in `~/.browserheap/`, so a site that let it
 in once still knows it. For the few that still say no, `--headed` opens a window, and
 `--connect http://127.0.0.1:9222` drives your own Chrome with your sign-ins. Where bot checks don't
 matter (your own app, docs), `--headless-shell` runs Chromium's headless shell instead, for less
@@ -76,7 +76,8 @@ browser (Linux, 8 vCPUs, 8 GB), default settings, memory as PSS over all the bro
 
 | Browser | Memory at 30 tabs | Each extra tab adds |
 |---|---|---|
-| **Browserheap** | **544 MB** | **3 MB** |
+| **Browserheap** | **968 MB** | **14 MB** |
+| Browserheap `--headless-shell` | 439 MB | 6 MB |
 | Headless Chrome with Browserheap's blocking | 3,053 MB | 95 MB |
 | agent-browser 0.39.1 | 3,618 MB | 111 MB |
 | Stagehand 4.2.1 | 3,786 MB | 118 MB |
@@ -86,15 +87,15 @@ browser (Linux, 8 vCPUs, 8 GB), default settings, memory as PSS over all the bro
 | Playwright MCP 0.0.83 | 4,807 MB | 155 MB |
 | Obscura 0.2.4 | 6,342 MB | 206 MB |
 
-Lightpanda is lighter than Browserheap for the first few tabs and passes it around tab 11. Waking a
-sleeping tab takes 303 ms (median).
+Lightpanda is lighter than Browserheap for the first few tabs and passes it around tab 14 (tab 11 with
+`--headless-shell`). Waking a sleeping tab takes 667 ms (median), 617 ms with `--headless-shell`.
 
 **Agents can still do their work.** It's Chromium, so nothing an agent does breaks:
 
 | | Browserheap | Chrome (and every agent tool above) | Lightpanda | Obscura |
 |---|---|---|---|---|
 | Agent actions that work (19 tests) | **19** | 19 | 12 | 15 |
-| Real sites with the same content as Chrome | **46 / 47** | 48 / 48 | 40 / 41 | 41 / 42 |
+| Real sites with the same content as Chrome | **45 / 46** | 48 / 48 | 40 / 41 | 41 / 42 |
 | Typical page load | **0.5 s** | 0.6 s | 0.8 s | 1.2 s |
 
 Lightpanda can't report where elements are, click at a spot, scroll for more items, reach inside
@@ -296,8 +297,6 @@ async function click(id: string, name: string) {
 - **One agent's tabs load one at a time.** Opening, waking and sleeping in one `AgentBrowser` happen in
   turn, so an agent that opens five tabs at once waits for each. Separate agents should each have
   their own `AgentBrowser` (or context) and run side by side.
-- **A sleeping page stops.** A page left working in the background (a long export, a live log, a chat
-  waiting for a reply) stops when it sleeps. Raise `maxLive` if an agent needs more pages running.
 
 ## Benchmarks
 
