@@ -12,7 +12,8 @@
  * "chromium" is the full browser in Chrome's headless mode, not Playwright's
  * lighter headless shell: sites tell the shell apart and show it bot checks
  * far more often (bench/bot-walls.ts). It also doesn't say it's automated:
- * no navigator.webdriver, and a user agent without "HeadlessChrome".
+ * no --enable-automation, no navigator.webdriver, and a user agent without
+ * "HeadlessChrome".
  *
  * Uses:    playwright-core
  * Used by: browser.ts
@@ -50,7 +51,20 @@ export async function startEngine(options: EngineOptions): Promise<Engine> {
   const server = await chromium.launchServer({
     headless: true,
     channel: "chromium",
-    args: ["--disable-blink-features=AutomationControlled"],
+    // Playwright adds --enable-automation, which marks the browser as automated.
+    ignoreDefaultArgs: ["--enable-automation"],
+    args: [
+      "--disable-blink-features=AutomationControlled",
+      // Smaller caches and buffers in every renderer: the full browser then
+      // takes less memory than the headless shell (856 against 1,026 MB with
+      // 12 sites opened, 2 still open, on E2B).
+      "--enable-low-end-device-mode",
+      // One renderer per page, as in the headless shell. With site isolation,
+      // every cross-site iframe (ads, embeds) gets its own process: 15 for two
+      // news pages instead of 3, and over twice the memory.
+      "--disable-site-isolation-trials",
+      "--disable-features=IsolateOrigins,site-per-process",
+    ],
   })
   const browser = await chromium.connect(server.wsEndpoint())
   return {
