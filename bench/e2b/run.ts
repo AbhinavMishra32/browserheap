@@ -92,6 +92,8 @@ const JOBS: Record<string, JobBrowser[]> = {
       command: "node bench/agents.ts chrome-shell 10 10 --until-mb 6500",
     },
   ],
+  // Which browser setups land on bot checks from a data-centre IP (bot-walls.ts).
+  walls: [{ name: "walls", folder: "/opt/bench", command: "node bench/bot-walls.ts" }],
   actions: [
     { name: "browserheap", folder: "/opt/bench", command: "node bench/actions.ts browserheap" },
     { name: "chrome", folder: "/opt/bench", command: "node bench/actions.ts chrome" },
@@ -133,6 +135,7 @@ const CODE = [
   "bench/png.ts",
   "bench/compat.ts",
   "bench/compat-sites.ts",
+  "bench/bot-walls.ts",
   "bench/others/others.mjs",
   "bench/others/browser-use.py",
 ]
