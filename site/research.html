@@ -188,7 +188,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
       <p>Every time the agent goes back to a sleeping tab, it waits for that tab to wake. With all 30 tabs open, we woke each one in turn and timed it, and compared that with how long the same page took to load the first time.</p>
       <figure class="figure">
         <div class="panel"><svg class="chart" id="wake-chart" role="img" aria-label="Wake times against first load times"></svg></div>
-        <figcaption><b>Figure 7.</b> Each dot is one tab; the black tick is the median. Log scale. Hover a dot for its site.</figcaption>
+        <figcaption><b>Figure 7.</b> Each dot is one tab; the white tick is the median. Log scale. Hover a dot for its site.</figcaption>
       </figure>
       <p id="wake-text"></p>
 
@@ -200,7 +200,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
       </figure>
       <figure class="figure">
         <div class="panel"><svg class="chart" id="load-chart" role="img" aria-label="Load time for each site in each browser"></svg></div>
-        <figcaption><b>Figure 8.</b> Load time of every site that loaded, one dot per site, log scale. The black tick is the median.</figcaption>
+        <figcaption><b>Figure 8.</b> Load time of every site that loaded, one dot per site, log scale. The white tick is the median.</figcaption>
       </figure>
       <figure class="figure">
         <div class="table-scroll"><table id="kind-grid"></table></div>
@@ -455,9 +455,24 @@ function drawAll() {
       { name: "Loading it first", values: loads },
     ], [50, 100, 300, 1000, 3000, 10000, 30000])
     const underSecond = wakes.filter((wake) => wake.ms < 1000).length
+    const wakeMedian = median(wakes.map((wake) => wake.ms))
+    const loadMedian = median(loads.map((load) => load.ms))
+    let fasterThanLoad = 0
+    for (const tab of B.wakeAll) {
+      if (tab.wakeMs < tab.loadMs) {
+        fasterThanLoad++
+      }
+    }
+    // Within 10% either way is "about as long".
+    let compared = `${Math.round((1 - wakeMedian / loadMedian) * 100)}% less than the ${loadMedian} ms it took to load the first time`
+    if (Math.abs(wakeMedian - loadMedian) <= loadMedian * 0.1) {
+      compared = `about as long as loading it the first time (${loadMedian} ms)`
+    } else if (wakeMedian > loadMedian) {
+      compared = `longer than loading it the first time (${loadMedian} ms)`
+    }
     document.getElementById("wake-text").textContent =
-      `The median tab woke in ${median(wakes.map((wake) => wake.ms))} ms, against ${(median(loads.map((load) => load.ms)) / 1000).toFixed(1)} s to load it the first time. ` +
-      `${underSecond} of ${wakes.length} woke in under a second. Waking is faster than loading mostly because the page's code, images and fonts are still in the browser's cache.`
+      `The median tab woke in ${wakeMedian} ms, ${compared}. ${fasterThanLoad} of ${B.wakeAll.length} tabs woke faster than they first loaded, and ${underSecond} woke in under a second. ` +
+      "A wake loads the page again with its code, images and fonts already in the browser's cache, then puts back its scroll, fields and history. On this machine's fast network the cache saves little: most of the time goes to running the page's own scripts, which a wake does again."
   }
 
   // Figure 8: load time of every site, and Table 3: sites by kind.
