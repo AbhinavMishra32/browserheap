@@ -167,7 +167,6 @@ svg.chart .bar-value.ours { fill: var(--ink); font-weight: 600; }
 
 /* Tables */
 .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); min-width: 0; }
-.table-scroll.tall { max-height: 560px; }
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
 th, td { padding: 9px 14px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
 th { position: sticky; top: 0; background: var(--panel); font-weight: 500; color: var(--ink-3); font-size: 12.5px; z-index: 1; }
@@ -176,9 +175,10 @@ th.left, td.left { text-align: left; }
 th.center, td.center { text-align: center; }
 td.text { font-size: 13.5px; white-space: normal; min-width: 200px; }
 td.ours, th.ours { background: var(--accent-wash); color: var(--ink); font-weight: 600; }
+th.ours { background: linear-gradient(var(--accent-wash), var(--accent-wash)), var(--panel); } /* solid, so rows never show through a sticky header */
 td.blocked { color: var(--ink-3); }
 td.blocked::after { content: "†"; margin-left: 2px; }
-tr.summary td { border-top: 1px solid var(--ink-4); color: var(--ink); }
+tr.totals td { border-top: 1px solid var(--ink-4); color: var(--ink); }
 tr:last-child td { border-bottom: 0; }
 .mark { font-size: 13px; font-weight: 500; }
 .mark.yes { color: var(--success); }

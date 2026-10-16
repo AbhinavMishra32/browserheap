@@ -264,7 +264,7 @@ function fillActionsTable(table) {
     }
     html += "</tr>"
   })
-  html += '<tr class="summary"><td class="text left">Actions that work</td>'
+  html += '<tr class="totals"><td class="text left">Actions that work</td>'
   for (const engine of ENGINES) {
     const run = actionRun(engine.id)
     html += `<td class="${cellClass(engine, "center")}">${run.passed} of ${run.of}</td>`
@@ -320,7 +320,7 @@ function fillMemoryTable(table) {
     { label: "Pages that loaded", value: (run) => `${run.perTab.filter((tab) => tab.worked).length}/30` },
   ]
   for (const summary of summaries) {
-    html += `<tr class="summary"><td></td><td class="text left">${summary.label}</td>`
+    html += `<tr class="totals"><td></td><td class="text left">${summary.label}</td>`
     for (const tool of TOOLS) {
       html += `<td class="${tool.ours ? "ours" : ""}">${summary.value(memoryRun(tool.id))}</td>`
     }

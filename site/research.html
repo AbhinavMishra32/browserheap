@@ -46,7 +46,7 @@ article { padding-block: 80px 0; }
 .callout .value { font-weight: 400; font-size: 48px; line-height: 1; letter-spacing: -0.03em; color: var(--accent); }
 .callout .value small { font-size: 16px; color: var(--ink-3); margin-left: 6px; letter-spacing: 0; }
 .callout p { margin: 0; color: var(--ink-2); }
-details { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+details { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); } /* min-width 0: the table scrolls sideways inside, instead of widening the figure */
 details summary { cursor: pointer; padding: 14px 18px; font-weight: 500; }
 details .table-scroll { border: 0; border-top: 1px solid var(--line); border-radius: 0; }
 .foot .row { display: flex; flex-wrap: wrap; gap: 10px 24px; padding-block: 28px 44px; font-size: 13px; color: var(--ink-3); }
@@ -247,7 +247,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
       <figure class="figure">
         <details>
           <summary>Every memory number, all 8 browsers, all 30 tabs</summary>
-          <div class="table-scroll tall"><table id="memory-table"></table></div>
+          <div class="table-scroll"><table id="memory-table"></table></div>
         </details>
         <figcaption>† that browser's page showed a bot wall or didn't load. It still counts as an open tab.</figcaption>
       </figure>
