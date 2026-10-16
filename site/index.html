@@ -586,11 +586,9 @@ docs.isAsleep()            <span class="c">// true</span>
 <script src="heap.js" charset="utf-8"></script>
 <script>
 const B = window.BENCH
-const ours = memoryRun("browserheap --live 2")
 
 // ---- Living text and dither pictures ----
 
-document.getElementById("bench-body").textContent = `We opened the same 30 real websites in every popular agent browser and two lightweight engines, one after another, and closed none. Browserheap ended at ${formatMb(ours.finalMb)}, the others between ${othersRange().replace("–", " and ")}. All on the same 8 GB E2B machine.`
 for (const heading of document.querySelectorAll(".g")) {
   glitchText(heading)
 }
@@ -709,68 +707,87 @@ tabsCanvas.addEventListener("pointermove", (event) => {
 })
 
 // ---- Numbers ----
+// Everything on the page that shows Browserheap's numbers, drawn again when
+// the switch changes browser (Chromium or --headless-shell).
+function drawNumbers() {
+  const ours = memoryRun("browserheap --live 2")
+  document.getElementById("bench-body").textContent = `We opened the same 30 real websites in every popular agent browser and two lightweight engines, one after another, and closed none. Browserheap ended at ${formatMb(ours.finalMb)}, the others between ${othersRange().replace("–", " and ")}. All on the same 8 GB E2B machine.`
 
-document.getElementById("wake-chip").textContent = `${wakeMedianMs()} ms`
-const otherSlopes = RIVALS.map((tool) => mbPerTab(memoryRun(tool.id)))
-const lowest = Math.min(...RIVALS.map((tool) => memoryRun(tool.id).finalMb))
-const stats = [
-  { value: formatMb(ours.finalMb), label: "Memory at 30 tabs", note: `Next lightest: ${formatMb(lowest)}` },
-  { value: `${mbPerTab(ours).toFixed(0)} MB`, label: "Per extra tab", note: `Others: ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB` },
-  { value: `${wakeMedianMs()} ms`, label: "To wake a tab", note: "Click to a ready page" },
-]
-const scaleOurs = B.scale.find((run) => toolOf(run.browser).ours)
-if (scaleOurs !== undefined) {
-  const othersReached = B.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
-  stats.splice(1, 0, { value: `${scaleOurs.perTab.length} tabs`, label: `In ${formatMb(scaleOurs.perTab[scaleOurs.perTab.length - 1].mb)}`, note: `The others hit the limit by tab ${Math.max(...othersReached)}` })
+  document.getElementById("wake-chip").textContent = `${wakeMedianMs()} ms`
+  const otherSlopes = RIVALS.map((tool) => mbPerTab(memoryRun(tool.id)))
+  const lowest = Math.min(...RIVALS.map((tool) => memoryRun(tool.id).finalMb))
+  const statList = [
+    { value: formatMb(ours.finalMb), label: "Memory at 30 tabs", note: `Next lightest: ${formatMb(lowest)}` },
+    { value: `${mbPerTab(ours).toFixed(0)} MB`, label: "Per extra tab", note: `Others: ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB` },
+    { value: `${wakeMedianMs()} ms`, label: "To wake a tab", note: "Click to a ready page" },
+  ]
+  const scaleOurs = B.scale.find((run) => toolOf(run.browser).ours)
+  if (scaleOurs !== undefined) {
+    const othersReached = B.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
+    statList.splice(1, 0, { value: `${scaleOurs.perTab.length} tabs`, label: `In ${formatMb(scaleOurs.perTab[scaleOurs.perTab.length - 1].mb)}`, note: `The others hit the limit by tab ${Math.max(...othersReached)}` })
+  }
+  const stats = document.getElementById("stats")
+  stats.replaceChildren()
+  for (const stat of statList.slice(0, 4)) {
+    const card = document.createElement("div")
+    card.className = "bench-stat"
+    card.innerHTML = `<span class="label">${stat.label}</span><b>${stat.value}</b><p>${stat.note}</p>`
+    stats.append(card)
+    decodeOnView(card.querySelector("b"), 600)
+  }
+
+  // Charts are drawn at the width they're shown at (never under 640, so they
+  // shrink to fit a phone), so their text and lines stay their real size.
+  const chartWidth = Math.max(640, Math.round(document.querySelector(".bench-chart").clientWidth))
+  const chartHeight = 380
+
+  drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), chartWidth, chartHeight)
+
+  // The smaller charts in the grid under it, drawn at their own width.
+  const miniWidth = Math.max(480, Math.round(document.querySelector(".mini .chart-wrap").clientWidth))
+  const miniHeight = 280
+
+  if (B.scale.length > 0) {
+    drawLineChart(document.getElementById("scale-chart"), document.getElementById("scale-tooltip"), B.scale.map((run) => {
+      const tool = toolOf(run.browser)
+      return { name: tool.name, ours: tool.ours, dashed: tool.engine, stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped, points: run.perTab.map((tab, i) => ({ x: i + 1, y: tab.mb })) }
+    }), {
+      xMin: 1, xMax: 100, xTicks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open",
+      yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
+      xTitle: (tab) => `${tab} tabs open`, valueFormat: formatMb, limit: { y: 6500, label: "6.5 GB limit" },
+      width: miniWidth, height: miniHeight,
+    })
+  } else {
+    document.getElementById("scale-chart").closest(".mini").hidden = true
+  }
+  if (B.agents.length > 0) {
+    drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), B.agents.map((run) => {
+      const isOurs = run.browser === "browserheap"
+      return {
+        name: isOurs ? "Browserheap" : "Headless Chrome", ours: isOurs, stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
+        points: [{ x: 0, y: run.idleMb }, ...run.rounds.map((round) => ({ x: round.totalTabs, y: round.mb }))],
+      }
+    }), {
+      xMin: 0, xMax: 100, xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open across 10 agents",
+      yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
+      xTitle: (tabs) => `${tabs} tabs (${tabs / 10} per agent)`, valueFormat: formatMb, limit: { y: 6500, label: "6.5 GB limit" },
+      width: miniWidth, height: miniHeight,
+    })
+  } else {
+    document.getElementById("agents-chart").closest(".mini").hidden = true
+  }
+
+  // Still a full browser: the numbers in the fact grid.
+  const actions = actionRun("browserheap")
+  document.getElementById("f-actions").textContent = `${actions.passed}/${actions.of}`
+  const sites = siteSummary("browserheap")
+  document.getElementById("f-sites").textContent = `${sites.same}/${sites.compared}`
+  document.getElementById("f-idle").textContent = `${idleCpu("browserheap --live 2").toFixed(1)}%`
+  document.getElementById("f-idle-note").textContent = `Of one core, with 30 tabs open and nothing happening, once the pages settled. Headless Chrome uses ${Math.round(idleCpu("chrome-shell"))}%. Sleeping tabs run no code.`
+  document.getElementById("f-wake").textContent = `${wakeMedianMs()} ms`
 }
-for (const stat of stats.slice(0, 4)) {
-  const card = document.createElement("div")
-  card.className = "bench-stat"
-  card.innerHTML = `<span class="label">${stat.label}</span><b>${stat.value}</b><p>${stat.note}</p>`
-  document.getElementById("stats").append(card)
-  decodeOnView(card.querySelector("b"), 600)
-}
-
-// Charts are drawn at the width they're shown at (never under 640, so they
-// shrink to fit a phone), so their text and lines stay their real size.
-const chartWidth = Math.max(640, Math.round(document.querySelector(".bench-chart").clientWidth))
-const chartHeight = 380
-
-drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), chartWidth, chartHeight)
-
-// The smaller charts in the grid under it, drawn at their own width.
-const miniWidth = Math.max(480, Math.round(document.querySelector(".mini .chart-wrap").clientWidth))
-const miniHeight = 280
-
-if (B.scale.length > 0) {
-  drawLineChart(document.getElementById("scale-chart"), document.getElementById("scale-tooltip"), B.scale.map((run) => {
-    const tool = toolOf(run.browser)
-    return { name: tool.name, ours: tool.ours, dashed: tool.engine, stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped, points: run.perTab.map((tab, i) => ({ x: i + 1, y: tab.mb })) }
-  }), {
-    xMin: 1, xMax: 100, xTicks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open",
-    yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
-    xTitle: (tab) => `${tab} tabs open`, valueFormat: formatMb, limit: { y: 6500, label: "6.5 GB limit" },
-    width: miniWidth, height: miniHeight,
-  })
-} else {
-  document.getElementById("scale-chart").closest(".mini").hidden = true
-}
-if (B.agents.length > 0) {
-  drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), B.agents.map((run) => {
-    const isOurs = run.browser === "browserheap"
-    return {
-      name: isOurs ? "Browserheap" : "Headless Chrome", ours: isOurs, stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
-      points: [{ x: 0, y: run.idleMb }, ...run.rounds.map((round) => ({ x: round.totalTabs, y: round.mb }))],
-    }
-  }), {
-    xMin: 0, xMax: 100, xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open across 10 agents",
-    yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
-    xTitle: (tabs) => `${tabs} tabs (${tabs / 10} per agent)`, valueFormat: formatMb, limit: { y: 6500, label: "6.5 GB limit" },
-    width: miniWidth, height: miniHeight,
-  })
-} else {
-  document.getElementById("agents-chart").closest(".mini").hidden = true
-}
+drawNumbers()
+fillBrowserSwitch(document.getElementById("browser-switch"), document.getElementById("browser-note"), drawNumbers)
 
 function wireTabs(buttonAttr, panelAttr) {
   const buttons = document.querySelectorAll(`[${buttonAttr}]`)
@@ -786,17 +803,6 @@ function wireTabs(buttonAttr, panelAttr) {
   }
 }
 wireTabs("data-way", "data-way-panel")
-
-fillBrowserSwitch(document.getElementById("browser-switch"), document.getElementById("browser-note"), "numbers")
-
-// Still a full browser: the numbers in the fact grid.
-const actions = actionRun("browserheap")
-document.getElementById("f-actions").textContent = `${actions.passed}/${actions.of}`
-const sites = siteSummary("browserheap")
-document.getElementById("f-sites").textContent = `${sites.same}/${sites.compared}`
-document.getElementById("f-idle").textContent = `${idleCpu("browserheap --live 2").toFixed(1)}%`
-document.getElementById("f-idle-note").textContent = `Of one core, with 30 tabs open and nothing happening, once the pages settled. Headless Chrome uses ${Math.round(idleCpu("chrome-shell"))}%. Sleeping tabs run no code.`
-document.getElementById("f-wake").textContent = `${wakeMedianMs()} ms`
 
 wireCopyButtons()
 

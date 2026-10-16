@@ -5,10 +5,33 @@ const NS = "http://www.w3.org/2000/svg"
 
 // Which Browserheap the page shows: the default browser (Chromium), or
 // Chromium's headless shell (`browserheap --headless-shell`), picked with
-// ?browser=headless-shell. data.js has both. The one not shown is taken out
-// and the shell's runs take the default's names, so every chart reads one.
-const SHOWS_SHELL = new URLSearchParams(location.search).get("browser") === "headless-shell"
+// ?browser=headless-shell or the switch. data.js has both. The one not shown
+// is taken out and the shell's runs take the default's names, so every chart
+// reads one.
+let SHOWS_SHELL = new URLSearchParams(location.search).get("browser") === "headless-shell"
+const ALL_RESULTS = structuredClone(window.BENCH)
 chooseBrowser(window.BENCH, SHOWS_SHELL)
+
+/**
+ * Switches to the other browser's numbers. window.BENCH is filled again in
+ * place, so a page holding it sees the change, and the address keeps the
+ * choice for a reload or a shared link.
+ */
+function showBrowser(shell) {
+  SHOWS_SHELL = shell
+  for (const key of Object.keys(window.BENCH)) {
+    delete window.BENCH[key]
+  }
+  Object.assign(window.BENCH, structuredClone(ALL_RESULTS))
+  chooseBrowser(window.BENCH, shell)
+  const url = new URL(location.href)
+  if (shell) {
+    url.searchParams.set("browser", "headless-shell")
+  } else {
+    url.searchParams.delete("browser")
+  }
+  history.replaceState(null, "", url)
+}
 
 function chooseBrowser(B, shell) {
   const isOurs = (name) => name.startsWith("browserheap")
@@ -43,16 +66,33 @@ function chooseBrowser(B, shell) {
 
 /**
  * The switch between the two, and a line on what the one shown is better at.
- * `anchor` is where the page lands after switching.
+ * Switching calls `redraw`, which draws the page's numbers again.
  */
-function fillBrowserSwitch(container, note, anchor) {
+function fillBrowserSwitch(container, note, redraw) {
   const links = [
-    { label: "Chromium (default)", href: `?#${anchor}`, on: !SHOWS_SHELL },
-    { label: "--headless-shell", href: `?browser=headless-shell#${anchor}`, on: SHOWS_SHELL },
+    { label: "Chromium (default)", href: "?", shell: false },
+    { label: "--headless-shell", href: "?browser=headless-shell", shell: true },
   ]
   container.innerHTML = links
-    .map((link) => `<a href="${link.href}"${link.on ? ' aria-current="true"' : ""}>${link.label}</a>`)
+    .map((link) => {
+      const current = link.shell === SHOWS_SHELL ? ' aria-current="true"' : ""
+      return `<a href="${link.href}" data-shell="${link.shell}"${current}>${link.label}</a>`
+    })
     .join("")
+  container.onclick = (event) => {
+    const link = event.target.closest("a")
+    if (link === null) {
+      return
+    }
+    event.preventDefault()
+    const shell = link.dataset.shell === "true"
+    if (shell === SHOWS_SHELL) {
+      return
+    }
+    showBrowser(shell)
+    fillBrowserSwitch(container, note, redraw)
+    redraw()
+  }
   const walls = window.BENCH.walls
   const sites = walls.sites
   if (SHOWS_SHELL) {
@@ -204,6 +244,8 @@ function add(svg, tag, attrs) {
  * Draw it at about the width it's shown at, so its text stays its real size.
  */
 function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
+  // Drawn again when the page switches browser.
+  svg.replaceChildren()
   const ours = memoryRun("browserheap --live 2")
   const tabCount = ours.perTab.length
   const W = width
@@ -310,6 +352,8 @@ function drawBars(svg, measure, format, width = 900) {
 
 /** Horizontal bars in the order given: rows are [{ name, ours?, value }]. */
 function drawValueBars(svg, rows, format, width = 900) {
+  // Drawn again when the page switches browser.
+  svg.replaceChildren()
   // A narrower width draws bigger text when the chart sits in half a row.
   const W = width
   const rowH = 34
@@ -433,6 +477,8 @@ function wireCopyButtons() {
  * stopped early (a crash, the memory limit) ends with an ×.
  */
 function drawLineChart(svg, tooltip, series, options) {
+  // Drawn again when the page switches browser.
+  svg.replaceChildren()
   const W = options.width ?? 900
   const H = options.height ?? 400
   const pad = { left: 56, right: options.labelRoom ?? 170, top: 12, bottom: 38 }
@@ -558,6 +604,8 @@ function drawLineChart(svg, tooltip, series, options) {
  *   rows  [{ name, ours?, values: [{ ms, label }] }]
  */
 function drawDotStrips(svg, rows, ticksMs) {
+  // Drawn again when the page switches browser.
+  svg.replaceChildren()
   const W = 900
   const rowH = 46
   const pad = { left: 150, right: 30, top: 6, bottom: 30 }

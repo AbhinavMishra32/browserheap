@@ -252,220 +252,224 @@ node bench/e2b/run.ts compat</pre>
 <script>
 glitchText(document.querySelector("h1.g"))
 
-fillBrowserSwitch(document.getElementById("browser-switch"), document.getElementById("browser-note"), "summary-title")
-const ours = memoryRun("browserheap --live 2")
-const others = RIVALS.map((tool) => memoryRun(tool.id))
-const otherFinals = others.map((run) => run.finalMb)
-const otherSlopes = others.map(mbPerTab)
-const lightest = Math.min(...otherFinals)
-const oursSites = siteSummary("browserheap")
+// Every number and chart on the page, drawn again when the switch changes
+// browser (Chromium or --headless-shell).
+function drawAll() {
+  const ours = memoryRun("browserheap --live 2")
+  const others = RIVALS.map((tool) => memoryRun(tool.id))
+  const otherFinals = others.map((run) => run.finalMb)
+  const otherSlopes = others.map(mbPerTab)
+  const lightest = Math.min(...otherFinals)
+  const oursSites = siteSummary("browserheap")
 
-// Summary
-const summary = [
-  `<strong>${formatMb(ours.finalMb)} with 30 real sites open</strong>, against ${othersRange()} for every other browser we tried: ${(lightest / ours.finalMb).toFixed(1)}× less than the lightest.`,
-  `<strong>Each extra tab adds ${mbPerTab(ours).toFixed(0)} MB</strong>, against ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB. Waking a sleeping tab takes ${wakeMedianMs()} ms.`,
-  `<strong>Nothing an agent does breaks.</strong> ${actionRun("browserheap").passed} of ${actionRun("browserheap").of} agent actions work, like Chrome. Lightpanda managed ${actionRun("lightpanda").passed}, Obscura ${actionRun("obscura").passed}.`,
-  `<strong>Real sites look the same as in Chrome</strong>: ${oursSites.same} of ${oursSites.compared}.`,
-]
-// The later runs, when their results are in.
-const scaleOursRun = window.BENCH.scale.find((run) => toolOf(run.browser).ours)
-if (scaleOursRun !== undefined) {
-  const reachedByOthers = window.BENCH.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
-  summary.splice(2, 0, `<strong>100 tabs in ${formatMb(scaleOursRun.perTab[scaleOursRun.perTab.length - 1].mb)}.</strong> Every other browser filled 6.5 GB between tab ${Math.min(...reachedByOthers)} and tab ${Math.max(...reachedByOthers)}.`)
-}
-const idleRuns = window.BENCH.idle.filter((run) => run.samples.length > 0)
-if (idleRuns.length > 0) {
-  const oursIdleRun = idleRuns.find((run) => toolOf(run.browser).ours)
-  const othersCpu = idleRuns.filter((run) => !toolOf(run.browser).ours).map((run) => Math.round(settledCpu(run)))
-  if (oursIdleRun !== undefined) {
-    summary.splice(3, 0, `<strong>Idle tabs cost almost no CPU.</strong> With 30 tabs open and nothing happening, once the pages settled, Browserheap used ${settledCpu(oursIdleRun).toFixed(1)}% of a core; the others ${Math.min(...othersCpu)}% to ${Math.max(...othersCpu)}%.`)
+  // Summary
+  const summary = [
+    `<strong>${formatMb(ours.finalMb)} with 30 real sites open</strong>, against ${othersRange()} for every other browser we tried: ${(lightest / ours.finalMb).toFixed(1)}× less than the lightest.`,
+    `<strong>Each extra tab adds ${mbPerTab(ours).toFixed(0)} MB</strong>, against ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB. Waking a sleeping tab takes ${wakeMedianMs()} ms.`,
+    `<strong>Nothing an agent does breaks.</strong> ${actionRun("browserheap").passed} of ${actionRun("browserheap").of} agent actions work, like Chrome. Lightpanda managed ${actionRun("lightpanda").passed}, Obscura ${actionRun("obscura").passed}.`,
+    `<strong>Real sites look the same as in Chrome</strong>: ${oursSites.same} of ${oursSites.compared}.`,
+  ]
+  // The later runs, when their results are in.
+  const scaleOursRun = window.BENCH.scale.find((run) => toolOf(run.browser).ours)
+  if (scaleOursRun !== undefined) {
+    const reachedByOthers = window.BENCH.scale.filter((run) => !toolOf(run.browser).ours).map((run) => run.perTab.length)
+    summary.splice(2, 0, `<strong>100 tabs in ${formatMb(scaleOursRun.perTab[scaleOursRun.perTab.length - 1].mb)}.</strong> Every other browser filled 6.5 GB between tab ${Math.min(...reachedByOthers)} and tab ${Math.max(...reachedByOthers)}.`)
   }
-}
-const agentRuns = window.BENCH.agents
-const oursAgentRun = agentRuns.find((run) => run.browser === "browserheap")
-const chromeAgentRun = agentRuns.find((run) => run.browser !== "browserheap")
-if (oursAgentRun !== undefined && chromeAgentRun !== undefined) {
-  const chromeRounds = chromeAgentRun.rounds.length
-  summary.splice(4, 0, `<strong>10 agents fit on one 8 GB machine</strong> with 10 tabs each. On headless Chrome the machine was full after ${chromeRounds} tabs each.`)
-}
-document.getElementById("summary-list").innerHTML = summary.map((line) => `<li><span>${line}</span></li>`).join("")
-
-// Full-width charts are drawn at the width they're shown at (never under
-// 640, so they shrink to fit a phone), so their text stays its real size.
-const fullWidth = Math.max(640, Math.round(document.getElementById("memory-chart").parentElement.clientWidth))
-
-// Memory
-drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), fullWidth, 400)
-drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), 560)
-drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, 560)
-document.getElementById("wake-ms").firstChild.textContent = wakeMedianMs()
-document.getElementById("memory-text").textContent =
-  `Every browser except Browserheap grows in a straight line, because every tab it opened is still a live page. Browserheap moves with whichever 2 pages are live and ends at ${formatMb(ours.finalMb)}. The others end between ${othersRange()}. On this 8 GB machine, two agents with 30 tabs each would fill memory in any of the others. Browserheap leaves room for more than ten.`
-
-// Lightpanda against Browserheap, tab by tab.
-const lightpanda = memoryRun("lightpanda")
-let lighterUntil = 0
-while (lighterUntil < ours.perTab.length && lightpanda.perTab[lighterUntil].mb < ours.perTab[lighterUntil].mb) {
-  lighterUntil++
-}
-document.getElementById("lightpanda-text").textContent =
-  `Lightpanda is the interesting case. It starts lighter than Browserheap, because it never draws a page, and it stays lighter for the first ${lighterUntil} tabs. But each of its tabs stays in memory, and on heavy news sites like Bloomberg and Wired it grows by about 1 GB at a time. By 30 tabs it uses ${formatMb(lightpanda.finalMb)}, ${(lightpanda.finalMb / ours.finalMb).toFixed(1)}× what Browserheap uses.`
-
-// Real sites, in words.
-const chromeSites = siteSummary("chrome")
-document.getElementById("sites-text").textContent =
-  `Browserheap loaded ${oursSites.loaded} of ${oursSites.total} sites, plain headless Chrome ${chromeSites.loaded}, and where both loaded, Browserheap showed the same content as Chrome on ${oursSites.same} of ${oursSites.compared}.`
-
-// Actions, sites
-fillActionsTable(document.getElementById("actions-table"))
-fillSitesTable(document.getElementById("sites-table"))
-
-// Configuration
-const config = [
-  ["Memory, actions and sites", "One E2B sandbox per test: Linux 6.1 x86_64, 8 vCPUs, 8 GB. A fresh browser for every run."],
-  ["Memory measure", "Sum of PSS from /proc/<pid>/smaps_rollup over every browser process"],
-  ["CPU measure", "utime + stime from /proc/<pid>/stat over every browser process, per 15 s interval, as % of one core"],
-  ["Runs", "Every browser in its own sandbox, all at the same time. Memory at 30 tabs and waking 3 times each (charts show the median run); everything else once"],
-  ["Memory limit", "6.5 GB for the 100-tab and many-agent runs, so the 8 GB sandbox never runs out"],
-  ["Browserheap", SHOWS_SHELL
-    ? "0.3.0 with --headless-shell: Playwright's Chromium headless shell (playwright-core 1.63.0), 2 tabs live, ads, trackers, images, video and fonts blocked"
-    : "0.3.0: Playwright's Chromium (playwright-core 1.63.0) in headless mode, low-end device mode, 2 tabs live, ads, trackers, images, video and fonts blocked"],
-  ["Headless Chrome", "The same headless shell, every tab live, nothing blocked"],
-  ["Chrome + same blocking", "The same headless shell, every tab live, with Browserheap's blocking"],
-  ["Agent tools", "agent-browser 0.39.1 with its own Chrome 155; Stagehand 4.2.1, Playwright MCP 0.0.83 and browser-use 0.13.11 with Google Chrome 155.0.8059.84"],
-  ["Engines", "Lightpanda 1.0.0 and Obscura 0.2.4, driven by Playwright over the Chrome DevTools Protocol"],
-]
-let configHtml = '<thead><tr><th class="left">Setting</th><th class="left">Value</th></tr></thead><tbody>'
-for (const [name, value] of config) {
-  const cell = document.createElement("td")
-  cell.textContent = value
-  configHtml += `<tr><td class="text left" style="min-width: 160px">${name}</td><td class="text left">${cell.innerHTML}</td></tr>`
-}
-document.getElementById("config-table").innerHTML = `${configHtml}</tbody>`
-
-fillMemoryTable(document.getElementById("memory-table"))
-
-const B = window.BENCH
-const gbText = (mb) => `${(mb / 1000).toFixed(1)} GB`
-
-// Figure 3: up to 100 tabs.
-if (B.scale.length > 0) {
-  const series = B.scale.map((run) => {
-    const tool = toolOf(run.browser)
-    return {
-      name: tool.name,
-      ours: tool.ours,
-      dashed: tool.engine,
-      stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
-      points: run.perTab.map((tab, i) => ({ x: i + 1, y: tab.mb })),
+  const idleRuns = window.BENCH.idle.filter((run) => run.samples.length > 0)
+  if (idleRuns.length > 0) {
+    const oursIdleRun = idleRuns.find((run) => toolOf(run.browser).ours)
+    const othersCpu = idleRuns.filter((run) => !toolOf(run.browser).ours).map((run) => Math.round(settledCpu(run)))
+    if (oursIdleRun !== undefined) {
+      summary.splice(3, 0, `<strong>Idle tabs cost almost no CPU.</strong> With 30 tabs open and nothing happening, once the pages settled, Browserheap used ${settledCpu(oursIdleRun).toFixed(1)}% of a core; the others ${Math.min(...othersCpu)}% to ${Math.max(...othersCpu)}%.`)
     }
-  })
-  drawLineChart(document.getElementById("scale-chart"), document.getElementById("scale-tooltip"), series, {
-    xMin: 1, xMax: 100, xTicks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open",
-    yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
-    xTitle: (tab) => `${tab} tabs open`, valueFormat: formatMb,
-    limit: { y: 6500, label: "6.5 GB limit" },
-    width: fullWidth, height: 380,
-  })
-  const oursRun = B.scale.find((run) => toolOf(run.browser).ours)
-  const others = B.scale.filter((run) => !toolOf(run.browser).ours)
-  const reached = others.map((run) => run.perTab.length)
-  document.getElementById("scale-text").textContent =
-    `Every other browser hit the limit between ${Math.min(...reached)} and ${Math.max(...reached)} tabs. ` +
-    (oursRun === undefined ? "" : `Browserheap opened all ${oursRun.perTab.length} and ended at ${formatMb(oursRun.perTab[oursRun.perTab.length - 1].mb)}. At 10 tabs it had used ${formatMb(oursRun.perTab[9].mb)}: past the first few tabs, more tabs cost it almost nothing.`)
-}
-
-// Figure 4: 10 idle minutes.
-if (B.idle.length > 0) {
-  const idleSeries = (measure) => B.idle.map((run) => {
-    const tool = toolOf(run.browser)
-    return { name: tool.name, ours: tool.ours, dashed: tool.engine, points: run.samples.map((sample) => ({ x: sample.seconds, y: measure(sample) })) }
-  })
-  const half = { width: 560, height: 360, labelRoom: 130, xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (s) => `${s / 60}`, xLabel: "idle minutes", xTitle: (s) => `${(s / 60).toFixed(2).replace(/\.?0+$/, "")} min idle` }
-  const cpuTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.cpu))))
-  drawLineChart(document.getElementById("cpu-chart"), document.getElementById("cpu-tooltip"), idleSeries((sample) => sample.cpu), {
-    ...half, yMax: cpuTop.max, yStep: cpuTop.max / 5, yFormat: (v) => `${v}%`, valueFormat: (v) => `${v}%`,
-  })
-  const mbTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.mb))))
-  drawLineChart(document.getElementById("creep-chart"), document.getElementById("creep-tooltip"), idleSeries((sample) => sample.mb), {
-    ...half, yMax: mbTop.max, yStep: mbTop.max / 5, yFormat: (mb) => (mb === 0 ? "0" : gbText(mb)), valueFormat: formatMb,
-  })
-  const averages = B.idle.map((run) => ({
-    tool: toolOf(run.browser),
-    cpu: settledCpu(run),
-    first: run.samples[0]?.mb ?? 0,
-    last: run.samples[run.samples.length - 1]?.mb ?? 0,
-  }))
-  const oursIdle = averages.find((row) => row.tool.ours)
-  const otherCpu = averages.filter((row) => !row.tool.ours).map((row) => row.cpu)
-  if (oursIdle !== undefined) {
-    document.getElementById("idle-text").textContent =
-      `Once its last pages finished loading, Browserheap used ${oursIdle.cpu.toFixed(1)}% of a core (the last 5 of the 10 minutes). The others used ${Math.round(Math.min(...otherCpu))}% to ${Math.round(Math.max(...otherCpu))}%: their 30 live tabs keep running scripts nobody is looking at. ` +
-      "Plain headless Chrome is the outlier, probably because Playwright's headless shell doesn't slow down background tabs the way full Chrome does. Even the gentlest of the others keeps a sixth of a core busy. " +
-      "Memory mostly holds steady once pages settle; Lightpanda gives back much of what it took while loading."
   }
-}
+  const agentRuns = window.BENCH.agents
+  const oursAgentRun = agentRuns.find((run) => run.browser === "browserheap")
+  const chromeAgentRun = agentRuns.find((run) => run.browser !== "browserheap")
+  if (oursAgentRun !== undefined && chromeAgentRun !== undefined) {
+    const chromeRounds = chromeAgentRun.rounds.length
+    summary.splice(4, 0, `<strong>10 agents fit on one 8 GB machine</strong> with 10 tabs each. On headless Chrome the machine was full after ${chromeRounds} tabs each.`)
+  }
+  document.getElementById("summary-list").innerHTML = summary.map((line) => `<li><span>${line}</span></li>`).join("")
 
-// Figure 5: how many tabs to keep live.
-if (B.live.length > 0) {
-  const rows = B.live.map((run) => ({ name: `${run.live} live`, ours: true, value: run.finalMb }))
-  const chromeRun = memoryRun("chrome-shell")
-  rows.push({ name: "Chrome, 30 live", value: chromeRun.finalMb })
-  drawValueBars(document.getElementById("live-chart"), rows, formatMb, fullWidth)
-}
+  // Full-width charts are drawn at the width they're shown at (never under
+  // 640, so they shrink to fit a phone), so their text stays its real size.
+  const fullWidth = Math.max(640, Math.round(document.getElementById("memory-chart").parentElement.clientWidth))
 
-// Figure 6: 10 agents on one machine.
-if (B.agents.length > 0) {
-  const series = B.agents.map((run) => {
-    const ours = run.browser === "browserheap"
-    return {
-      name: ours ? "Browserheap" : "Headless Chrome",
-      ours,
-      stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
-      points: [{ x: 0, y: run.idleMb }, ...run.rounds.map((round) => ({ x: round.totalTabs, y: round.mb }))],
+  // Memory
+  drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), fullWidth, 400)
+  drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), 560)
+  drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, 560)
+  document.getElementById("wake-ms").firstChild.textContent = wakeMedianMs()
+  document.getElementById("memory-text").textContent =
+    `Every browser except Browserheap grows in a straight line, because every tab it opened is still a live page. Browserheap moves with whichever 2 pages are live and ends at ${formatMb(ours.finalMb)}. The others end between ${othersRange()}. On this 8 GB machine, two agents with 30 tabs each would fill memory in any of the others. Browserheap leaves room for more than ten.`
+
+  // Lightpanda against Browserheap, tab by tab.
+  const lightpanda = memoryRun("lightpanda")
+  let lighterUntil = 0
+  while (lighterUntil < ours.perTab.length && lightpanda.perTab[lighterUntil].mb < ours.perTab[lighterUntil].mb) {
+    lighterUntil++
+  }
+  document.getElementById("lightpanda-text").textContent =
+    `Lightpanda is the interesting case. It starts lighter than Browserheap, because it never draws a page, and it stays lighter for the first ${lighterUntil} tabs. But each of its tabs stays in memory, and on heavy news sites like Bloomberg and Wired it grows by about 1 GB at a time. By 30 tabs it uses ${formatMb(lightpanda.finalMb)}, ${(lightpanda.finalMb / ours.finalMb).toFixed(1)}× what Browserheap uses.`
+
+  // Real sites, in words.
+  const chromeSites = siteSummary("chrome")
+  document.getElementById("sites-text").textContent =
+    `Browserheap loaded ${oursSites.loaded} of ${oursSites.total} sites, plain headless Chrome ${chromeSites.loaded}, and where both loaded, Browserheap showed the same content as Chrome on ${oursSites.same} of ${oursSites.compared}.`
+
+  // Actions, sites
+  fillActionsTable(document.getElementById("actions-table"))
+  fillSitesTable(document.getElementById("sites-table"))
+
+  // Configuration
+  const config = [
+    ["Memory, actions and sites", "One E2B sandbox per test: Linux 6.1 x86_64, 8 vCPUs, 8 GB. A fresh browser for every run."],
+    ["Memory measure", "Sum of PSS from /proc/<pid>/smaps_rollup over every browser process"],
+    ["CPU measure", "utime + stime from /proc/<pid>/stat over every browser process, per 15 s interval, as % of one core"],
+    ["Runs", "Every browser in its own sandbox, all at the same time. Memory at 30 tabs and waking 3 times each (charts show the median run); everything else once"],
+    ["Memory limit", "6.5 GB for the 100-tab and many-agent runs, so the 8 GB sandbox never runs out"],
+    ["Browserheap", SHOWS_SHELL
+      ? "0.3.0 with --headless-shell: Playwright's Chromium headless shell (playwright-core 1.63.0), 2 tabs live, ads, trackers, images, video and fonts blocked"
+      : "0.3.0: Playwright's Chromium (playwright-core 1.63.0) in headless mode, low-end device mode, 2 tabs live, ads, trackers, images, video and fonts blocked"],
+    ["Headless Chrome", "The same headless shell, every tab live, nothing blocked"],
+    ["Chrome + same blocking", "The same headless shell, every tab live, with Browserheap's blocking"],
+    ["Agent tools", "agent-browser 0.39.1 with its own Chrome 155; Stagehand 4.2.1, Playwright MCP 0.0.83 and browser-use 0.13.11 with Google Chrome 155.0.8059.84"],
+    ["Engines", "Lightpanda 1.0.0 and Obscura 0.2.4, driven by Playwright over the Chrome DevTools Protocol"],
+  ]
+  let configHtml = '<thead><tr><th class="left">Setting</th><th class="left">Value</th></tr></thead><tbody>'
+  for (const [name, value] of config) {
+    const cell = document.createElement("td")
+    cell.textContent = value
+    configHtml += `<tr><td class="text left" style="min-width: 160px">${name}</td><td class="text left">${cell.innerHTML}</td></tr>`
+  }
+  document.getElementById("config-table").innerHTML = `${configHtml}</tbody>`
+
+  fillMemoryTable(document.getElementById("memory-table"))
+
+  const B = window.BENCH
+  const gbText = (mb) => `${(mb / 1000).toFixed(1)} GB`
+
+  // Figure 3: up to 100 tabs.
+  if (B.scale.length > 0) {
+    const series = B.scale.map((run) => {
+      const tool = toolOf(run.browser)
+      return {
+        name: tool.name,
+        ours: tool.ours,
+        dashed: tool.engine,
+        stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
+        points: run.perTab.map((tab, i) => ({ x: i + 1, y: tab.mb })),
+      }
+    })
+    drawLineChart(document.getElementById("scale-chart"), document.getElementById("scale-tooltip"), series, {
+      xMin: 1, xMax: 100, xTicks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open",
+      yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
+      xTitle: (tab) => `${tab} tabs open`, valueFormat: formatMb,
+      limit: { y: 6500, label: "6.5 GB limit" },
+      width: fullWidth, height: 380,
+    })
+    const oursRun = B.scale.find((run) => toolOf(run.browser).ours)
+    const others = B.scale.filter((run) => !toolOf(run.browser).ours)
+    const reached = others.map((run) => run.perTab.length)
+    document.getElementById("scale-text").textContent =
+      `Every other browser hit the limit between ${Math.min(...reached)} and ${Math.max(...reached)} tabs. ` +
+      (oursRun === undefined ? "" : `Browserheap opened all ${oursRun.perTab.length} and ended at ${formatMb(oursRun.perTab[oursRun.perTab.length - 1].mb)}. At 10 tabs it had used ${formatMb(oursRun.perTab[9].mb)}: past the first few tabs, more tabs cost it almost nothing.`)
+  }
+
+  // Figure 4: 10 idle minutes.
+  if (B.idle.length > 0) {
+    const idleSeries = (measure) => B.idle.map((run) => {
+      const tool = toolOf(run.browser)
+      return { name: tool.name, ours: tool.ours, dashed: tool.engine, points: run.samples.map((sample) => ({ x: sample.seconds, y: measure(sample) })) }
+    })
+    const half = { width: 560, height: 360, labelRoom: 130, xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (s) => `${s / 60}`, xLabel: "idle minutes", xTitle: (s) => `${(s / 60).toFixed(2).replace(/\.?0+$/, "")} min idle` }
+    const cpuTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.cpu))))
+    drawLineChart(document.getElementById("cpu-chart"), document.getElementById("cpu-tooltip"), idleSeries((sample) => sample.cpu), {
+      ...half, yMax: cpuTop.max, yStep: cpuTop.max / 5, yFormat: (v) => `${v}%`, valueFormat: (v) => `${v}%`,
+    })
+    const mbTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.mb))))
+    drawLineChart(document.getElementById("creep-chart"), document.getElementById("creep-tooltip"), idleSeries((sample) => sample.mb), {
+      ...half, yMax: mbTop.max, yStep: mbTop.max / 5, yFormat: (mb) => (mb === 0 ? "0" : gbText(mb)), valueFormat: formatMb,
+    })
+    const averages = B.idle.map((run) => ({
+      tool: toolOf(run.browser),
+      cpu: settledCpu(run),
+      first: run.samples[0]?.mb ?? 0,
+      last: run.samples[run.samples.length - 1]?.mb ?? 0,
+    }))
+    const oursIdle = averages.find((row) => row.tool.ours)
+    const otherCpu = averages.filter((row) => !row.tool.ours).map((row) => row.cpu)
+    if (oursIdle !== undefined) {
+      document.getElementById("idle-text").textContent =
+        `Once its last pages finished loading, Browserheap used ${oursIdle.cpu.toFixed(1)}% of a core (the last 5 of the 10 minutes). The others used ${Math.round(Math.min(...otherCpu))}% to ${Math.round(Math.max(...otherCpu))}%: their 30 live tabs keep running scripts nobody is looking at. ` +
+        "Plain headless Chrome is the outlier, probably because Playwright's headless shell doesn't slow down background tabs the way full Chrome does. Even the gentlest of the others keeps a sixth of a core busy. " +
+        "Memory mostly holds steady once pages settle; Lightpanda gives back much of what it took while loading."
     }
-  })
-  drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), series, {
-    xMin: 0, xMax: 100, xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open across 10 agents",
-    yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
-    xTitle: (tabs) => `${tabs} tabs (${tabs / 10} per agent)`, valueFormat: formatMb,
-    limit: { y: 6500, label: "6.5 GB limit" },
-    width: fullWidth, height: 380,
-  })
-  const oursAgents = B.agents.find((run) => run.browser === "browserheap")
-  const chromeAgents = B.agents.find((run) => run.browser !== "browserheap")
-  if (oursAgents !== undefined && chromeAgents !== undefined) {
-    const oursLast = oursAgents.rounds[oursAgents.rounds.length - 1]
-    const chromeLast = chromeAgents.rounds[chromeAgents.rounds.length - 1]
-    document.getElementById("agents-text").textContent =
-      `On headless Chrome the 10 agents filled the machine after ${chromeLast.tabsEach} tabs each (${chromeLast.totalTabs} tabs, ${formatMb(chromeLast.mb)}). ` +
-      `On Browserheap all 10 agents opened their ${oursLast.tabsEach} tabs and used ${formatMb(oursLast.mb)} together. ` +
-      `That is 10 browsers (${formatMb(oursAgents.idleMb)} before any tab), each with 2 live pages.`
   }
+
+  // Figure 5: how many tabs to keep live.
+  if (B.live.length > 0) {
+    const rows = B.live.map((run) => ({ name: `${run.live} live`, ours: true, value: run.finalMb }))
+    const chromeRun = memoryRun("chrome-shell")
+    rows.push({ name: "Chrome, 30 live", value: chromeRun.finalMb })
+    drawValueBars(document.getElementById("live-chart"), rows, formatMb, fullWidth)
+  }
+
+  // Figure 6: 10 agents on one machine.
+  if (B.agents.length > 0) {
+    const series = B.agents.map((run) => {
+      const ours = run.browser === "browserheap"
+      return {
+        name: ours ? "Browserheap" : "Headless Chrome",
+        ours,
+        stopped: run.stopped === "memory limit" ? "6.5 GB" : run.stopped,
+        points: [{ x: 0, y: run.idleMb }, ...run.rounds.map((round) => ({ x: round.totalTabs, y: round.mb }))],
+      }
+    })
+    drawLineChart(document.getElementById("agents-chart"), document.getElementById("agents-tooltip"), series, {
+      xMin: 0, xMax: 100, xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], xLabel: "tabs open across 10 agents",
+      yMax: 7000, yStep: 1000, yFormat: (mb) => (mb === 0 ? "0" : `${mb / 1000} GB`),
+      xTitle: (tabs) => `${tabs} tabs (${tabs / 10} per agent)`, valueFormat: formatMb,
+      limit: { y: 6500, label: "6.5 GB limit" },
+      width: fullWidth, height: 380,
+    })
+    const oursAgents = B.agents.find((run) => run.browser === "browserheap")
+    const chromeAgents = B.agents.find((run) => run.browser !== "browserheap")
+    if (oursAgents !== undefined && chromeAgents !== undefined) {
+      const oursLast = oursAgents.rounds[oursAgents.rounds.length - 1]
+      const chromeLast = chromeAgents.rounds[chromeAgents.rounds.length - 1]
+      document.getElementById("agents-text").textContent =
+        `On headless Chrome the 10 agents filled the machine after ${chromeLast.tabsEach} tabs each (${chromeLast.totalTabs} tabs, ${formatMb(chromeLast.mb)}). ` +
+        `On Browserheap all 10 agents opened their ${oursLast.tabsEach} tabs and used ${formatMb(oursLast.mb)} together. ` +
+        `That is 10 browsers (${formatMb(oursAgents.idleMb)} before any tab), each with 2 live pages.`
+    }
+  }
+
+  // Figure 7: waking every tab.
+  if (B.wakeAll !== null && B.wakeAll.length > 0) {
+    const wakes = B.wakeAll.map((tab) => ({ ms: tab.wakeMs, label: siteName(tab.url) }))
+    const loads = B.wakeAll.map((tab) => ({ ms: tab.loadMs, label: siteName(tab.url) }))
+    drawDotStrips(document.getElementById("wake-chart"), [
+      { name: "Waking a tab", ours: true, values: wakes },
+      { name: "Loading it first", values: loads },
+    ], [50, 100, 300, 1000, 3000, 10000, 30000])
+    const underSecond = wakes.filter((wake) => wake.ms < 1000).length
+    document.getElementById("wake-text").textContent =
+      `The median tab woke in ${median(wakes.map((wake) => wake.ms))} ms, against ${(median(loads.map((load) => load.ms)) / 1000).toFixed(1)} s to load it the first time. ` +
+      `${underSecond} of ${wakes.length} woke in under a second. Waking is faster than loading mostly because the page's code, images and fonts are still in the browser's cache.`
+  }
+
+  // Figure 8: load time of every site, and Table 3: sites by kind.
+  drawDotStrips(document.getElementById("load-chart"), ENGINES.map((engine) => ({
+    name: engine.name,
+    ours: engine.ours,
+    values: B.sites[engine.id].filter((site) => site.loaded && site.loadMs !== null).map((site) => ({ ms: site.loadMs, label: siteName(site.url) })),
+  })), [100, 300, 1000, 3000, 10000, 30000])
+  fillKindGrid(document.getElementById("kind-grid"))
 }
-
-// Figure 7: waking every tab.
-if (B.wakeAll !== null && B.wakeAll.length > 0) {
-  const wakes = B.wakeAll.map((tab) => ({ ms: tab.wakeMs, label: siteName(tab.url) }))
-  const loads = B.wakeAll.map((tab) => ({ ms: tab.loadMs, label: siteName(tab.url) }))
-  drawDotStrips(document.getElementById("wake-chart"), [
-    { name: "Waking a tab", ours: true, values: wakes },
-    { name: "Loading it first", values: loads },
-  ], [50, 100, 300, 1000, 3000, 10000, 30000])
-  const underSecond = wakes.filter((wake) => wake.ms < 1000).length
-  document.getElementById("wake-text").textContent =
-    `The median tab woke in ${median(wakes.map((wake) => wake.ms))} ms, against ${(median(loads.map((load) => load.ms)) / 1000).toFixed(1)} s to load it the first time. ` +
-    `${underSecond} of ${wakes.length} woke in under a second. Waking is faster than loading mostly because the page's code, images and fonts are still in the browser's cache.`
-}
-
-// Figure 8: load time of every site, and Table 3: sites by kind.
-drawDotStrips(document.getElementById("load-chart"), ENGINES.map((engine) => ({
-  name: engine.name,
-  ours: engine.ours,
-  values: B.sites[engine.id].filter((site) => site.loaded && site.loadMs !== null).map((site) => ({ ms: site.loadMs, label: siteName(site.url) })),
-})), [100, 300, 1000, 3000, 10000, 30000])
-fillKindGrid(document.getElementById("kind-grid"))
-
+drawAll()
+fillBrowserSwitch(document.getElementById("browser-switch"), document.getElementById("browser-note"), drawAll)
 </script>
 </body>
 </html>
