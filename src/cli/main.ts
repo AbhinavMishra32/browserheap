@@ -14,6 +14,8 @@
  *   --session <name>    a separate browser with its own tabs (default "default"), for agents side by side
  *   --live <n>          tabs live at once, when this command starts the browser (default 2)
  *   --block <what>      "ads" (default), "all" (also images, video, fonts) or "none", same
+ *   --headed            the browser opens a window, for sites that turn headless browsers away, same
+ *   --connect <url>     use a Chrome you started (chrome --remote-debugging-port=9222 → http://127.0.0.1:9222)
  *
  * The first command starts the browser in the background (server.ts); it
  * keeps the tabs and the REPL's variables between commands. What the code
@@ -45,6 +47,8 @@ const USAGE = `browserheap: a browser for agents, where idle tabs sleep.
   --session <name>   a separate browser (default "default")
   --live <n>         tabs live at once (default 2)
   --block <what>     ads (default), all, none
+  --headed           open a window (for sites that turn headless browsers away)
+  --connect <url>    use a Chrome you started with --remote-debugging-port
 
 In the REPL: page, tabs, openTab(url), closeTab(page), snapshot(page), findInTabs(query),
 annotatedScreenshot(page), display(image), console.log(…), sleep(ms).
@@ -56,7 +60,10 @@ const flags: Record<string, string> = {}
 const raw = process.argv.slice(2)
 for (let index = 0; index < raw.length; index++) {
   const arg = raw[index] ?? ""
-  if (arg.startsWith("--")) {
+  if (arg === "--headed") {
+    // The one flag without a value.
+    flags.headed = "1"
+  } else if (arg.startsWith("--")) {
     flags[arg.slice(2)] = raw[index + 1] ?? ""
     index++
   } else {
@@ -72,7 +79,12 @@ const TABS_CODE = `for (const [index, tab] of tabs.entries()) {
 if (tabs.length === 0) console.log("No tabs. browserheap open <url> opens one.")`
 
 const session = flags.session ?? "default"
-const settings: StartSettings = { maxLive: flags.live, block: flags.block }
+const settings: StartSettings = {
+  maxLive: flags.live,
+  block: flags.block,
+  headed: flags.headed === "1",
+  connect: flags.connect,
+}
 const command = args[0]
 
 if (command === undefined || command === "help") {

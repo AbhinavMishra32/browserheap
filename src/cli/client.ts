@@ -23,6 +23,8 @@ interface ServerInfo {
 export interface StartSettings {
   maxLive?: string
   block?: string
+  headed?: boolean
+  connect?: string
 }
 
 function readInfo(name: string): ServerInfo | null {
@@ -55,6 +57,8 @@ async function start(name: string, settings: StartSettings): Promise<ServerInfo>
       ...process.env,
       BROWSERHEAP_MAX_LIVE: settings.maxLive ?? process.env.BROWSERHEAP_MAX_LIVE,
       BROWSERHEAP_BLOCK: settings.block ?? process.env.BROWSERHEAP_BLOCK,
+      BROWSERHEAP_HEADED: settings.headed ? "1" : process.env.BROWSERHEAP_HEADED,
+      BROWSERHEAP_CONNECT: settings.connect ?? process.env.BROWSERHEAP_CONNECT,
     },
   })
   child.unref()

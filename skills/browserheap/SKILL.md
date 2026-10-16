@@ -90,11 +90,33 @@ npx browserheap stop                          # close the browser when you're do
 - `--session <name>` gives a separate browser with its own tabs: use one per task when several
   agents browse at once.
 - `--live <n>` keeps more tabs live (set it on the first command of a session).
+- `--headed` opens the browser with a window (first command of a session): for sites that still
+  turn the headless browser away.
+- `--connect http://127.0.0.1:9222` drives a Chrome the user started with
+  `--remote-debugging-port=9222`: their own browser, with their sign-ins.
+- Cookies and site storage are kept between sessions (`~/.browserheap/<session>-state.json`), so a
+  site that let you in once still knows you. `BROWSERHEAP_STATE=off` starts clean and saves nothing.
 - Images your code displays are saved under `~/.browserheap/images/`; the command prints each path.
 
 ## Tips
 
 - One `run` can do many steps: search, open the top results, read each, print a summary.
 - Prefer `snapshot(page, { interactive: true })` on busy pages; print `.diff` after actions.
-- If a site shows a bot check or nothing loads, say so; don't guess what the page contains.
+- Never guess what a page says. If you couldn't read it, say so.
+
+## When a site gets in the way
+
+- **Searching:** open the results page directly, e.g.
+  `await openTab("https://www.google.com/search?q=" + encodeURIComponent(query))`. If Google shows
+  a check, use Bing (`https://www.bing.com/search?q=…`).
+- **A "Just a moment" or "checking your browser" page** often clears by itself: wait a few
+  seconds (`await sleep(5000)`) and take a new snapshot.
+- **Still blocked?** Get the same information another way before giving up: the site's own search
+  or another page on it, another site that has it, a search result's snippet. Try at least two
+  other ways. Then, for the hardest sites, a new session with `--headed`.
+- **A CAPTCHA that is part of the task** (a form you were asked to fill in, a test page): look at it
+  with `display(await page.screenshot())` and type what it shows. A CAPTCHA a site uses to keep
+  automated browsers out is a "no": find the information elsewhere or ask the user.
+- **Files to upload:** write the file first, then `await page.locator("input[type=file]").setInputFiles("/path/to/file")`.
+- **Sites that need the user's account:** ask them, or use `--connect` with their own Chrome.
 - Close the browser with `npx browserheap stop` when the task is finished.

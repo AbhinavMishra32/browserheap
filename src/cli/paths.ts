@@ -3,6 +3,7 @@
  *
  *   <name>.json      how to reach a running background browser: { port, token, pid } (mode 600)
  *   <name>.log       what that browser printed
+ *   <name>-state.json  its cookies and site storage, kept between sessions (mode 600)
  *   images/          screenshots and other images the agent's code displayed
  *
  * Used by: server.ts, client.ts, main.ts
@@ -29,6 +30,10 @@ export function serverFile(name: string): string {
 
 export function logFile(name: string): string {
   return inHome(`${safe(name)}.log`)
+}
+
+export function stateFile(name: string): string {
+  return inHome(`${safe(name)}-state.json`)
 }
 
 export function imagesFolder(): string {
