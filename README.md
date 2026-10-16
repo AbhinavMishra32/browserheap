@@ -65,7 +65,9 @@ doesn't announce itself as automated, so sites that check for bots let it in far
 sites that check, 0 turned it away from a home connection; the headless shell was turned away by
 12). Cookies and site storage are kept between sessions in `~/.browserheap/`, so a site that let it
 in once still knows it. For the few that still say no, `--headed` opens a window, and
-`--connect http://127.0.0.1:9222` drives your own Chrome with your sign-ins.
+`--connect http://127.0.0.1:9222` drives your own Chrome with your sign-ins. Where bot checks don't
+matter (your own app, docs), `--headless-shell` runs Chromium's headless shell instead, for less
+memory and faster wakes.
 
 ## Numbers
 

@@ -79,11 +79,15 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
     <header class="post-head">
       <p class="eyebrow">Research</p>
       <h1 class="g">Agents leave tabs open. We measured what that costs.</h1>
-      <p class="lede">We opened the same 30 websites in every popular agent browser, ran 19 agent actions and 60 real sites through the lightweight engines, and gave the same AI agent real tasks on two browsers. Here is everything we found, including where we lost.</p>
+      <p class="lede">We opened the same 30 websites in every popular agent browser, and ran 19 agent actions and 60 real sites through the lightweight engines. Here is everything we found, including where we lost.</p>
       <div class="byline"><span>16 October 2026</span><span>Abhinav Mishra</span><span>12 min read</span></div>
       <nav class="toc" aria-label="Sections">
         <a href="#why">Why tabs pile up</a><a href="#setup">Setup</a><a href="#memory">Memory</a><a href="#agents">Many agents</a><a href="#waking">Waking</a><a href="#actions">Actions</a><a href="#sites">Real sites</a><a href="#config">Configuration</a><a href="#limits">Limits</a><a href="#data">Raw data</a>
       </nav>
+      <div class="browser-pick">
+        <nav class="segmented" id="browser-switch" aria-label="Which Browserheap"></nav>
+        <p class="browser-note" id="browser-note"></p>
+      </div>
     </header>
 
     <div class="prose">
@@ -100,7 +104,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
       <h2 id="setup"><span class="num">02</span>What we built and what we compared</h2>
       <p><strong>Browserheap</strong> keeps the 2 tabs the agent used most recently as live Chromium pages. Every other tab sleeps: its page is closed and the tab keeps what it needs to come back as it was: its scroll and every scrolled panel's, filled-in fields, focus, sessionStorage, back/forward history and the agent's snapshot refs, plus its title and text. The agent can still read a sleeping tab. When it clicks, types or reads from the live page, the tab wakes as it was, with the same cookies. Tabs holding text the agent typed but hasn't sent never sleep.</p>
       <p>The agent never sees any of this. Its code holds pages and locators that belong to the tab, not to a Chromium page, so a page kept in a variable still works after its tab slept and woke.</p>
-      <p>We compared it with the agent tools people use today, each with its default settings: <strong>agent-browser</strong>, <strong>Stagehand</strong>, <strong>browser-use</strong> and <strong>Playwright MCP</strong>, plus plain <strong>headless Chrome</strong>. All five run Chrome underneath. We also included two browser engines built to be light: <strong>Lightpanda</strong>, which doesn't lay out or draw pages, and <strong>Obscura</strong>. We measured Browserheap 0.2.2. To see how much of the difference is Browserheap blocking ads and trackers, we also ran the same headless Chrome with Browserheap's blocking turned on.</p>
+      <p>We compared it with the agent tools people use today, each with its default settings: <strong>agent-browser</strong>, <strong>Stagehand</strong>, <strong>browser-use</strong> and <strong>Playwright MCP</strong>, plus plain <strong>headless Chrome</strong>. All five run Chrome underneath. We also included two browser engines built to be light: <strong>Lightpanda</strong>, which doesn't lay out or draw pages, and <strong>Obscura</strong>. We measured Browserheap 0.3.0 twice over: on Chromium, its default, and with <code>--headless-shell</code>, on Chromium's headless shell, the lighter build headless tools use; the switch at the top picks which one every number shows. To see how much of the difference is Browserheap blocking ads and trackers, we also ran the same headless Chrome with Browserheap's blocking turned on.</p>
 
       <h2 id="memory"><span class="num">03</span>Memory, 1 to 30 tabs</h2>
       <p>Each browser opened the same 30 real websites one after another, from Wikipedia and MDN to The Verge, Bloomberg and Amazon, and never closed any. After each page loaded we summed the memory of every browser process.</p>
@@ -122,7 +126,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
         </div>
         <figcaption><b>Figure 2.</b> Left: total memory with all 30 tabs open. Right: the slope of a straight line through each run, which is what one more tab costs.</figcaption>
       </figure>
-      <p>Lightpanda is the interesting case. It starts lighter than Browserheap, because it never draws a page, and it stays lighter for the first 11 tabs. But each of its tabs stays in memory, and on heavy news sites like Bloomberg and Wired it grows by about 1 GB at a time. By 30 tabs it uses 3.9 GB, seven times what Browserheap uses.</p>
+      <p id="lightpanda-text"></p>
       <div class="callout">
         <span class="value" id="wake-ms">274<small>ms</small></span>
         <p>The cost of sleeping: the median time to wake a tab, over every one of the 30, from the agent's click to the page being ready to use.</p>
@@ -202,7 +206,7 @@ details .table-scroll { border: 0; border-top: 1px solid var(--line); border-rad
         <div class="table-scroll"><table id="kind-grid"></table></div>
         <figcaption><b>Table 3.</b> Sites that loaded, by kind of site.</figcaption>
       </figure>
-      <p>Browserheap loads faster than plain Chrome because it blocks ads and trackers. It missed one page Chrome loaded, Amazon, and one page showed different content from Chrome's: Target, whose deals change between visits. Lightpanda got past bot walls that stop headless Chrome on CNN, Best Buy, Zara, Airbnb and Spotify, which is a real advantage. Obscura timed out or showed nothing on The Verge, Al Jazeera, Amazon, Target, Booking and Twitch.</p>
+      <p><span id="sites-text"></span> Lightpanda got past bot walls that stop headless Chrome on CNN, Best Buy, Zara, Airbnb and Spotify, which is a real advantage. Obscura timed out or showed nothing on The Verge, Al Jazeera, Amazon, Target, Booking and Twitch.</p>
 
       <h2 id="config"><span class="num">07</span>Configuration</h2>
       <figure class="figure">
@@ -248,6 +252,7 @@ node bench/e2b/run.ts compat</pre>
 <script>
 glitchText(document.querySelector("h1.g"))
 
+fillBrowserSwitch(document.getElementById("browser-switch"), document.getElementById("browser-note"), "summary-title")
 const ours = memoryRun("browserheap --live 2")
 const others = RIVALS.map((tool) => memoryRun(tool.id))
 const otherFinals = others.map((run) => run.finalMb)
@@ -270,11 +275,10 @@ if (scaleOursRun !== undefined) {
 }
 const idleRuns = window.BENCH.idle.filter((run) => run.samples.length > 0)
 if (idleRuns.length > 0) {
-  const averageCpu = (run) => Math.round(run.samples.reduce((sum, sample) => sum + sample.cpu, 0) / run.samples.length)
   const oursIdleRun = idleRuns.find((run) => toolOf(run.browser).ours)
-  const othersCpu = idleRuns.filter((run) => !toolOf(run.browser).ours).map(averageCpu)
+  const othersCpu = idleRuns.filter((run) => !toolOf(run.browser).ours).map((run) => Math.round(settledCpu(run)))
   if (oursIdleRun !== undefined) {
-    summary.splice(3, 0, `<strong>Idle tabs cost no CPU.</strong> With 30 tabs open and nothing happening, Browserheap averaged ${averageCpu(oursIdleRun)}% of a core; the others ${Math.min(...othersCpu)}% to ${Math.max(...othersCpu)}%.`)
+    summary.splice(3, 0, `<strong>Idle tabs cost almost no CPU.</strong> With 30 tabs open and nothing happening, once the pages settled, Browserheap used ${settledCpu(oursIdleRun).toFixed(1)}% of a core; the others ${Math.min(...othersCpu)}% to ${Math.max(...othersCpu)}%.`)
   }
 }
 const agentRuns = window.BENCH.agents
@@ -298,6 +302,20 @@ document.getElementById("wake-ms").firstChild.textContent = wakeMedianMs()
 document.getElementById("memory-text").textContent =
   `Every browser except Browserheap grows in a straight line, because every tab it opened is still a live page. Browserheap moves with whichever 2 pages are live and ends at ${formatMb(ours.finalMb)}. The others end between ${othersRange()}. On this 8 GB machine, two agents with 30 tabs each would fill memory in any of the others. Browserheap leaves room for more than ten.`
 
+// Lightpanda against Browserheap, tab by tab.
+const lightpanda = memoryRun("lightpanda")
+let lighterUntil = 0
+while (lighterUntil < ours.perTab.length && lightpanda.perTab[lighterUntil].mb < ours.perTab[lighterUntil].mb) {
+  lighterUntil++
+}
+document.getElementById("lightpanda-text").textContent =
+  `Lightpanda is the interesting case. It starts lighter than Browserheap, because it never draws a page, and it stays lighter for the first ${lighterUntil} tabs. But each of its tabs stays in memory, and on heavy news sites like Bloomberg and Wired it grows by about 1 GB at a time. By 30 tabs it uses ${formatMb(lightpanda.finalMb)}, ${(lightpanda.finalMb / ours.finalMb).toFixed(1)}× what Browserheap uses.`
+
+// Real sites, in words.
+const chromeSites = siteSummary("chrome")
+document.getElementById("sites-text").textContent =
+  `Browserheap loaded ${oursSites.loaded} of ${oursSites.total} sites, plain headless Chrome ${chromeSites.loaded}, and where both loaded, Browserheap showed the same content as Chrome on ${oursSites.same} of ${oursSites.compared}.`
+
 // Actions, sites
 fillActionsTable(document.getElementById("actions-table"))
 fillSitesTable(document.getElementById("sites-table"))
@@ -309,7 +327,9 @@ const config = [
   ["CPU measure", "utime + stime from /proc/<pid>/stat over every browser process, per 15 s interval, as % of one core"],
   ["Runs", "Every browser in its own sandbox, all at the same time. Memory at 30 tabs and waking 3 times each (charts show the median run); everything else once"],
   ["Memory limit", "6.5 GB for the 100-tab and many-agent runs, so the 8 GB sandbox never runs out"],
-  ["Browserheap", "0.2.2, on Playwright's Chromium headless shell (playwright-core 1.63.0), 2 tabs live, ads, trackers, images, video and fonts blocked"],
+  ["Browserheap", SHOWS_SHELL
+    ? "0.3.0 with --headless-shell: Playwright's Chromium headless shell (playwright-core 1.63.0), 2 tabs live, ads, trackers, images, video and fonts blocked"
+    : "0.3.0: Playwright's Chromium (playwright-core 1.63.0) in headless mode, low-end device mode, 2 tabs live, ads, trackers, images, video and fonts blocked"],
   ["Headless Chrome", "The same headless shell, every tab live, nothing blocked"],
   ["Chrome + same blocking", "The same headless shell, every tab live, with Browserheap's blocking"],
   ["Agent tools", "agent-browser 0.39.1 with its own Chrome 155; Stagehand 4.2.1, Playwright MCP 0.0.83 and browser-use 0.13.11 with Google Chrome 155.0.8059.84"],
@@ -372,7 +392,7 @@ if (B.idle.length > 0) {
   })
   const averages = B.idle.map((run) => ({
     tool: toolOf(run.browser),
-    cpu: run.samples.reduce((sum, sample) => sum + sample.cpu, 0) / Math.max(1, run.samples.length),
+    cpu: settledCpu(run),
     first: run.samples[0]?.mb ?? 0,
     last: run.samples[run.samples.length - 1]?.mb ?? 0,
   }))
@@ -380,7 +400,7 @@ if (B.idle.length > 0) {
   const otherCpu = averages.filter((row) => !row.tool.ours).map((row) => row.cpu)
   if (oursIdle !== undefined) {
     document.getElementById("idle-text").textContent =
-      `Doing nothing, Browserheap used ${Math.round(oursIdle.cpu)}% of a core on average. The others used ${Math.round(Math.min(...otherCpu))}% to ${Math.round(Math.max(...otherCpu))}%: their 30 live tabs keep running scripts nobody is looking at. ` +
+      `Once its last pages finished loading, Browserheap used ${oursIdle.cpu.toFixed(1)}% of a core (the last 5 of the 10 minutes). The others used ${Math.round(Math.min(...otherCpu))}% to ${Math.round(Math.max(...otherCpu))}%: their 30 live tabs keep running scripts nobody is looking at. ` +
       "Plain headless Chrome is the outlier, probably because Playwright's headless shell doesn't slow down background tabs the way full Chrome does. Even the gentlest of the others keeps a sixth of a core busy. " +
       "Memory mostly holds steady once pages settle; Lightpanda gives back much of what it took while loading."
   }

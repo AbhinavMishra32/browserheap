@@ -118,6 +118,13 @@ p { margin: 0; }
 .segmented button { height: 26px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-3); font: 500 12.5px var(--font-sans); cursor: pointer; }
 .segmented button:hover { color: var(--ink); }
 .segmented button[aria-selected="true"] { background: var(--line); color: var(--ink); }
+.segmented a { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 6px; color: var(--ink-3); font: 500 12.5px var(--font-sans); text-decoration: none; white-space: nowrap; }
+.segmented a:hover { color: var(--ink); }
+.segmented a[aria-current="true"] { background: var(--line); color: var(--ink); }
+.panel-head { flex-wrap: wrap; }
+.panel-note { margin: 0; padding: 10px 16px 0; }
+.browser-pick { margin-top: 20px; }
+.browser-note { margin: 10px 0 0; color: var(--ink-3); font-size: 13.5px; line-height: 1.55; max-width: 72ch; }
 
 pre.code { margin: 0; color: var(--ink-2); padding: 16px 18px; font-size: 13px; line-height: 1.7; overflow-x: auto; min-width: 0; }
 pre.code .c { color: var(--ink-3); }

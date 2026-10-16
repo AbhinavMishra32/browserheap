@@ -3,6 +3,65 @@
 
 const NS = "http://www.w3.org/2000/svg"
 
+// Which Browserheap the page shows: the default browser (Chromium), or
+// Chromium's headless shell (`browserheap --headless-shell`), picked with
+// ?browser=headless-shell. data.js has both. The one not shown is taken out
+// and the shell's runs take the default's names, so every chart reads one.
+const SHOWS_SHELL = new URLSearchParams(location.search).get("browser") === "headless-shell"
+chooseBrowser(window.BENCH, SHOWS_SHELL)
+
+function chooseBrowser(B, shell) {
+  const isOurs = (name) => name.startsWith("browserheap")
+  const isShell = (name) => name.endsWith(" --headless-shell") || name === "browserheap-shell"
+  const plainName = (name) => (name === "browserheap-shell" ? "browserheap" : name.replace(" --headless-shell", ""))
+  // Keep every other browser's runs, and ours only for the browser shown.
+  const pick = (runs) => {
+    const kept = []
+    for (const run of runs) {
+      if (!isOurs(run.browser)) {
+        kept.push(run)
+      } else if (isShell(run.browser) === shell) {
+        kept.push({ ...run, browser: plainName(run.browser) })
+      }
+    }
+    return kept
+  }
+  B.memory = pick(B.memory)
+  B.idle = pick(B.idle)
+  B.scale = pick(B.scale)
+  B.actions = pick(B.actions)
+  B.agents = pick(B.agents)
+  B.live = B.live.filter((run) => run.shell === shell)
+  if (shell) {
+    B.sites.browserheap = B.sites["browserheap-shell"]
+  }
+  delete B.sites["browserheap-shell"]
+  const wake = shell ? B.wake.shell : B.wake.chromium
+  B.wakeAll = wake.wakeAll
+  B.wakeMedians = wake.medians
+}
+
+/**
+ * The switch between the two, and a line on what the one shown is better at.
+ * `anchor` is where the page lands after switching.
+ */
+function fillBrowserSwitch(container, note, anchor) {
+  const links = [
+    { label: "Chromium (default)", href: `?#${anchor}`, on: !SHOWS_SHELL },
+    { label: "--headless-shell", href: `?browser=headless-shell#${anchor}`, on: SHOWS_SHELL },
+  ]
+  container.innerHTML = links
+    .map((link) => `<a href="${link.href}"${link.on ? ' aria-current="true"' : ""}>${link.label}</a>`)
+    .join("")
+  const walls = window.BENCH.walls
+  const sites = walls.sites
+  if (SHOWS_SHELL) {
+    note.textContent = `Chromium's headless shell, with browserheap --headless-shell: the least memory and CPU, for sites that don't check for bots. Sites that do turned it away ${walls.dataCentre["browserheap-shell"]} times in ${sites} from a data centre and ${walls.home["browserheap-shell"]} from a home connection (the default: ${walls.dataCentre.browserheap} and ${walls.home.browserheap}).`
+  } else {
+    note.textContent = `The default: Chromium itself, which sites treat like a person's browser. Of ${sites} sites that check for bots, ${walls.dataCentre.browserheap} turned it away from a data centre and ${walls.home.browserheap} from a home connection (the headless shell: ${walls.dataCentre["browserheap-shell"]} and ${walls.home["browserheap-shell"]}).`
+  }
+}
+
 // The memory run's browsers: ours, the agent tools, then the engines (dashed).
 const TOOLS = [
   { id: "browserheap --live 2", name: "Browserheap", ours: true },
@@ -45,15 +104,21 @@ function actionRun(id) {
   return window.BENCH.actions.find((run) => run.browser === id)
 }
 
-/** Average CPU over the idle minutes, as % of one core. */
-function idleCpu(id) {
-  const run = window.BENCH.idle.find((each) => each.browser === id)
-  const samples = run.samples.filter((sample) => sample.cpu !== null && sample.cpu !== undefined)
+/**
+ * CPU once the pages have settled: the average over the last 5 of the 10 idle
+ * minutes, as % of one core. The first minutes include pages still loading.
+ */
+function settledCpu(run) {
+  const samples = run.samples.filter((sample) => sample.cpu !== null && sample.cpu !== undefined && sample.seconds >= 300)
   let total = 0
   for (const sample of samples) {
     total += sample.cpu
   }
   return total / samples.length
+}
+
+function idleCpu(id) {
+  return settledCpu(window.BENCH.idle.find((each) => each.browser === id))
 }
 
 /** Memory the way you'd say it: "411 MB", "4.2 GB". */

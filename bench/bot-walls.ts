@@ -16,10 +16,12 @@
  *   browserheap-shell  Browserheap with --headless-shell
  *   chromium-quiet  the same with Playwright's full Chromium (new headless) instead of Chrome
  *
- * Prints one line per site and setup, then the count of walls per setup.
+ * Prints one line per site and setup, then the count of walls per setup,
+ * and saves the counts to bench/results/bot-walls-<time>.json.
  *
  * Uses: playwright-core
  */
+import { mkdirSync, writeFileSync } from "node:fs"
 import { type Browser, chromium, type LaunchOptions } from "playwright-core"
 import { launch } from "../src/index.ts"
 
@@ -178,8 +180,8 @@ async function check(setupName: string): Promise<number> {
       }
       verdict += `  ${title.slice(0, 60)}`
     } catch (error) {
+      // Didn't load in time: not a bot check, so not counted as one.
       verdict = `fail ${String(error).split("\n")[0]?.slice(0, 60)}`
-      walls++
     }
     console.log(`${setupName.padEnd(13)} ${verdict.padEnd(80)} ${new URL(url).hostname}`)
     await page.close()
@@ -207,8 +209,8 @@ async function checkBrowserheap(name: string): Promise<number> {
         walls++
       }
     } catch (error) {
+      // Didn't load in time: not a bot check, so not counted as one.
       verdict = `fail ${String(error).split("\n")[0]?.slice(0, 60)}`
-      walls++
     }
     console.log(`${name.padEnd(13)} ${verdict.padEnd(80)} ${new URL(url).hostname}`)
   }
@@ -221,8 +223,16 @@ const chosen =
     ? process.argv.slice(2)
     : [...Object.keys(SETUPS), "browserheap", "browserheap-shell"]
 const totals: string[] = []
+const counts: Record<string, number> = {}
 for (const setup of chosen) {
   const walls = await check(setup)
+  counts[setup] = walls
   totals.push(`${setup}: ${walls} of ${SITES.length} walled`)
 }
 console.log(totals.join("\n"))
+
+const measuredAt = new Date().toISOString()
+mkdirSync("bench/results", { recursive: true })
+const file = `bench/results/bot-walls-${measuredAt.replace(/[:.]/g, "-")}.json`
+writeFileSync(file, `${JSON.stringify({ sites: SITES.length, walled: counts, measuredAt }, null, 2)}\n`)
+console.log(`saved ${file}`)

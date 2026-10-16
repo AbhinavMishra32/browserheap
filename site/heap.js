@@ -64,7 +64,7 @@ function wake(tab) {
 
 function countHeap(open) {
   const ours = BASE_MB + 2 * LIVE_MB + (open - 2) * ASLEEP_MB
-  const chrome = BASE_MB + open * CHROME_TAB_MB
+  const chrome = CHROME_BASE_MB + open * CHROME_TAB_MB
   heapCount.innerHTML = `<b>${open} tabs open</b> · 2 awake · ${formatMb(ours)} <span>Plain Chrome: ${formatMb(chrome)}</span>`
 }
 

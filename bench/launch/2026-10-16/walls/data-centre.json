@@ -1,0 +1,14 @@
+{
+  "sites": 22,
+  "walled": {
+    "shell": 12,
+    "shell-quiet": 11,
+    "chrome": 11,
+    "chrome-quiet": 7,
+    "shell-filled": 10,
+    "chromium-quiet": 8,
+    "browserheap": 3,
+    "browserheap-shell": 5
+  },
+  "measuredAt": "2026-10-16T11:48:06.618Z"
+}

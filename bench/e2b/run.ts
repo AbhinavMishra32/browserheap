@@ -87,6 +87,21 @@ const JOBS: Record<string, JobBrowser[]> = {
     { name: "live-4", folder: "/opt/bench", command: "node bench/run.ts browserheap 30 --live 4" },
     { name: "live-8", folder: "/opt/bench", command: "node bench/run.ts browserheap 30 --live 8" },
     {
+      name: "live-1-shell",
+      folder: "/opt/bench",
+      command: "node bench/run.ts browserheap 30 --live 1 --headless-shell",
+    },
+    {
+      name: "live-4-shell",
+      folder: "/opt/bench",
+      command: "node bench/run.ts browserheap 30 --live 4 --headless-shell",
+    },
+    {
+      name: "live-8-shell",
+      folder: "/opt/bench",
+      command: "node bench/run.ts browserheap 30 --live 8 --headless-shell",
+    },
+    {
       name: "wake-all-shell",
       folder: "/opt/bench",
       command: "node bench/run.ts browserheap 30 --live 2 --wake-all --headless-shell",

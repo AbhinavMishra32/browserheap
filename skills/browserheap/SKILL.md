@@ -92,6 +92,8 @@ npx browserheap stop                          # close the browser when you're do
 - `--live <n>` keeps more tabs live (set it on the first command of a session).
 - `--headed` opens the browser with a window (first command of a session): for sites that still
   turn the headless browser away.
+- `--headless-shell` runs Chromium's headless shell (first command of a session): less memory and
+  faster wakes, but more sites show bot checks. Fine for local apps and docs.
 - `--connect http://127.0.0.1:9222` drives a Chrome the user started with
   `--remote-debugging-port=9222`: their own browser, with their sign-ins.
 - Cookies and site storage are kept between sessions (`~/.browserheap/<session>-state.json`), so a

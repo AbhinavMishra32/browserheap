@@ -350,8 +350,10 @@
       </div>
       <div class="panel">
         <div class="panel-head">
-          <span class="title">Memory and CPU <span class="chip ok">✓ Measured 16 Oct 2026 · v0.2.2</span></span>
+          <span class="title">Memory and CPU <span class="chip ok">✓ Measured 16 Oct 2026 · v0.3.0</span></span>
+          <nav class="segmented" id="browser-switch" aria-label="Which Browserheap"></nav>
         </div>
+        <p class="browser-note panel-note" id="browser-note"></p>
         <div class="bench-stats" id="stats"></div>
         <div class="bench-chart">
           <ul class="legend"><li><span class="key ours"></span>Browserheap</li><li><span class="key"></span>Agent tools</li><li><span class="key dash"></span>Engines</li></ul>
@@ -785,13 +787,15 @@ function wireTabs(buttonAttr, panelAttr) {
 }
 wireTabs("data-way", "data-way-panel")
 
+fillBrowserSwitch(document.getElementById("browser-switch"), document.getElementById("browser-note"), "numbers")
+
 // Still a full browser: the numbers in the fact grid.
 const actions = actionRun("browserheap")
 document.getElementById("f-actions").textContent = `${actions.passed}/${actions.of}`
 const sites = siteSummary("browserheap")
 document.getElementById("f-sites").textContent = `${sites.same}/${sites.compared}`
 document.getElementById("f-idle").textContent = `${idleCpu("browserheap --live 2").toFixed(1)}%`
-document.getElementById("f-idle-note").textContent = `Of one core, with 30 tabs open and nothing happening. Headless Chrome uses ${Math.round(idleCpu("chrome-shell"))}%. Sleeping tabs run no code.`
+document.getElementById("f-idle-note").textContent = `Of one core, with 30 tabs open and nothing happening, once the pages settled. Headless Chrome uses ${Math.round(idleCpu("chrome-shell"))}%. Sleeping tabs run no code.`
 document.getElementById("f-wake").textContent = `${wakeMedianMs()} ms`
 
 wireCopyButtons()

@@ -9,12 +9,14 @@
 const STEP_MS = 1300
 const MAX_LIVE = 2
 
-// Memory per tab, from the 30-tab benchmark: a browser with no tabs, a live
-// page, a sleeping tab, and what one more tab costs in plain headless Chrome.
-const BASE_MB = 114
-const LIVE_MB = 150
+// Memory from the 30-tab benchmark (median runs): Browserheap with no tabs, a
+// typical live page, a sleeping tab; plain headless Chrome with no tabs, and
+// what each more tab costs it.
+const BASE_MB = 247
+const LIVE_MB = 122
 const ASLEEP_MB = 3
-const CHROME_TAB_MB = 127
+const CHROME_BASE_MB = 112
+const CHROME_TAB_MB = 144
 
 const PAGES = {}
 for (const page of window.DEMO_PAGES) {
@@ -73,7 +75,7 @@ const els = {
 }
 
 // The meter's full width: every tab open in plain Chrome.
-const METER_MAX_MB = BASE_MB + window.DEMO_PAGES.length * CHROME_TAB_MB
+const METER_MAX_MB = CHROME_BASE_MB + window.DEMO_PAGES.length * CHROME_TAB_MB
 
 // Each page's screenshot as dots, for when its tab sleeps. Made once at load.
 const DOTS = {}
@@ -191,7 +193,7 @@ function drawMeter() {
   }
   const live = tabs.length - asleep
   const ours = tabs.length === 0 ? 0 : BASE_MB + live * LIVE_MB + asleep * ASLEEP_MB
-  const chrome = tabs.length === 0 ? 0 : BASE_MB + tabs.length * CHROME_TAB_MB
+  const chrome = tabs.length === 0 ? 0 : CHROME_BASE_MB + tabs.length * CHROME_TAB_MB
   els.memOurs.textContent = `${ours.toLocaleString("en-US")} MB`
   els.memChrome.textContent = `${chrome.toLocaleString("en-US")} MB`
   els.fillOurs.style.width = `${(ours / METER_MAX_MB) * 100}%`
