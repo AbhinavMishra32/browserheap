@@ -111,7 +111,9 @@ An agent sees all its tabs, all the time. Behind them:
 
 - Only the tabs used most recently are live (2 by default). Opening a third puts the one used longest
   ago to sleep.
-- A sleeping tab's text stays readable without waking it (`tab.saved`).
+- A sleeping tab's text stays readable without waking it (`tab.saved`), and `findInTabs(tabs, query)`
+  searches every tab at once, live or asleep, saying how old each sleeping tab's text is
+  (`"saved 14 min ago"`), so an agent can compare hundreds of pages it has read without waking one.
 - Acting on a sleeping tab wakes it as it was: same scroll (the page's and every scrolled panel's),
   filled-in fields, focus and text selection, sessionStorage, video position, back/forward history,
   and the agent's snapshot refs. Cookies, localStorage and IndexedDB are shared by every tab, so it's
@@ -172,7 +174,8 @@ await session.close()
 
 The code runs in a QuickJS sandbox: it reaches the pages and nothing else on the machine. In it:
 `page`, `tabs`, `openTab(url)`, `closeTab(tab)`, `snapshot(tab, options?)` (the page as a tree with
-refs, and what changed), `annotatedScreenshot(tab)`, `display(image)`, `console.log`, `sleep(ms)`.
+refs, and what changed), `findInTabs(query)` (search every tab without waking any), `annotatedScreenshot(tab)`,
+`display(image)`, `console.log`, `sleep(ms)`.
 Pages and locators have Playwright's methods, plus `tab.text()` and `tab.isAsleep()`.
 `startSession` takes the same options as `launch`, and blocks ads and trackers but keeps pictures.
 
@@ -196,6 +199,17 @@ Pages and locators have Playwright's methods, plus `tab.text()` and `tab.isAslee
 | `blocked` | How many requests blocking stopped: `{ ads, media }` |
 | `pid` | The browser's main process, for measuring it; `null` for a browser it didn't start |
 | `close()` | Closes every tab and the browser underneath |
+
+### `findInTabs(tabs, query, options?) → TabMatch[]`
+
+Every tab whose title or text has all of `query`'s words, ignoring case, most hits first. Nothing wakes.
+
+| | |
+|---|---|
+| `tab`, `title`, `url` | Which tab |
+| `live` | Read from the running page (`true`), or from the text it had when it went to sleep |
+| `seenAt`, `seen` | When that text was read (`Date.now()`), and as words: `"live"`, `"saved 14 min ago"` |
+| `hits`, `snippets` | How many times the words appear, and the text around the first few |
 
 ### `Tab`
 

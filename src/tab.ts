@@ -32,6 +32,8 @@ export interface SavedTab {
   scrollY: number
   /** The page's text when it went to sleep. */
   text: string
+  /** When it was saved (Date.now()): how old the text is. */
+  savedAt: number
   /** Everything a reload would lose, to put back on wake. Null if the page couldn't be read. */
   state: PageState | null
   /** Its back/forward history. Null until the browser reads it. */
@@ -139,7 +141,7 @@ export async function savePage(page: Page): Promise<SavedTab> {
     text: document.body?.innerText ?? "",
   }))
   const state = await page.evaluate(capturePageState).catch(() => null)
-  return { url: page.url(), ...shown, state }
+  return { url: page.url(), ...shown, savedAt: Date.now(), state }
 }
 
 /**

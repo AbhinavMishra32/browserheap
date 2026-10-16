@@ -438,7 +438,7 @@
       <div class="copy">
         <p class="eyebrow">Sleeping tabs</p>
         <h2 class="g">Two tabs awake, the rest asleep</h2>
-        <p class="body">The two tabs your agent used last are live Chromium pages. Every other tab sleeps: it gives back its memory and keeps everything else, from scroll and fields to history and logins. Touch it and it wakes as it was, in about a quarter of a second.</p>
+        <p class="body">The two tabs your agent used last are live Chromium pages. Every other tab sleeps: it gives back its memory and keeps everything else, from scroll and fields to history and logins. Touch it and it wakes as it was, in about a quarter of a second. Asleep, it's still searchable: <code>findInTabs()</code> looks through everything your agent has read, and says how old each page is.</p>
         <a class="button" href="research.html#waking">How waking works <span class="arrow">→</span></a>
       </div>
       <div class="visual">
@@ -452,6 +452,7 @@
         <div class="float-card" style="bottom: 8px; left: -16px; width: 250px">
           <div class="head"><span>wake</span><span class="chip cyan" style="height: 20px; font-size: 11px" id="wake-chip">274 ms</span></div>
           <div class="row"><span>Same scroll, fields, history</span><b>✓</b></div>
+          <div class="row"><span>Searchable while asleep</span><b>✓</b></div>
           <div class="row"><span>Still signed in</span><b>✓</b></div>
           <div class="foot">Hover a tab to wake it.</div>
         </div>

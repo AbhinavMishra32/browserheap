@@ -7,6 +7,7 @@
  *   const page = await tab.page()      a Playwright page; wakes the tab if it was asleep
  *   tab.state                          "live" or "asleep"
  *   tab.saved                          what the agent last saw (url, title, text), and everything it brings back on wake
+ *   await findInTabs(browser.tabs, "q")  search every tab's text without waking any, with how old each is
  *   await browser.close()
  *
  * Or a whole session for an agent tool: the browser and a JavaScript REPL
@@ -22,6 +23,7 @@
 export { type BlockedCounts, type BlockingOptions, startBlocking } from "./blocking.ts"
 export { type AgentBrowser, type LaunchOptions, launch } from "./browser.ts"
 export type { EngineOptions } from "./engine.ts"
+export { type FindOptions, findInTabs, type TabMatch } from "./find.ts"
 export { AgentLocator, AgentPage } from "./repl/agent-page.ts"
 export type { ReplPart, ReplResult } from "./repl/repl.ts"
 export { type Session, startSession } from "./repl/session.ts"

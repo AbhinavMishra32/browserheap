@@ -46,9 +46,9 @@ const USAGE = `browserheap: a browser for agents, where idle tabs sleep.
   --live <n>         tabs live at once (default 2)
   --block <what>     ads (default), all, none
 
-In the REPL: page, tabs, openTab(url), closeTab(page), snapshot(page),
+In the REPL: page, tabs, openTab(url), closeTab(page), snapshot(page), findInTabs(query),
 annotatedScreenshot(page), display(image), console.log(…), sleep(ms).
-A sleeping tab wakes when you act on it; tab.text() and tab.title() read it without waking.`
+A sleeping tab wakes when you act on it; tab.text(), tab.title() and findInTabs() read it without waking.`
 
 /** The command line without the --name value pairs. */
 const args: string[] = []

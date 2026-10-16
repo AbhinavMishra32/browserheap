@@ -11,6 +11,8 @@
  *
  *   page, tabs                    the session's current tab and all its tabs (AgentPage)
  *   openTab(url), closeTab(tab)   tabs come and go only through these
+ *   findInTabs(query)             every tab whose text has the query's words, without waking any,
+ *                                 each with when its text was seen (find.ts)
  *   snapshot(page, options?)      the page as a tree with refs, and what changed (snapshot.ts)
  *   annotatedScreenshot(page)     a screenshot with each ref drawn on its element
  *   console.log(…)                what the agent reads back
@@ -70,6 +72,8 @@ export interface ReplHost {
   tabs(): AgentPage[]
   openTab(url: string): Promise<AgentPage>
   closeTab(tab: AgentPage): Promise<void>
+  /** Every tab whose text has the query's words, without waking any. */
+  findInTabs(query: string): Promise<unknown[]>
   /** A screenshot of the current viewport with each ref drawn on its element. */
   annotatedScreenshot(page: AgentPage): Promise<Buffer>
 }
@@ -295,6 +299,9 @@ export class Repl {
     )
     this.setGlobalFunction("openTab", (url: unknown) => this.guarded(() => this.host.openTab(String(url))))
     this.setGlobalFunction("closeTab", (tab: unknown) => this.guarded(() => this.host.closeTab(asPage(tab))))
+    this.setGlobalFunction("findInTabs", (query: unknown) =>
+      this.guarded(() => this.host.findInTabs(String(query))),
+    )
     this.setGlobal("URL", this.toGuest(URL))
     this.setGlobal("URLSearchParams", this.toGuest(URLSearchParams))
   }

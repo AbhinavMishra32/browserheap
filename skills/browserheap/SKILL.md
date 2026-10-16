@@ -41,6 +41,7 @@ For longer code, write it to a file and run `npx browserheap run --file steps.js
 | `tabs` | All your tabs, in the order opened |
 | `openTab(url)` | Opens a tab, makes it `page`, waits until it's usable |
 | `closeTab(tab)` | Closes a tab |
+| `findInTabs(query)` | Every tab whose title or text has all the query's words, live or asleep, without waking any. Each match: `{ page, title, url, live, seen, seenAt, hits, snippets }` |
 | `snapshot(tab, options?)` | `{ tree, diff }`: the page as a tree with refs, and what changed since your last snapshot of it. Options: `{ interactive: true }` only things you can act on, `{ ref: "e12" }` or `{ selector: "main" }` only that part, `{ showHidden: true }` |
 | `display(image)` | Shows you an image: `display(await page.screenshot())` |
 | `annotatedScreenshot(tab)` | A screenshot with every ref drawn on its element: `display((await annotatedScreenshot(page)).base64Image)` |
@@ -62,6 +63,10 @@ Only the 2 tabs you used most recently are live; the rest sleep. You don't manag
 - **Pages you hold keep working.** `const docs = page`, open five more tabs, then
   `await docs.getByRole("link", { name: "API" }).click()`: docs wakes and the click lands.
   Locators made with `getByRole`, `getByText`, `getByLabel` or CSS keep working the same way.
+- **Search everything you've read.** `await findInTabs("per seat price")` looks through every tab at
+  once and gives snippets, most hits first. A sleeping tab's text is from when it went to sleep:
+  `seen` says how old (`"saved 14 min ago"`). For things that change (prices, scores, inboxes), wake
+  the tab (`match.page`) before relying on it.
 - **Read without waking.** `await tab.text()` and `await tab.title()` answer from what the tab
   showed when it went to sleep. Use them to look back at sources; wake a tab only to act on it.
 - **Refs keep working.** A ref (`e12`) from before a tab slept still means the same element

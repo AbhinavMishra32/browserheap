@@ -6,7 +6,8 @@
  *   console.log(s1.tree)                      console.log(s1.tree)
  *                                             })()
  *
- *   const { a, b } = x      →  (({ a, b } = x));
+ *   const { a, b } = x      →  ;({ a, b } = x);
+ *   const [a] = x           →  ;[a] = x;      (the ; keeps it from joining the line before)
  *   let n                   →  n = undefined;
  *   function f() {}         →  stays (hoisted inside), and `f = f` at the start makes it global
  *   class C {}              →  C = class C {};
@@ -83,10 +84,14 @@ export function prepareCode(code: string): string {
           parts.push(`${target} = ${value}`)
         }
       }
+      // Starting with ( or [, it would join the line before when that line has no semicolon:
+      // `await f()` then `[hit] = …` reads as `await f()[hit] = …`. A leading ; keeps it apart.
+      const joined = parts.join(", ")
+      const guard = joined.startsWith("(") || joined.startsWith("[") ? ";" : ""
       edits.push({
         start: statement.start,
         end: statement.end,
-        text: `${keepLines(code, statement, parts.join(", "))};`,
+        text: `${guard}${keepLines(code, statement, joined)};`,
       })
     } else if (statement.type === "FunctionDeclaration" && statement.id) {
       names.add(statement.id.name)

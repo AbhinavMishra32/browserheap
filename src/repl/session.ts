@@ -17,11 +17,12 @@
  * opened itself (a popup, a link to a new tab). When that tab closes, it's
  * the newest one left.
  *
- * Uses:    ../browser.ts (launch), agent-page.ts, repl.ts, snapshot.ts
+ * Uses:    ../browser.ts (launch), ../find.ts, agent-page.ts, repl.ts, snapshot.ts
  * Used by: ../index.ts, the CLI (../cli)
  */
 import type { Page } from "playwright-core"
 import { type AgentBrowser, type LaunchOptions, launch } from "../browser.ts"
+import { findInTabs } from "../find.ts"
 import type { Tab } from "../tab.ts"
 import { ACTION_TIMEOUT_MS, AgentPage, NAVIGATION_TIMEOUT_MS } from "./agent-page.ts"
 import { Repl, type ReplResult } from "./repl.ts"
@@ -88,6 +89,20 @@ export async function startSession(options: LaunchOptions = {}): Promise<Session
       return page
     },
     closeTab: (page) => AgentPage.tabOf(page).close(),
+    // The agent gets its own page objects back, and the time as a date it can print.
+    findInTabs: async (query) => {
+      const matches = await findInTabs(browser.tabs, query)
+      return matches.map((match) => ({
+        page: pageOf(match.tab),
+        title: match.title,
+        url: match.url,
+        live: match.live,
+        seenAt: new Date(match.seenAt).toISOString(),
+        seen: match.seen,
+        hits: match.hits,
+        snippets: match.snippets,
+      }))
+    },
     annotatedScreenshot: async (page) => annotatedScreenshot(await AgentPage.unwrap(page)),
   })
 
