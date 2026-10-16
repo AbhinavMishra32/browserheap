@@ -100,7 +100,7 @@ function racePage(): string {
   svg += `<polygon points="${x(1)},${plot.bottom} ${points} ${x(100)},${plot.bottom}" fill="url(#fill)"/>`
   svg += `<polyline points="${points}" fill="none" stroke="${JADE}" stroke-width="10" stroke-linejoin="round" filter="url(#glow)" opacity="0.6"/>`
   svg += `<polyline points="${points}" fill="none" stroke="${JADE}" stroke-width="5" stroke-linejoin="round"/>`
-  svg += `<text x="${x(100)}" y="${y(1000) - 34}" fill="${JADE}" font-family="Instrument Sans" font-size="32" font-weight="700" text-anchor="end">Browserheap: 100 tabs, under 1 GB</text>`
+  svg += `<text x="${x(100)}" y="${y(1000) - 34}" fill="${JADE}" font-family="Instrument Sans" font-size="32" font-weight="700" text-anchor="end">Browserheap: 100 tabs in 1 GB</text>`
   svg += `<text x="${x(80)}" y="${y(4800)}" fill="rgb(238 244 241 / 0.7)" font-family="Instrument Sans" font-size="24" font-weight="500" text-anchor="middle">${OTHERS.length} other agent browsers,</text>`
   svg += `<text x="${x(80)}" y="${y(4800) + 32}" fill="rgb(238 244 241 / 0.7)" font-family="Instrument Sans" font-size="24" font-weight="500" text-anchor="middle">out of memory by tab ${lastOther}</text>`
   svg += "</svg>"

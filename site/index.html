@@ -825,9 +825,9 @@ function scaleClaim(ours, others) {
   const lastOther = Math.max(...others.map((row) => row.value))
   if (ours.text.endsWith("+")) {
     return {
-      // The most it ever used, rounded up to a whole GB: memory moves with
-      // which tabs are awake, so the last tab's number alone would mislead.
-      big: `${ours.value} tabs, under ${Math.ceil(ours.peakMb / 1000)} GB`,
+      // The most it ever used, to the nearest GB: memory moves with which
+      // tabs are awake, so the last tab's number alone would mislead.
+      big: `${ours.value} tabs in ${Math.round(ours.peakMb / 1000)} GB`,
       small: `Every other browser ran out of memory by tab ${lastOther}.`,
     }
   }
