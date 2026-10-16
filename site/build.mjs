@@ -4,10 +4,16 @@
  *   node site/build.mjs
  *
  * Only the numbers the pages draw go in: no page text, no BU Bench task text.
+ *
+ * Memory ran 3 times per browser and waking 3 times: each one's chart shows
+ * its median run (by final memory, by median wake), and `runs` keeps every
+ * run's number for the spread.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 
-const results = new URL("../bench/launch/2026-10-15/", import.meta.url)
+const MEASURED_ON = "2026-10-16"
+const VERSION = "0.2.2"
+const results = new URL(`../bench/launch/${MEASURED_ON}/`, import.meta.url)
 
 function readJson(path) {
   // These runs were recorded before the rename, as "agent-tabs".
@@ -29,9 +35,27 @@ function readFolder(folder) {
   return all
 }
 
-const memory = readFolder("memory/").map((run) => ({
+/** The middle one of a browser's runs, ordered by `score`, with every run's score kept. */
+function medianRuns(runs, score) {
+  const byBrowser = new Map()
+  for (const run of runs) {
+    const list = byBrowser.get(run.browser) ?? []
+    list.push(run)
+    byBrowser.set(run.browser, list)
+  }
+  const chosen = []
+  for (const list of byBrowser.values()) {
+    list.sort((a, b) => score(a) - score(b))
+    const middle = list[Math.floor((list.length - 1) / 2)]
+    chosen.push({ run: middle, runs: list.map(score) })
+  }
+  return chosen
+}
+
+const memory = medianRuns(readFolder("memory/"), (run) => run.finalMb).map(({ run, runs }) => ({
   browser: run.browser,
   finalMb: run.finalMb,
+  runs,
   wake: run.wake ?? null,
   perTab: run.perTab.map((tab) => ({ url: tab.url, mb: tab.totalMb, worked: tab.worked })),
 }))
@@ -43,6 +67,13 @@ const actions = readFolder("actions/").map((run) => ({
   results: run.results.map((test) => ({ label: test.label, passed: test.passed })),
 }))
 
+// Real sites. The first build turns the compat runs (one file per browser, with each page's
+// text) into sites.json: just the scores, so no site's text is kept in the repository.
+// "Same as Chrome": the share of the distinct words (4+ letters) on Chrome's page that this
+// browser's page shows too, counted only where both loaded.
+if (!existsSync(new URL("sites.json", results))) {
+  writeSitesJson(readFolder("compat/"))
+}
 const sites = {}
 for (const [browser, list] of Object.entries(readJson("sites.json").browsers)) {
   sites[browser] = list.map((site) => ({
@@ -52,6 +83,30 @@ for (const [browser, list] of Object.entries(readJson("sites.json").browsers)) {
     loadMs: site.loadMs,
     sameAsChrome: site.sameAsChrome,
   }))
+}
+
+function writeSitesJson(compat) {
+  const chromeRun = compat.find((run) => run.browser === "chrome")
+  const wordsOf = (text) => new Set((text ?? "").toLowerCase().match(/[a-z]{4,}/g) ?? [])
+  const browsers = {}
+  for (const run of compat) {
+    browsers[run.browser] = run.results.map((site, i) => {
+      const chromeSite = chromeRun?.results[i]
+      let sameAsChrome = null
+      if (chromeSite?.loaded && site.loaded) {
+        const chromeWords = wordsOf(chromeSite.text)
+        const ours = wordsOf(site.text)
+        let shared = 0
+        for (const word of chromeWords) {
+          if (ours.has(word)) shared++
+        }
+        sameAsChrome = chromeWords.size === 0 ? null : Math.round((shared / chromeWords.size) * 100) / 100
+      }
+      return { kind: site.kind, url: site.url, loaded: site.loaded, loadMs: site.loadMs, sameAsChrome }
+    })
+  }
+  const note = "sameAsChrome: share of the distinct words (4+ letters) on Chrome's page that this browser's page also shows; null where either didn't load"
+  writeFileSync(new URL("sites.json", results), `${JSON.stringify({ note, browsers }, null, 2)}\n`)
 }
 
 const bu = readJson("bu-bench.json")
@@ -70,9 +125,16 @@ const scale = readFolder("scale/").map((run) => ({
 }))
 
 const extras = readFolder("extras/")
-// Waking every tab in turn, next to how long the same tab took to load the first time.
-const wakeRun = extras.find((run) => run.wakes !== undefined && run.wakes !== null)
+// Waking every tab in turn, next to how long the same tab took to load the first time:
+// the run with the median of its wake times, of the 3.
+const medianOf = (numbers) => [...numbers].sort((a, b) => a - b)[Math.floor((numbers.length - 1) / 2)]
+const wakeRuns = medianRuns(
+  extras.filter((run) => run.wakes !== undefined && run.wakes !== null),
+  (run) => medianOf(run.wakes.map((wake) => wake.ms)),
+)
+const wakeRun = wakeRuns[0]?.run
 let wakeAll = null
+const wakeMedians = wakeRuns[0]?.runs ?? []
 if (wakeRun !== undefined) {
   wakeAll = wakeRun.wakes.map((wake) => ({
     url: wakeRun.perTab[wake.index].url,
@@ -83,7 +145,10 @@ if (wakeRun !== undefined) {
 }
 // 30 tabs with 1, 2, 4 or 8 of them live (2 comes from the memory run).
 const live = []
-for (const run of [...extras, ...readFolder("memory/")]) {
+// 2 live is the memory run itself: the median one.
+const medianOurs = memory.find((run) => run.browser === "browserheap --live 2")
+const memoryForLive = medianOurs === undefined ? [] : [{ browser: medianOurs.browser, finalMb: medianOurs.finalMb, perTab: medianOurs.perTab.map((tab) => ({ totalMb: tab.mb })) }]
+for (const run of [...extras, ...memoryForLive]) {
   const match = /^browserheap --live (\d+)$/.exec(run.browser)
   if (match !== null && (run.wakes === undefined || run.wakes === null)) {
     live.push({ live: Number(match[1]), finalMb: run.finalMb, perTab: run.perTab.map((tab) => tab.totalMb) })
@@ -96,7 +161,9 @@ const agents = extras
   .map((run) => ({ browser: run.browser, agents: run.agents, stopped: run.stopped, idleMb: run.idleMb, rounds: run.rounds }))
 
 const data = {
-  measuredOn: "2026-10-15",
+  measuredOn: MEASURED_ON,
+  version: VERSION,
+  wakeMedians,
   machine: "E2B sandbox: Linux 6.1 x86_64, 8 vCPUs, 8 GB memory",
   memory,
   actions,
@@ -132,5 +199,5 @@ const data = {
 let json = JSON.stringify(data)
 json = json.replace(/[\u007f-\uffff]/g, (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`)
 const file = new URL("data.js", import.meta.url)
-writeFileSync(file, `// Made by build.mjs from bench/launch/2026-10-15. Don't edit by hand.\nwindow.BENCH = ${json}\n`)
+writeFileSync(file, `// Made by build.mjs from bench/launch/${MEASURED_ON}. Don't edit by hand.\nwindow.BENCH = ${json}\n`)
 console.log(`wrote site/data.js (${readFileSync(file).length} bytes)`)

@@ -1,0 +1,71 @@
+{
+  "browser": "browserheap",
+  "agents": 10,
+  "tabsEach": 10,
+  "idleMb": 472,
+  "finalMb": 3421,
+  "stopped": null,
+  "measuredAt": "2026-10-16T07:45:33.816Z",
+  "rounds": [
+    {
+      "tabsEach": 1,
+      "totalTabs": 10,
+      "mb": 1540,
+      "worked": 7
+    },
+    {
+      "tabsEach": 2,
+      "totalTabs": 20,
+      "mb": 3015,
+      "worked": 14
+    },
+    {
+      "tabsEach": 3,
+      "totalTabs": 30,
+      "mb": 2120,
+      "worked": 21
+    },
+    {
+      "tabsEach": 4,
+      "totalTabs": 40,
+      "mb": 2178,
+      "worked": 31
+    },
+    {
+      "tabsEach": 5,
+      "totalTabs": 50,
+      "mb": 1902,
+      "worked": 34
+    },
+    {
+      "tabsEach": 6,
+      "totalTabs": 60,
+      "mb": 1849,
+      "worked": 41
+    },
+    {
+      "tabsEach": 7,
+      "totalTabs": 70,
+      "mb": 2504,
+      "worked": 51
+    },
+    {
+      "tabsEach": 8,
+      "totalTabs": 80,
+      "mb": 2442,
+      "worked": 58
+    },
+    {
+      "tabsEach": 9,
+      "totalTabs": 90,
+      "mb": 2120,
+      "worked": 65
+    },
+    {
+      "tabsEach": 10,
+      "totalTabs": 100,
+      "mb": 2385,
+      "worked": 75
+    }
+  ]
+}

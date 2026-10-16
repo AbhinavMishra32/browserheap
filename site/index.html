@@ -350,7 +350,7 @@
       </div>
       <div class="panel">
         <div class="panel-head">
-          <span class="title">Memory and CPU <span class="chip ok">✓ Measured 15 Oct 2026</span></span>
+          <span class="title">Memory and CPU <span class="chip ok">✓ Measured 16 Oct 2026 · v0.2.2</span></span>
         </div>
         <div class="bench-stats" id="stats"></div>
         <div class="bench-chart">
@@ -708,13 +708,13 @@ tabsCanvas.addEventListener("pointermove", (event) => {
 
 // ---- Numbers ----
 
-document.getElementById("wake-chip").textContent = `${ours.wake.ms} ms`
-const otherSlopes = TOOLS.filter((tool) => !tool.ours).map((tool) => mbPerTab(memoryRun(tool.id)))
-const lowest = Math.min(...TOOLS.filter((tool) => !tool.ours).map((tool) => memoryRun(tool.id).finalMb))
+document.getElementById("wake-chip").textContent = `${wakeMedianMs()} ms`
+const otherSlopes = RIVALS.map((tool) => mbPerTab(memoryRun(tool.id)))
+const lowest = Math.min(...RIVALS.map((tool) => memoryRun(tool.id).finalMb))
 const stats = [
   { value: formatMb(ours.finalMb), label: "Memory at 30 tabs", note: `Next lightest: ${formatMb(lowest)}` },
   { value: `${mbPerTab(ours).toFixed(0)} MB`, label: "Per extra tab", note: `Others: ${Math.round(Math.min(...otherSlopes))} to ${Math.round(Math.max(...otherSlopes))} MB` },
-  { value: `${ours.wake.ms} ms`, label: "To wake a tab", note: "Click to a ready page" },
+  { value: `${wakeMedianMs()} ms`, label: "To wake a tab", note: "Click to a ready page" },
 ]
 const scaleOurs = B.scale.find((run) => toolOf(run.browser).ours)
 if (scaleOurs !== undefined) {
@@ -794,7 +794,7 @@ const buOurs = buSetup("browserheap")
 const buChrome = buSetup("chrome")
 document.getElementById("f-bu").textContent = `${buOurs.passed}/${buOurs.total}`
 document.getElementById("f-bu-note").textContent = `Same tasks as headless Chrome solved, with ${Math.round((1 - buOurs.averageMb / buChrome.averageMb) * 100)}% less memory and ${Math.round((1 - buOurs.minutes / buChrome.minutes) * 100)}% less time.`
-document.getElementById("f-wake").textContent = `${ours.wake.ms} ms`
+document.getElementById("f-wake").textContent = `${wakeMedianMs()} ms`
 
 wireCopyButtons()
 

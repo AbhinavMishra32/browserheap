@@ -1,0 +1,400 @@
+{
+  "browser": "chrome-shell --block",
+  "blocked": {
+    "ads": 105,
+    "media": 257897
+  },
+  "tabs": 30,
+  "worked": 22,
+  "idleMb": 113,
+  "finalMb": 3081,
+  "loadSeconds": 30,
+  "wake": null,
+  "wakes": null,
+  "stopped": null,
+  "idle": [
+    {
+      "seconds": 16,
+      "mb": 2837,
+      "cpuPercent": 532
+    },
+    {
+      "seconds": 31,
+      "mb": 2606,
+      "cpuPercent": 542
+    },
+    {
+      "seconds": 46,
+      "mb": 2719,
+      "cpuPercent": 563
+    },
+    {
+      "seconds": 62,
+      "mb": 2836,
+      "cpuPercent": 582
+    },
+    {
+      "seconds": 77,
+      "mb": 2949,
+      "cpuPercent": 601
+    },
+    {
+      "seconds": 92,
+      "mb": 3104,
+      "cpuPercent": 609
+    },
+    {
+      "seconds": 108,
+      "mb": 3018,
+      "cpuPercent": 609
+    },
+    {
+      "seconds": 123,
+      "mb": 3003,
+      "cpuPercent": 610
+    },
+    {
+      "seconds": 138,
+      "mb": 3079,
+      "cpuPercent": 611
+    },
+    {
+      "seconds": 154,
+      "mb": 3184,
+      "cpuPercent": 608
+    },
+    {
+      "seconds": 169,
+      "mb": 3332,
+      "cpuPercent": 610
+    },
+    {
+      "seconds": 184,
+      "mb": 3462,
+      "cpuPercent": 609
+    },
+    {
+      "seconds": 200,
+      "mb": 3620,
+      "cpuPercent": 609
+    },
+    {
+      "seconds": 215,
+      "mb": 3743,
+      "cpuPercent": 615
+    },
+    {
+      "seconds": 231,
+      "mb": 3489,
+      "cpuPercent": 604
+    },
+    {
+      "seconds": 246,
+      "mb": 3431,
+      "cpuPercent": 608
+    },
+    {
+      "seconds": 261,
+      "mb": 3510,
+      "cpuPercent": 612
+    },
+    {
+      "seconds": 277,
+      "mb": 3474,
+      "cpuPercent": 607
+    },
+    {
+      "seconds": 292,
+      "mb": 3568,
+      "cpuPercent": 611
+    },
+    {
+      "seconds": 307,
+      "mb": 3665,
+      "cpuPercent": 608
+    },
+    {
+      "seconds": 323,
+      "mb": 3732,
+      "cpuPercent": 609
+    },
+    {
+      "seconds": 338,
+      "mb": 3840,
+      "cpuPercent": 612
+    },
+    {
+      "seconds": 353,
+      "mb": 3905,
+      "cpuPercent": 613
+    },
+    {
+      "seconds": 369,
+      "mb": 3781,
+      "cpuPercent": 619
+    },
+    {
+      "seconds": 384,
+      "mb": 3729,
+      "cpuPercent": 616
+    },
+    {
+      "seconds": 399,
+      "mb": 3647,
+      "cpuPercent": 614
+    },
+    {
+      "seconds": 415,
+      "mb": 3662,
+      "cpuPercent": 614
+    },
+    {
+      "seconds": 430,
+      "mb": 3804,
+      "cpuPercent": 611
+    },
+    {
+      "seconds": 446,
+      "mb": 3900,
+      "cpuPercent": 623
+    },
+    {
+      "seconds": 461,
+      "mb": 3959,
+      "cpuPercent": 619
+    },
+    {
+      "seconds": 476,
+      "mb": 4012,
+      "cpuPercent": 618
+    },
+    {
+      "seconds": 492,
+      "mb": 3740,
+      "cpuPercent": 616
+    },
+    {
+      "seconds": 507,
+      "mb": 3640,
+      "cpuPercent": 619
+    },
+    {
+      "seconds": 522,
+      "mb": 3813,
+      "cpuPercent": 615
+    },
+    {
+      "seconds": 538,
+      "mb": 3775,
+      "cpuPercent": 620
+    },
+    {
+      "seconds": 553,
+      "mb": 3800,
+      "cpuPercent": 618
+    },
+    {
+      "seconds": 568,
+      "mb": 3963,
+      "cpuPercent": 621
+    },
+    {
+      "seconds": 584,
+      "mb": 3935,
+      "cpuPercent": 622
+    },
+    {
+      "seconds": 599,
+      "mb": 4066,
+      "cpuPercent": 619
+    },
+    {
+      "seconds": 614,
+      "mb": 4214,
+      "cpuPercent": 619
+    }
+  ],
+  "measuredAt": "2026-10-16T07:57:20.010Z",
+  "perTab": [
+    {
+      "url": "https://en.wikipedia.org/wiki/Web_browser",
+      "loadMs": 1122,
+      "totalMb": 228,
+      "worked": true
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+      "loadMs": 260,
+      "totalMb": 277,
+      "worked": true
+    },
+    {
+      "url": "https://news.ycombinator.com/",
+      "loadMs": 245,
+      "totalMb": 307,
+      "worked": true
+    },
+    {
+      "url": "https://github.com/microsoft/playwright",
+      "loadMs": 1435,
+      "totalMb": 450,
+      "worked": true
+    },
+    {
+      "url": "https://stackoverflow.com/questions/tagged/javascript",
+      "loadMs": 363,
+      "totalMb": 513,
+      "worked": false
+    },
+    {
+      "url": "https://arxiv.org/abs/1706.03762",
+      "loadMs": 237,
+      "totalMb": 569,
+      "worked": true
+    },
+    {
+      "url": "https://www.bbc.com/news",
+      "loadMs": 995,
+      "totalMb": 683,
+      "worked": true
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "loadMs": 186,
+      "totalMb": 740,
+      "worked": true
+    },
+    {
+      "url": "https://react.dev/",
+      "loadMs": 497,
+      "totalMb": 805,
+      "worked": true
+    },
+    {
+      "url": "https://nodejs.org/en",
+      "loadMs": 443,
+      "totalMb": 863,
+      "worked": true
+    },
+    {
+      "url": "https://www.theverge.com/",
+      "loadMs": 1879,
+      "totalMb": 1092,
+      "worked": true
+    },
+    {
+      "url": "https://techcrunch.com/",
+      "loadMs": 865,
+      "totalMb": 1259,
+      "worked": true
+    },
+    {
+      "url": "https://www.npmjs.com/package/playwright",
+      "loadMs": 290,
+      "totalMb": 1359,
+      "worked": true
+    },
+    {
+      "url": "https://www.rust-lang.org/",
+      "loadMs": 215,
+      "totalMb": 1414,
+      "worked": true
+    },
+    {
+      "url": "https://www.apple.com/",
+      "loadMs": 549,
+      "totalMb": 1579,
+      "worked": true
+    },
+    {
+      "url": "https://edition.cnn.com/",
+      "loadMs": 91,
+      "totalMb": 1503,
+      "worked": false
+    },
+    {
+      "url": "https://lightpanda.io/",
+      "loadMs": 465,
+      "totalMb": 1602,
+      "worked": true
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Zig_(programming_language)",
+      "loadMs": 238,
+      "totalMb": 1667,
+      "worked": true
+    },
+    {
+      "url": "https://www.reuters.com/",
+      "loadMs": 356,
+      "totalMb": 1678,
+      "worked": false
+    },
+    {
+      "url": "https://vercel.com/",
+      "loadMs": 572,
+      "totalMb": 1755,
+      "worked": true
+    },
+    {
+      "url": "https://www.nytimes.com/",
+      "loadMs": 287,
+      "totalMb": 1808,
+      "worked": false
+    },
+    {
+      "url": "https://www.youtube.com/",
+      "loadMs": 1540,
+      "totalMb": 2182,
+      "worked": false
+    },
+    {
+      "url": "https://www.amazon.com/",
+      "loadMs": 297,
+      "totalMb": 2320,
+      "worked": false
+    },
+    {
+      "url": "https://www.reddit.com/r/programming/",
+      "loadMs": 197,
+      "totalMb": 2364,
+      "worked": true
+    },
+    {
+      "url": "https://www.imdb.com/",
+      "loadMs": 206,
+      "totalMb": 2368,
+      "worked": false
+    },
+    {
+      "url": "https://www.theguardian.com/international",
+      "loadMs": 758,
+      "totalMb": 2476,
+      "worked": true
+    },
+    {
+      "url": "https://www.wired.com/",
+      "loadMs": 2920,
+      "totalMb": 2668,
+      "worked": true
+    },
+    {
+      "url": "https://openai.com/",
+      "loadMs": 292,
+      "totalMb": 2702,
+      "worked": false
+    },
+    {
+      "url": "https://www.bloomberg.com/",
+      "loadMs": 561,
+      "totalMb": 2844,
+      "worked": true
+    },
+    {
+      "url": "https://medium.com/",
+      "loadMs": 274,
+      "totalMb": 2905,
+      "worked": true
+    }
+  ]
+}

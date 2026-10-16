@@ -8,12 +8,17 @@ const TOOLS = [
   { id: "browserheap --live 2", name: "Browserheap", ours: true },
   { id: "agent-browser", name: "agent-browser" },
   { id: "chrome-shell", name: "Headless Chrome" },
+  // Not a tool people use: headless Chrome with Browserheap's blocking, to show how much is blocking alone.
+  { id: "chrome-shell --block", name: "Chrome + blocking", baseline: true },
   { id: "stagehand", name: "Stagehand" },
   { id: "browser-use", name: "browser-use" },
   { id: "playwright-mcp", name: "Playwright MCP" },
   { id: "lightpanda", name: "Lightpanda", engine: true },
   { id: "obscura", name: "Obscura", engine: true },
 ]
+
+/** The browsers Browserheap is compared with: every tool and engine, not the blocking baseline. */
+const RIVALS = TOOLS.filter((tool) => !tool.ours && !tool.baseline)
 
 // The action and site tests' browsers.
 const ENGINES = [
@@ -22,6 +27,15 @@ const ENGINES = [
   { id: "lightpanda", name: "Lightpanda" },
   { id: "obscura", name: "Obscura" },
 ]
+
+/** The median wake: every one of 30 sleeping tabs woken in turn, in the median of the runs. */
+function wakeMedianMs() {
+  const wakes = (window.BENCH.wakeAll ?? []).map((wake) => wake.wakeMs).sort((a, b) => a - b)
+  if (wakes.length === 0) {
+    return memoryRun("browserheap --live 2").wake.ms
+  }
+  return wakes[Math.floor((wakes.length - 1) / 2)]
+}
 
 function memoryRun(id) {
   return window.BENCH.memory.find((run) => run.browser === id)
@@ -35,8 +49,12 @@ function buSetup(id) {
   return window.BENCH.bu.setups.find((setup) => setup.setup === id)
 }
 
+/** Memory the way you'd say it: "411 MB", "4.2 GB". */
 function formatMb(mb) {
-  return `${mb.toLocaleString("en-US")} MB`
+  if (mb < 1000) {
+    return `${Math.round(mb)} MB`
+  }
+  return `${(mb / 1000).toFixed(1)} GB`
 }
 
 function siteName(url) {
@@ -64,7 +82,7 @@ function mbPerTab(run) {
 
 /** The other browsers' memory at 30 tabs, as "3.6–6.9 GB". */
 function othersRange() {
-  const finals = TOOLS.filter((tool) => !tool.ours).map((tool) => memoryRun(tool.id).finalMb)
+  const finals = RIVALS.map((tool) => memoryRun(tool.id).finalMb)
   const gb = (mb) => (mb / 1000).toFixed(1)
   return `${gb(Math.min(...finals))}\u2013${gb(Math.max(...finals))} GB`
 }
@@ -165,7 +183,7 @@ function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
   }
   for (const end of ends) {
     const label = add(svg, "text", { x: x(tabCount) + 10, y: end.labelY, class: end.tool.ours ? "end ours" : "end" })
-    label.textContent = `${end.tool.name} ${end.mb.toLocaleString("en-US")}`
+    label.textContent = `${end.tool.name} ${formatMb(end.mb)}`
   }
 
   // Hover: a crosshair and every browser's number at that tab.
@@ -309,14 +327,14 @@ function fillMemoryTable(table) {
     for (const tool of TOOLS) {
       const entry = memoryRun(tool.id).perTab[i]
       const classes = [tool.ours ? "ours" : "", entry.worked ? "" : "blocked"].join(" ").trim()
-      html += `<td class="${classes}">${entry.mb.toLocaleString("en-US")}</td>`
+      html += `<td class="${classes}">${formatMb(entry.mb)}</td>`
     }
     html += "</tr>"
   })
   const summaries = [
-    { label: "After a 5 s settle", value: (run) => run.finalMb.toLocaleString("en-US") },
-    { label: "Peak", value: (run) => Math.max(...run.perTab.map((tab) => tab.mb)).toLocaleString("en-US") },
-    { label: "MB per extra tab", value: (run) => mbPerTab(run).toFixed(1) },
+    { label: "After a 5 s settle", value: (run) => formatMb(run.finalMb) },
+    { label: "Peak", value: (run) => formatMb(Math.max(...run.perTab.map((tab) => tab.mb))) },
+    { label: "Each extra tab", value: (run) => `${mbPerTab(run).toFixed(0)} MB` },
     { label: "Pages that loaded", value: (run) => `${run.perTab.filter((tab) => tab.worked).length}/30` },
   ]
   for (const summary of summaries) {

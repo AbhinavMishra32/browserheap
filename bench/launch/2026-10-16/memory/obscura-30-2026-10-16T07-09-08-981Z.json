@@ -1,0 +1,199 @@
+{
+  "browser": "obscura",
+  "blocked": null,
+  "tabs": 30,
+  "worked": 24,
+  "idleMb": 24,
+  "finalMb": 5183,
+  "loadSeconds": 546,
+  "wake": null,
+  "wakes": null,
+  "stopped": null,
+  "idle": null,
+  "measuredAt": "2026-10-16T07:09:08.981Z",
+  "perTab": [
+    {
+      "url": "https://en.wikipedia.org/wiki/Web_browser",
+      "loadMs": 2416,
+      "totalMb": 162,
+      "worked": true
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+      "loadMs": 2395,
+      "totalMb": 237,
+      "worked": true
+    },
+    {
+      "url": "https://news.ycombinator.com/",
+      "loadMs": 863,
+      "totalMb": 245,
+      "worked": true
+    },
+    {
+      "url": "https://github.com/microsoft/playwright",
+      "loadMs": 9340,
+      "totalMb": 708,
+      "worked": true
+    },
+    {
+      "url": "https://stackoverflow.com/questions/tagged/javascript",
+      "loadMs": 1949,
+      "totalMb": 747,
+      "worked": true
+    },
+    {
+      "url": "https://arxiv.org/abs/1706.03762",
+      "loadMs": 1051,
+      "totalMb": 777,
+      "worked": true
+    },
+    {
+      "url": "https://www.bbc.com/news",
+      "loadMs": 3007,
+      "totalMb": 586,
+      "worked": true
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "loadMs": 924,
+      "totalMb": 867,
+      "worked": true
+    },
+    {
+      "url": "https://react.dev/",
+      "loadMs": 3111,
+      "totalMb": 1012,
+      "worked": true
+    },
+    {
+      "url": "https://nodejs.org/en",
+      "loadMs": 1547,
+      "totalMb": 1027,
+      "worked": true
+    },
+    {
+      "url": "https://www.theverge.com/",
+      "loadMs": 30055,
+      "totalMb": 1680,
+      "worked": false,
+      "error": "page.goto: Timeout 30000ms exceeded."
+    },
+    {
+      "url": "https://techcrunch.com/",
+      "loadMs": 32663,
+      "totalMb": 2005,
+      "worked": true
+    },
+    {
+      "url": "https://www.npmjs.com/package/playwright",
+      "loadMs": 31004,
+      "totalMb": 1792,
+      "worked": true
+    },
+    {
+      "url": "https://www.rust-lang.org/",
+      "loadMs": 30272,
+      "totalMb": 2021,
+      "worked": true
+    },
+    {
+      "url": "https://www.apple.com/",
+      "loadMs": 22274,
+      "totalMb": 2086,
+      "worked": true
+    },
+    {
+      "url": "https://edition.cnn.com/",
+      "loadMs": 38703,
+      "totalMb": 2709,
+      "worked": true
+    },
+    {
+      "url": "https://lightpanda.io/",
+      "loadMs": 19341,
+      "totalMb": 2770,
+      "worked": true
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Zig_(programming_language)",
+      "loadMs": 20979,
+      "totalMb": 2835,
+      "worked": true
+    },
+    {
+      "url": "https://www.reuters.com/",
+      "loadMs": 18842,
+      "totalMb": 2916,
+      "worked": false
+    },
+    {
+      "url": "https://vercel.com/",
+      "loadMs": 27007,
+      "totalMb": 3135,
+      "worked": true
+    },
+    {
+      "url": "https://www.nytimes.com/",
+      "loadMs": 37130,
+      "totalMb": 4505,
+      "worked": false,
+      "error": "page.goto: Timeout 30000ms exceeded."
+    },
+    {
+      "url": "https://www.youtube.com/",
+      "loadMs": 29403,
+      "totalMb": 4747,
+      "worked": false
+    },
+    {
+      "url": "https://www.amazon.com/",
+      "loadMs": 29721,
+      "totalMb": 4491,
+      "worked": true
+    },
+    {
+      "url": "https://www.reddit.com/r/programming/",
+      "loadMs": 26819,
+      "totalMb": 4047,
+      "worked": true
+    },
+    {
+      "url": "https://www.imdb.com/",
+      "loadMs": 5863,
+      "totalMb": 3758,
+      "worked": false
+    },
+    {
+      "url": "https://www.theguardian.com/international",
+      "loadMs": 12935,
+      "totalMb": 3500,
+      "worked": true
+    },
+    {
+      "url": "https://www.wired.com/",
+      "loadMs": 38167,
+      "totalMb": 4581,
+      "worked": true
+    },
+    {
+      "url": "https://openai.com/",
+      "loadMs": 14780,
+      "totalMb": 5873,
+      "worked": true
+    },
+    {
+      "url": "https://www.bloomberg.com/",
+      "loadMs": 35453,
+      "totalMb": 6832,
+      "worked": false,
+      "error": "page.goto: Timeout 30000ms exceeded."
+    },
+    {
+      "url": "https://medium.com/",
+      "loadMs": 15885,
+      "totalMb": 6979,
+      "worked": true
+    }
+  ]
+}

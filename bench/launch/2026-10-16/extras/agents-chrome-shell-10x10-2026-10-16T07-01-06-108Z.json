@@ -1,0 +1,41 @@
+{
+  "browser": "chrome-shell",
+  "agents": 10,
+  "tabsEach": 10,
+  "idleMb": 472,
+  "finalMb": 6660,
+  "stopped": "memory limit",
+  "measuredAt": "2026-10-16T07:01:06.108Z",
+  "rounds": [
+    {
+      "tabsEach": 1,
+      "totalTabs": 10,
+      "mb": 2268,
+      "worked": 7
+    },
+    {
+      "tabsEach": 2,
+      "totalTabs": 20,
+      "mb": 3951,
+      "worked": 14
+    },
+    {
+      "tabsEach": 3,
+      "totalTabs": 30,
+      "mb": 5756,
+      "worked": 24
+    },
+    {
+      "tabsEach": 4,
+      "totalTabs": 40,
+      "mb": 6468,
+      "worked": 34
+    },
+    {
+      "tabsEach": 5,
+      "totalTabs": 50,
+      "mb": 6610,
+      "worked": 37
+    }
+  ]
+}
