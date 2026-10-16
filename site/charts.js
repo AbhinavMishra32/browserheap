@@ -240,6 +240,56 @@ function add(svg, tag, attrs) {
   return el
 }
 
+// A chart drawn narrower than this is on a phone: it keeps only its own end
+// label (the legend and the tooltip name the rest) and every other tick,
+// starting from the first.
+const NARROW = 480
+
+function fewerTicks(ticks, narrow) {
+  if (!narrow) {
+    return ticks
+  }
+  return ticks.filter((tick, i) => i % 2 === 0)
+}
+
+/**
+ * Shows a chart's numbers under a mouse, or under a finger: touch the chart
+ * and slide sideways. A touch keeps them up until you touch somewhere else.
+ */
+function followPointer(svg, hitArea, show, hide) {
+  // Sideways drags go to the chart, scrolling up and down still scrolls.
+  hitArea.style.touchAction = "pan-y"
+  hitArea.addEventListener("pointerdown", show)
+  hitArea.addEventListener("pointermove", show)
+  hitArea.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse") {
+      hide()
+    }
+  })
+  // The chart is drawn again on a browser switch; listen on the page only once.
+  svg.hideOnTouchOutside = hide
+  if (svg.listensOutside) {
+    return
+  }
+  svg.listensOutside = true
+  document.addEventListener("pointerdown", (event) => {
+    if (!svg.contains(event.target)) {
+      svg.hideOnTouchOutside()
+    }
+  })
+}
+
+/** Puts a tooltip beside the crosshair, on whichever side has room, inside the chart. */
+function placeTooltip(tooltip, svg, svgX, svgY, W) {
+  const box = svg.getBoundingClientRect()
+  const scale = box.width / W
+  const px = svgX * scale
+  let left = px > box.width / 2 ? px - tooltip.offsetWidth - 14 : px + 14
+  left = Math.min(left, box.width - tooltip.offsetWidth)
+  tooltip.style.left = `${Math.max(0, left)}px`
+  tooltip.style.top = `${svgY * scale}px`
+}
+
 /**
  * Memory from 1 to 30 tabs, one line per browser, with a hover crosshair.
  * Draw it at about the width it's shown at, so its text stays its real size.
@@ -251,7 +301,8 @@ function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
   const tabCount = ours.perTab.length
   const W = width
   const H = height
-  const pad = { left: 52, right: 160, top: 12, bottom: 36 }
+  const narrow = W < NARROW
+  const pad = { left: narrow ? 40 : 52, right: narrow ? 12 : 160, top: 12, bottom: 36 }
   const maxMb = 7000
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`)
   const plotW = W - pad.left - pad.right
@@ -264,7 +315,7 @@ function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
     const label = add(svg, "text", { x: pad.left - 8, y: y(mb) + 4, "text-anchor": "end" })
     label.textContent = mb === 0 ? "0" : `${mb / 1000} GB`
   }
-  for (const tab of [1, 5, 10, 15, 20, 25, 30]) {
+  for (const tab of fewerTicks([1, 5, 10, 15, 20, 25, 30], narrow)) {
     const label = add(svg, "text", { x: x(tab), y: H - pad.bottom + 18, "text-anchor": "middle" })
     label.textContent = tab
   }
@@ -297,8 +348,16 @@ function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
     lastY = end.labelY
   }
   for (const end of ends) {
+    if (narrow) {
+      break
+    }
     const label = add(svg, "text", { x: x(tabCount) + 10, y: end.labelY, class: end.tool.ours ? "end ours" : "end" })
     label.textContent = `${end.tool.name} ${formatMb(end.mb)}`
+  }
+  if (narrow) {
+    // Only ours, above the end of its line.
+    const label = add(svg, "text", { x: x(tabCount), y: y(ours.perTab[tabCount - 1].mb) - 12, "text-anchor": "end", class: "end ours" })
+    label.textContent = `Browserheap ${formatMb(ours.perTab[tabCount - 1].mb)}`
   }
 
   // Hover: a crosshair and every browser's number at that tab.
@@ -321,12 +380,7 @@ function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
     }
     tooltip.innerHTML = html
     tooltip.hidden = false
-    const box = svg.getBoundingClientRect()
-    const scale = box.width / W
-    const px = x(tab) * scale
-    const left = px > box.width / 2 ? px - tooltip.offsetWidth - 14 : px + 14
-    tooltip.style.left = `${Math.max(0, left)}px`
-    tooltip.style.top = `${pad.top * scale}px`
+    placeTooltip(tooltip, svg, x(tab), pad.top, W)
   }
 
   function hide() {
@@ -335,13 +389,14 @@ function drawMemoryChart(svg, tooltip, width = 900, height = 440) {
     tooltip.hidden = true
   }
 
-  hitArea.addEventListener("pointermove", (event) => {
+  function showAt(event) {
     const box = svg.getBoundingClientRect()
     const svgX = ((event.clientX - box.left) / box.width) * W
     const tab = Math.round(((svgX - pad.left) / plotW) * (tabCount - 1)) + 1
     showTab(Math.min(tabCount, Math.max(1, tab)))
-  })
-  hitArea.addEventListener("pointerleave", hide)
+  }
+
+  followPointer(svg, hitArea, showAt, hide)
 }
 
 /** One horizontal bar per browser: memory at 30 tabs, or MB per extra tab. */
@@ -482,7 +537,8 @@ function drawLineChart(svg, tooltip, series, options) {
   svg.replaceChildren()
   const W = options.width ?? 900
   const H = options.height ?? 400
-  const pad = { left: 56, right: options.labelRoom ?? 170, top: 12, bottom: 38 }
+  const narrow = W < NARROW
+  const pad = { left: narrow ? 40 : 56, right: narrow ? 12 : options.labelRoom ?? 170, top: 12, bottom: 38 }
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`)
   const plotW = W - pad.left - pad.right
   const plotH = H - pad.top - pad.bottom
@@ -495,7 +551,7 @@ function drawLineChart(svg, tooltip, series, options) {
     const label = add(svg, "text", { x: pad.left - 8, y: y(value) + 4, "text-anchor": "end" })
     label.textContent = options.yFormat(value)
   }
-  for (const tick of options.xTicks) {
+  for (const tick of fewerTicks(options.xTicks, narrow)) {
     const label = add(svg, "text", { x: x(tick), y: H - pad.bottom + 18, "text-anchor": "middle" })
     label.textContent = options.xTickFormat === undefined ? tick : options.xTickFormat(tick)
   }
@@ -543,6 +599,15 @@ function drawLineChart(svg, tooltip, series, options) {
     lastY = end.labelY
   }
   for (const end of ends) {
+    if (narrow) {
+      // Only ours, above the end of its line.
+      if (end.one.ours) {
+        const last = end.one.points[end.one.points.length - 1]
+        const label = add(svg, "text", { x: x(last.x), y: y(last.y) - 12, "text-anchor": "end", class: "end ours" })
+        label.textContent = `${end.one.name} ${options.valueFormat(end.value)}`
+      }
+      continue
+    }
     const label = add(svg, "text", { x: pad.left + plotW + 12, y: end.labelY, class: end.one.ours ? "end ours" : "end" })
     // The × already marks a stop at the limit; only a crash needs saying.
     label.textContent = `${end.one.name} ${options.valueFormat(end.value)}${end.one.stopped === "crashed" ? " (crashed)" : ""}`
@@ -566,7 +631,7 @@ function drawLineChart(svg, tooltip, series, options) {
     return best
   }
 
-  hitArea.addEventListener("pointermove", (event) => {
+  function showAt(event) {
     const box = svg.getBoundingClientRect()
     const at = nearestX(((event.clientX - box.left) / box.width) * W)
     crosshair.setAttribute("x1", x(at))
@@ -586,16 +651,15 @@ function drawLineChart(svg, tooltip, series, options) {
     }
     tooltip.innerHTML = html
     tooltip.hidden = false
-    const scale = box.width / W
-    const px = x(at) * scale
-    const left = px > box.width / 2 ? px - tooltip.offsetWidth - 14 : px + 14
-    tooltip.style.left = `${Math.max(0, left)}px`
-    tooltip.style.top = `${pad.top * scale}px`
-  })
-  hitArea.addEventListener("pointerleave", () => {
+    placeTooltip(tooltip, svg, x(at), pad.top, W)
+  }
+
+  function hide() {
     crosshair.setAttribute("visibility", "hidden")
     tooltip.hidden = true
-  })
+  }
+
+  followPointer(svg, hitArea, showAt, hide)
 }
 
 /**
@@ -604,12 +668,13 @@ function drawLineChart(svg, tooltip, series, options) {
  *
  *   rows  [{ name, ours?, values: [{ ms, label }] }]
  */
-function drawDotStrips(svg, rows, ticksMs) {
+function drawDotStrips(svg, rows, ticksMs, width = 900) {
   // Drawn again when the page switches browser.
   svg.replaceChildren()
-  const W = 900
+  const W = width
+  const narrow = W < NARROW
   const rowH = 46
-  const pad = { left: 150, right: 30, top: 6, bottom: 30 }
+  const pad = { left: narrow ? 112 : 150, right: narrow ? 20 : 30, top: 6, bottom: 30 }
   const H = pad.top + rows.length * rowH + pad.bottom
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`)
   const plotW = W - pad.left - pad.right
@@ -620,7 +685,7 @@ function drawDotStrips(svg, rows, ticksMs) {
     return pad.left + (Math.log(clamped / minMs) / Math.log(maxMs / minMs)) * plotW
   }
   const bottom = pad.top + rows.length * rowH
-  for (const tick of ticksMs) {
+  for (const tick of fewerTicks(ticksMs, narrow)) {
     add(svg, "line", { x1: x(tick), x2: x(tick), y1: pad.top, y2: bottom, stroke: "var(--grid)", "stroke-width": 1 })
     const label = add(svg, "text", { x: x(tick), y: bottom + 18, "text-anchor": "middle" })
     label.textContent = tick < 1000 ? `${tick} ms` : `${tick / 1000} s`

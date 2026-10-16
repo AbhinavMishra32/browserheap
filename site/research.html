@@ -327,14 +327,18 @@ function drawAll() {
   }
   document.getElementById("summary-list").innerHTML = summary.map((line) => `<li><span>${line}</span></li>`).join("")
 
-  // Full-width charts are drawn at the width they're shown at (never under
-  // 640, so they shrink to fit a phone), so their text stays its real size.
-  const fullWidth = Math.max(640, Math.round(document.getElementById("memory-chart").parentElement.clientWidth))
+  // Full-width charts are drawn at the width they're shown at, so their text
+  // stays its real size; on a phone they keep fewer labels.
+  const fullWidth = Math.round(document.getElementById("memory-chart").parentElement.clientWidth)
+  // Charts in half a row are drawn at 560 for bigger text; on a phone, where
+  // the halves stack, at the width they're shown at.
+  const halfWidth = fullWidth < NARROW ? fullWidth : 560
+  const stripWidth = fullWidth < NARROW ? fullWidth : 900
 
   // Memory
-  drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), fullWidth, 400)
-  drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), 560)
-  drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, 560)
+  drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), fullWidth, fullWidth < NARROW ? 300 : 400)
+  drawBars(document.getElementById("final-chart"), (run) => run.finalMb, (mb) => formatMb(mb), halfWidth)
+  drawBars(document.getElementById("slope-chart"), mbPerTab, (mb) => `${mb.toFixed(0)} MB`, halfWidth)
   document.getElementById("wake-ms").firstChild.textContent = wakeMedianMs()
   document.getElementById("memory-text").textContent =
     `Every browser except Browserheap grows in a straight line, because every tab it opened is still a live page. Browserheap moves with whichever 2 pages are live and ends at ${formatMb(ours.finalMb)}. The others end between ${othersRange()}. On this 8 GB machine, two agents with 30 tabs each would fill memory in any of the others. Browserheap leaves room for more than ten.`
@@ -418,7 +422,7 @@ function drawAll() {
       const tool = toolOf(run.browser)
       return { name: tool.name, ours: tool.ours, dashed: tool.engine, points: run.samples.map((sample) => ({ x: sample.seconds, y: measure(sample) })) }
     })
-    const half = { width: 560, height: 360, labelRoom: 130, xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (s) => `${s / 60}`, xLabel: "idle minutes", xTitle: (s) => `${Math.floor(s / 60)} min ${Math.round(s % 60)} s idle` }
+    const half = { width: halfWidth, height: fullWidth < NARROW ? 280 : 360, labelRoom: 130, xMin: 0, xMax: 600, xTicks: [0, 120, 240, 360, 480, 600], xTickFormat: (s) => `${s / 60}`, xLabel: "idle minutes", xTitle: (s) => `${Math.floor(s / 60)} min ${Math.round(s % 60)} s idle` }
     const cpuTop = niceMax(Math.max(...B.idle.flatMap((run) => run.samples.map((sample) => sample.cpu))))
     drawLineChart(document.getElementById("cpu-chart"), document.getElementById("cpu-tooltip"), idleSeries((sample) => sample.cpu), {
       ...half, yMax: cpuTop.max, yStep: cpuTop.max / 5, yFormat: (v) => `${v}%`, valueFormat: (v) => `${v}%`,
@@ -488,7 +492,7 @@ function drawAll() {
     drawDotStrips(document.getElementById("wake-chart"), [
       { name: "Waking a tab", ours: true, values: wakes },
       { name: "Loading it first", values: loads },
-    ], [50, 100, 300, 1000, 3000, 10000, 30000])
+    ], [50, 100, 300, 1000, 3000, 10000, 30000], stripWidth)
     const underSecond = wakes.filter((wake) => wake.ms < 1000).length
     const wakeMedian = median(wakes.map((wake) => wake.ms))
     const loadMedian = median(loads.map((load) => load.ms))
@@ -515,7 +519,7 @@ function drawAll() {
     name: engine.name,
     ours: engine.ours,
     values: B.sites[engine.id].filter((site) => site.loaded && site.loadMs !== null).map((site) => ({ ms: site.loadMs, label: siteName(site.url) })),
-  })), [100, 300, 1000, 3000, 10000, 30000])
+  })), [100, 300, 1000, 3000, 10000, 30000], stripWidth)
   fillKindGrid(document.getElementById("kind-grid"))
 }
 drawAll()

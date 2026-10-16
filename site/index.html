@@ -407,7 +407,7 @@
             <div class="tooltip" id="tooltip" hidden></div>
           </div>
         </div>
-        <p class="caption">Hover the chart to see every browser at each tab. Lightpanda starts lighter for the first few tabs, then grows by about 1 GB on each heavy news site. <a href="research.html">Full method and every number →</a></p>
+        <p class="caption">Hover or touch the chart to see every browser at each tab. Lightpanda starts lighter for the first few tabs, then grows by about 1 GB on each heavy news site. <a href="research.html">Full method and every number →</a></p>
       </div>
 
       <!-- The two results that matter most past 30 tabs, smaller. The rest are on the research page. -->
@@ -878,15 +878,15 @@ function drawNumbers() {
     decodeOnView(card.querySelector("b"), 600)
   }
 
-  // Charts are drawn at the width they're shown at (never under 640, so they
-  // shrink to fit a phone), so their text and lines stay their real size.
-  const chartWidth = Math.max(640, Math.round(document.querySelector(".bench-chart").clientWidth))
-  const chartHeight = 380
+  // Charts are drawn at the width they're shown at, so their text and lines
+  // stay their real size; on a phone they keep fewer labels.
+  const chartWidth = Math.round(document.querySelector(".bench-chart .chart-wrap").clientWidth)
+  const chartHeight = chartWidth < NARROW ? 300 : 380
 
   drawMemoryChart(document.getElementById("memory-chart"), document.getElementById("tooltip"), chartWidth, chartHeight)
 
   // The smaller charts in the grid under it, drawn at their own width.
-  const miniWidth = Math.max(480, Math.round(document.querySelector(".mini .chart-wrap").clientWidth))
+  const miniWidth = Math.round(document.querySelector(".mini .chart-wrap").clientWidth)
   const miniHeight = 280
 
   if (B.scale.length > 0) {
