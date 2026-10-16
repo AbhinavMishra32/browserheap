@@ -8,7 +8,8 @@
  *   await tab.close()
  *   await subject.close()
  *
- *   browserheap   ours: Chromium's headless shell, 2 tabs live, the rest asleep, ads blocked
+ *   browserheap   ours: Chromium, 2 tabs live, the rest asleep, ads blocked
+ *   browserheap-shell  the same on Chromium's headless shell (`--headless-shell`)
  *   chrome       the same headless shell with every tab live: what agent-browser, Stagehand,
  *                browser-use and Playwright MCP all run underneath
  *   lightpanda   Lightpanda (LIGHTPANDA_BIN): its own engine, no layout or drawing
@@ -25,7 +26,7 @@ import { type Browser, type BrowserContext, chromium, type Page } from "playwrig
 import { launch } from "../src/browser.ts"
 import { processTree } from "./measure.ts"
 
-export const SUBJECTS = ["browserheap", "chrome", "lightpanda", "obscura"] as const
+export const SUBJECTS = ["browserheap", "browserheap-shell", "chrome", "lightpanda", "obscura"] as const
 export type SubjectName = (typeof SUBJECTS)[number]
 
 export const PAGE_TIMEOUT_MS = 30_000
@@ -47,8 +48,8 @@ export interface Subject {
 }
 
 export async function startSubject(name: SubjectName): Promise<Subject> {
-  if (name === "browserheap") {
-    return startBrowserheap()
+  if (name === "browserheap" || name === "browserheap-shell") {
+    return startBrowserheap(name)
   }
   if (name === "chrome") {
     return startChrome()
@@ -65,14 +66,17 @@ export async function startSubject(name: SubjectName): Promise<Subject> {
   return startCdpServer(name, program, args, 9446, false)
 }
 
-async function startBrowserheap(): Promise<Subject> {
-  const browser = await launch({ maxLive: 2 })
+async function startBrowserheap(name: "browserheap" | "browserheap-shell"): Promise<Subject> {
+  const browser = await launch({
+    maxLive: 2,
+    engine: { kind: "chromium", shell: name === "browserheap-shell" },
+  })
   const pid = browser.pid
   if (pid === null) {
     throw new Error("browserheap started without a process id")
   }
   return {
-    name: "browserheap",
+    name,
     openTab: async (url) => {
       const tab = await browser.open(url)
       return {

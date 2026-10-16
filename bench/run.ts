@@ -14,6 +14,7 @@
  *   … --idle 10     then leave it alone 10 minutes, sampling memory and CPU every 15 s
  *   … --until-mb 6500   stop opening tabs once the browser uses this much (for runs past 30 tabs)
  *   … --wake-all    browserheap: then wake every sleeping tab in turn and time each
+ *   … --headless-shell  browserheap: on Chromium's headless shell, as `browserheap --headless-shell`
  *
  * More tabs than sites opens the sites again from the top (100 tabs: the 30 sites 3 times, then 10).
  *
@@ -65,8 +66,8 @@ async function textLengthOf(page: Page): Promise<number> {
   return page.evaluate(() => document.body?.innerText.length ?? 0)
 }
 
-async function startBrowserheap(maxLive: number): Promise<Session> {
-  const browser = await launch({ maxLive })
+async function startBrowserheap(maxLive: number, shell: boolean): Promise<Session> {
+  const browser = await launch({ maxLive, engine: { kind: "chromium", shell } })
   const pid = browser.pid
   if (pid === null) {
     throw new Error("browserheap started without a process id")
@@ -206,10 +207,11 @@ async function main(): Promise<void> {
     blocking = "ads"
   }
   const maxLive = Number(flagValue("--live") ?? 2)
+  const shell = process.argv.includes("--headless-shell")
 
   let label: string = kind
   if (kind === "browserheap") {
-    label = `browserheap --live ${maxLive}`
+    label = `browserheap --live ${maxLive}${shell ? " --headless-shell" : ""}`
   } else if (blocking !== "none") {
     label = `${kind} --block${blocking === "ads" ? "-ads" : ""}`
   }
@@ -217,7 +219,7 @@ async function main(): Promise<void> {
   const startedAt = Date.now()
   let session: Session
   if (kind === "browserheap") {
-    session = await startBrowserheap(maxLive)
+    session = await startBrowserheap(maxLive, shell)
   } else if (kind === "lightpanda" || kind === "obscura") {
     session = await startOtherEngine(kind)
   } else {

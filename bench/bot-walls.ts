@@ -13,6 +13,7 @@
  *                   and with a user agent that doesn't say "HeadlessChrome"
  *   shell-filled    the shell, quiet, with what it lacks next to Chrome filled in (fillInChrome)
  *   browserheap     Browserheap itself, as it launches by default (no blocking)
+ *   browserheap-shell  Browserheap with --headless-shell
  *   chromium-quiet  the same with Playwright's full Chromium (new headless) instead of Chrome
  *
  * Prints one line per site and setup, then the count of walls per setup.
@@ -144,8 +145,8 @@ async function userAgentOf(browser: Browser): Promise<string> {
 }
 
 async function check(setupName: string): Promise<number> {
-  if (setupName === "browserheap") {
-    return checkBrowserheap()
+  if (setupName === "browserheap" || setupName === "browserheap-shell") {
+    return checkBrowserheap(setupName)
   }
   const setup = SETUPS[setupName] as Setup
   const browser = await chromium.launch(setup.launch)
@@ -188,8 +189,9 @@ async function check(setupName: string): Promise<number> {
 }
 
 /** The same sites through Browserheap's own launch. */
-async function checkBrowserheap(): Promise<number> {
-  const browser = await launch({ block: false, maxLive: 2 })
+async function checkBrowserheap(name: string): Promise<number> {
+  const shell = name === "browserheap-shell"
+  const browser = await launch({ block: false, maxLive: 2, engine: { kind: "chromium", shell } })
   let walls = 0
   for (const url of SITES) {
     let verdict = ""
@@ -208,14 +210,16 @@ async function checkBrowserheap(): Promise<number> {
       verdict = `fail ${String(error).split("\n")[0]?.slice(0, 60)}`
       walls++
     }
-    console.log(`${"browserheap".padEnd(13)} ${verdict.padEnd(80)} ${new URL(url).hostname}`)
+    console.log(`${name.padEnd(13)} ${verdict.padEnd(80)} ${new URL(url).hostname}`)
   }
   await browser.close()
   return walls
 }
 
 const chosen =
-  process.argv.slice(2).length > 0 ? process.argv.slice(2) : [...Object.keys(SETUPS), "browserheap"]
+  process.argv.slice(2).length > 0
+    ? process.argv.slice(2)
+    : [...Object.keys(SETUPS), "browserheap", "browserheap-shell"]
 const totals: string[] = []
 for (const setup of chosen) {
   const walls = await check(setup)

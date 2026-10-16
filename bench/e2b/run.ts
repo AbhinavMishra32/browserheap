@@ -46,6 +46,11 @@ function everyTool(extra: string): JobBrowser[] {
       folder: "/opt/bench",
       command: `node bench/run.ts browserheap TABS --live 2 ${extra}`,
     },
+    {
+      name: "browserheap-shell",
+      folder: "/opt/bench",
+      command: `node bench/run.ts browserheap TABS --live 2 --headless-shell ${extra}`,
+    },
     { name: "chrome-shell", folder: "/opt/bench", command: `node bench/run.ts chrome-shell TABS ${extra}` },
     // The same headless Chrome with Browserheap's blocking: how much of the gap is blocking alone.
     {
@@ -82,6 +87,16 @@ const JOBS: Record<string, JobBrowser[]> = {
     { name: "live-4", folder: "/opt/bench", command: "node bench/run.ts browserheap 30 --live 4" },
     { name: "live-8", folder: "/opt/bench", command: "node bench/run.ts browserheap 30 --live 8" },
     {
+      name: "wake-all-shell",
+      folder: "/opt/bench",
+      command: "node bench/run.ts browserheap 30 --live 2 --wake-all --headless-shell",
+    },
+    {
+      name: "agents-browserheap-shell",
+      folder: "/opt/bench",
+      command: "node bench/agents.ts browserheap-shell 10 10 --until-mb 6500",
+    },
+    {
       name: "agents-browserheap",
       folder: "/opt/bench",
       command: "node bench/agents.ts browserheap 10 10 --until-mb 6500",
@@ -96,6 +111,7 @@ const JOBS: Record<string, JobBrowser[]> = {
   walls: [{ name: "walls", folder: "/opt/bench", command: "node bench/bot-walls.ts" }],
   actions: [
     { name: "browserheap", folder: "/opt/bench", command: "node bench/actions.ts browserheap" },
+    { name: "browserheap-shell", folder: "/opt/bench", command: "node bench/actions.ts browserheap-shell" },
     { name: "chrome", folder: "/opt/bench", command: "node bench/actions.ts chrome" },
     { name: "lightpanda", folder: "/opt/bench", command: "node bench/actions.ts lightpanda" },
     { name: "obscura", folder: "/opt/bench", command: "node bench/actions.ts obscura" },
@@ -103,6 +119,7 @@ const JOBS: Record<string, JobBrowser[]> = {
   compat: [
     { name: "chrome", folder: "/opt/bench", command: "node bench/compat.ts chrome" },
     { name: "browserheap", folder: "/opt/bench", command: "node bench/compat.ts browserheap" },
+    { name: "browserheap-shell", folder: "/opt/bench", command: "node bench/compat.ts browserheap-shell" },
     { name: "lightpanda", folder: "/opt/bench", command: "node bench/compat.ts lightpanda" },
     { name: "obscura", folder: "/opt/bench", command: "node bench/compat.ts obscura" },
   ],

@@ -24,6 +24,7 @@ export interface StartSettings {
   maxLive?: string
   block?: string
   headed?: boolean
+  headlessShell?: boolean
   connect?: string
 }
 
@@ -58,6 +59,7 @@ async function start(name: string, settings: StartSettings): Promise<ServerInfo>
       BROWSERHEAP_MAX_LIVE: settings.maxLive ?? process.env.BROWSERHEAP_MAX_LIVE,
       BROWSERHEAP_BLOCK: settings.block ?? process.env.BROWSERHEAP_BLOCK,
       BROWSERHEAP_HEADED: settings.headed ? "1" : process.env.BROWSERHEAP_HEADED,
+      BROWSERHEAP_HEADLESS_SHELL: settings.headlessShell ? "1" : process.env.BROWSERHEAP_HEADLESS_SHELL,
       BROWSERHEAP_CONNECT: settings.connect ?? process.env.BROWSERHEAP_CONNECT,
     },
   })

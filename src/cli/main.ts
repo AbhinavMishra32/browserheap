@@ -15,6 +15,7 @@
  *   --live <n>          tabs live at once, when this command starts the browser (default 2)
  *   --block <what>      "ads" (default), "all" (also images, video, fonts) or "none", same
  *   --headed            the browser opens a window, for sites that turn headless browsers away, same
+ *   --headless-shell    Chromium's headless shell: less memory, but more sites show bot checks, same
  *   --connect <url>     use a Chrome you started (chrome --remote-debugging-port=9222 → http://127.0.0.1:9222)
  *
  * The first command starts the browser in the background (server.ts); it
@@ -48,6 +49,7 @@ const USAGE = `browserheap: a browser for agents, where idle tabs sleep.
   --live <n>         tabs live at once (default 2)
   --block <what>     ads (default), all, none
   --headed           open a window (for sites that turn headless browsers away)
+  --headless-shell   less memory, but more sites show bot checks
   --connect <url>    use a Chrome you started with --remote-debugging-port
 
 In the REPL: page, tabs, openTab(url), closeTab(page), snapshot(page), findInTabs(query),
@@ -60,9 +62,9 @@ const flags: Record<string, string> = {}
 const raw = process.argv.slice(2)
 for (let index = 0; index < raw.length; index++) {
   const arg = raw[index] ?? ""
-  if (arg === "--headed") {
-    // The one flag without a value.
-    flags.headed = "1"
+  if (arg === "--headed" || arg === "--headless-shell") {
+    // Flags without a value.
+    flags[arg.slice(2)] = "1"
   } else if (arg.startsWith("--")) {
     flags[arg.slice(2)] = raw[index + 1] ?? ""
     index++
@@ -83,6 +85,7 @@ const settings: StartSettings = {
   maxLive: flags.live,
   block: flags.block,
   headed: flags.headed === "1",
+  headlessShell: flags["headless-shell"] === "1",
   connect: flags.connect,
 }
 const command = args[0]

@@ -3,6 +3,8 @@
  *
  *   { kind: "chromium" }                          Playwright's Chromium, headless (default; `browserheap install` downloads it)
  *   { kind: "chromium", headed: true }            the same with a window, for sites that turn headless browsers away
+ *   { kind: "chromium", shell: true }             Chromium's headless shell instead (--headless-shell):
+ *                                                 less memory, but more sites show it a bot check
  *   { kind: "cdp", url: "http://127.0.0.1:9222" }  a browser that's already running: your own Chrome, Obscura…
  *   { kind: "browser", browser }                  a Playwright browser your program already started: the
  *                                                 tabs get a context of their own in it, and closing them
@@ -23,7 +25,7 @@
 import { type Browser, chromium } from "playwright-core"
 
 export type EngineOptions =
-  | { kind: "chromium"; headed?: boolean }
+  | { kind: "chromium"; headed?: boolean; shell?: boolean }
   | { kind: "cdp"; url: string }
   | { kind: "browser"; browser: Browser }
 
@@ -49,9 +51,10 @@ export async function startEngine(options: EngineOptions): Promise<Engine> {
 
   // Started as a server so we know its process. The "chromium" channel is the
   // full browser; without it, headless Playwright runs the headless shell.
+  const shell = options.shell === true && options.headed !== true
   const server = await chromium.launchServer({
     headless: options.headed !== true,
-    channel: "chromium",
+    channel: shell ? undefined : "chromium",
     // Playwright adds --enable-automation, which marks the browser as automated.
     ignoreDefaultArgs: ["--enable-automation"],
     args: [

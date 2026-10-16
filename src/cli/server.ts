@@ -23,6 +23,7 @@
  *   BROWSERHEAP_BLOCK      "ads" (default: ads and trackers), "all" (also images, video, fonts), "none"
  *   BROWSERHEAP_STATE      "off": start with no cookies and save none
  *   BROWSERHEAP_HEADED     "1": the browser opens a window
+ *   BROWSERHEAP_HEADLESS_SHELL  "1": Chromium's headless shell (less memory, more bot checks)
  *   BROWSERHEAP_CONNECT    a Chrome DevTools URL: use that running browser instead of starting one
  *
  * Uses:    ../repl/session.ts, paths.ts
@@ -125,7 +126,11 @@ function engineFrom(env: NodeJS.ProcessEnv): EngineOptions {
   if (env.BROWSERHEAP_CONNECT) {
     return { kind: "cdp", url: env.BROWSERHEAP_CONNECT }
   }
-  return { kind: "chromium", headed: env.BROWSERHEAP_HEADED === "1" }
+  return {
+    kind: "chromium",
+    headed: env.BROWSERHEAP_HEADED === "1",
+    shell: env.BROWSERHEAP_HEADLESS_SHELL === "1",
+  }
 }
 
 function blockingFrom(setting: string): BlockingOptions | false {
