@@ -3,8 +3,11 @@
  * browser) or asleep (no page at all, just what the agent last saw).
  *
  *   live    the page is running. Costs what the website costs: 50 to 900 MB in our runs.
- *   asleep  the page is closed. We keep its url, title, scroll position and
- *           text: tens of KB. Asking for the page opens it again where it was.
+ *   asleep  the page is closed. We keep everything a reload would lose
+ *           (page-state.ts: sessionStorage, fields, scroll, focus, media)
+ *           and its back/forward history, plus its title and text for the
+ *           agent to read: tens of KB. Asking for the page opens it again
+ *           as it was.
  *
  * A tab where something was typed and not sent never sleeps: reopening it
  * would lose what was typed.
@@ -17,6 +20,7 @@
  * Built:   step 2
  */
 import type { Page } from "playwright-core"
+import { capturePageState, type PageState } from "./page-state.ts"
 
 export type TabState = "live" | "asleep"
 
@@ -28,6 +32,16 @@ export interface SavedTab {
   scrollY: number
   /** The page's text when it went to sleep. */
   text: string
+  /** Everything a reload would lose, to put back on wake. Null if the page couldn't be read. */
+  state: PageState | null
+  /** Its back/forward history. Null until the browser reads it. */
+  history?: SavedHistory | null
+}
+
+/** A tab's back/forward history: the addresses in order, and which one it's on. */
+export interface SavedHistory {
+  urls: string[]
+  index: number
 }
 
 export interface Tab {
@@ -47,6 +61,13 @@ export interface Tab {
 
   /** The real page, opening it again first if the tab is asleep. Counts as using the tab. */
   page(): Promise<Page>
+  /**
+   * Back and forward, through the history the tab had before it slept too.
+   * Use these rather than the page's own goBack(): a woken page only knows
+   * where it woke. Each resolves with false if there's nowhere to go.
+   */
+  goBack(): Promise<boolean>
+  goForward(): Promise<boolean>
   /** Saves what the page shows and closes it. Does nothing if already asleep. */
   sleep(): Promise<void>
   close(): Promise<void>
@@ -57,12 +78,18 @@ export interface TabOwner {
   pageOfTab(tab: AgentTab): Promise<Page>
   sleepTab(tab: AgentTab): Promise<void>
   closeTab(tab: AgentTab): Promise<void>
+  travel(tab: AgentTab, steps: -1 | 1): Promise<boolean>
 }
 
 export class AgentTab implements Tab {
   readonly id: string
   lastUsedAt = Date.now()
   saved: SavedTab | null = null
+  /**
+   * The history the tab had when it last slept, while its woken page doesn't
+   * hold it yet. Null when the page's own history is the whole story.
+   */
+  history: SavedHistory | null = null
   /** The real page while live; null while asleep. */
   livePage: Page | null = null
   closed = false
@@ -87,6 +114,14 @@ export class AgentTab implements Tab {
     return this.owner.pageOfTab(this)
   }
 
+  goBack(): Promise<boolean> {
+    return this.owner.travel(this, -1)
+  }
+
+  goForward(): Promise<boolean> {
+    return this.owner.travel(this, 1)
+  }
+
   sleep(): Promise<void> {
     return this.owner.sleepTab(this)
   }
@@ -96,14 +131,15 @@ export class AgentTab implements Tab {
   }
 }
 
-/** What the page shows right now. */
+/** What the page shows right now, and everything a reload would lose. */
 export async function savePage(page: Page): Promise<SavedTab> {
   const shown = await page.evaluate(() => ({
     title: document.title,
     scrollY: Math.round(window.scrollY),
     text: document.body?.innerText ?? "",
   }))
-  return { url: page.url(), ...shown }
+  const state = await page.evaluate(capturePageState).catch(() => null)
+  return { url: page.url(), ...shown, state }
 }
 
 /**

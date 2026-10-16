@@ -8,6 +8,11 @@
  *   __browserheap.refOf(element)       an element's ref, if it has one (to place iframes in the tree)
  *   __browserheap.watchMutations()     start counting DOM changes; __browserheap.readMutations() → { mutations, nodes }
  *   __browserheap.probe()              is the page usable yet? { bodyExists, interactiveCount, landmarkCount, textChars }
+ *   __browserheap.exportRefs()         the refs handed out so far, kept when the tab sleeps
+ *
+ * A tab that wakes hands its old refs to the new page as
+ * globalThis.__browserheapCarriedRefs (browser.ts), so the first snapshot
+ * gives each element the ref it had before the tab slept.
  *
  * The snapshot is a compact accessibility tree, in the same shape as Aside's
  * (Asidewright), which puts what matters first:
@@ -168,6 +173,18 @@ export function pageWorld(): void {
   const registry = new Map<string, Element>()
   let lastRefs: Record<string, RefMeta> = {}
   let refCounter = 0
+  /** Refs from before the tab slept, by role, name and place: "link::Pricing#0" → "e4". */
+  const carried = new Map<string, string>()
+  const fromSleep = (
+    globalThis as unknown as { __browserheapCarriedRefs?: { refs: Record<string, RefMeta>; counter: number } }
+  ).__browserheapCarriedRefs
+  if (fromSleep !== undefined) {
+    lastRefs = { ...fromSleep.refs }
+    refCounter = fromSleep.counter
+    for (const [ref, meta] of Object.entries(fromSleep.refs)) {
+      carried.set(`${meta.role}::${meta.name}#${meta.nth}`, ref)
+    }
+  }
 
   function tagOf(element: Element): string {
     return element.tagName.toLowerCase()
@@ -680,8 +697,15 @@ export function pageWorld(): void {
     ) {
       ref = cached.ref
     } else {
-      refCounter++
-      ref = `${prefix}e${refCounter}`
+      // The ref this element had before its tab slept, or a new one.
+      const kept = carried.get(`${signature}#${nth}`)
+      if (kept?.startsWith(prefix)) {
+        ref = kept
+        carried.delete(`${signature}#${nth}`)
+      } else {
+        refCounter++
+        ref = `${prefix}e${refCounter}`
+      }
       holder[REF_KEY] = { ref, role, name }
     }
     registry.set(ref, element)
@@ -1215,5 +1239,19 @@ export function pageWorld(): void {
     document.getElementById(OVERLAY_ID)?.remove()
   }
 
-  g.__browserheap = { snapshot, deref, refOf, watchMutations, readMutations, probe, annotate, unannotate }
+  function exportRefs(): { refs: Record<string, RefMeta>; counter: number } {
+    return { refs: lastRefs, counter: refCounter }
+  }
+
+  g.__browserheap = {
+    snapshot,
+    deref,
+    refOf,
+    exportRefs,
+    watchMutations,
+    readMutations,
+    probe,
+    annotate,
+    unannotate,
+  }
 }

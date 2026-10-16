@@ -63,15 +63,18 @@ let registering: Promise<void> | null = null
 
 /**
  * Makes "tabref=e12" a Playwright selector. Must happen before the browser
- * starts; once is enough (it's for the whole program).
+ * starts; once is enough (it's for the whole program). A page without
+ * page-world.ts yet (a tab that just woke) gets it on the first lookup, so
+ * the refs it carried over from before the sleep answer straight away.
  */
 export function registerRefSelector(): Promise<void> {
   if (registering === null) {
     registering = selectors.register(
       "tabref",
       `({
-        query(root, ref) { return globalThis.__browserheap ? globalThis.__browserheap.deref(ref) : null },
-        queryAll(root, ref) { const el = globalThis.__browserheap ? globalThis.__browserheap.deref(ref) : null; return el ? [el] : [] },
+        world() { if (!globalThis.__browserheap) ${WORLD_SOURCE}; return globalThis.__browserheap },
+        query(root, ref) { return this.world().deref(ref) },
+        queryAll(root, ref) { const el = this.world().deref(ref); return el ? [el] : [] },
       })`,
     )
   }

@@ -170,16 +170,20 @@ export class AgentPage {
     })
   }
 
+  /** Back, through the history the tab had before it slept too. */
   async goBack(): Promise<void> {
-    await this.#settled((page) =>
-      page.goBack({ waitUntil: "domcontentloaded", timeout: NAVIGATION_TIMEOUT_MS }),
-    )
+    await withPlainError(async () => {
+      await this.#tab.goBack()
+      await untilUsable(await this.#tab.page())
+    })
   }
 
+  /** Forward, through the history the tab had before it slept too. */
   async goForward(): Promise<void> {
-    await this.#settled((page) =>
-      page.goForward({ waitUntil: "domcontentloaded", timeout: NAVIGATION_TIMEOUT_MS }),
-    )
+    await withPlainError(async () => {
+      await this.#tab.goForward()
+      await untilUsable(await this.#tab.page())
+    })
   }
 
   async reload(): Promise<void> {

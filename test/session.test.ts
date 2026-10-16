@@ -101,7 +101,7 @@ describe("session", () => {
     expect(session.browser.tabs[0]?.state).toBe("asleep")
   })
 
-  it("asks for a fresh snapshot when a ref is from before the tab slept", async () => {
+  it("keeps a ref from before the tab slept: it still clicks the same element", async () => {
     session = await startSession({ block: false, maxLive: 2 })
     const tree = await run(
       `await openTab("${site}/first"); const first = page; console.log((await snapshot(page)).tree)`,
@@ -109,16 +109,10 @@ describe("session", () => {
     const ref = tree.match(/button "Save" \[ref=(e\d+)\]/)?.[1]
     expect(ref).toBeDefined()
     await run(`await openTab("${site}/second"); await openTab("${site}/third")`)
+    expect(session.browser.tabs[0]?.state).toBe("asleep")
 
-    // The ref belonged to the page before the tab slept: it says so instead of clicking something else.
-    const stale = await session.run(`await first.locator("${ref}").click()`)
-    expect(stale.error).toBeDefined()
-
-    // A fresh snapshot gives refs on the woken page.
-    const fresh = await run(`console.log((await snapshot(first)).tree)`)
-    const newRef = fresh.match(/button "Save" \[ref=(e\d+)\]/)?.[1]
     const printed = await run(
-      `await first.locator("${newRef}").click(); console.log(await first.locator("#status").textContent())`,
+      `await first.locator("${ref}").click(); console.log(await first.locator("#status").textContent())`,
     )
     expect(printed).toBe("Saved first")
   })

@@ -107,13 +107,15 @@ An agent sees all its tabs, all the time. Behind them:
 | A tab is… | What runs | Memory |
 |---|---|---|
 | **live** | a real Chromium page | what the site costs |
-| **asleep** | nothing; we keep its URL, title, scroll position and text | a few KB |
+| **asleep** | nothing; we keep everything needed to bring it back as it was | tens of KB |
 
 - Only the tabs used most recently are live (2 by default). Opening a third puts the one used longest
   ago to sleep.
 - A sleeping tab's text stays readable without waking it (`tab.saved`).
-- Acting on a sleeping tab wakes it: the page loads again and scrolls back to where it was. All tabs
-  share one cookie jar, so it's still signed in.
+- Acting on a sleeping tab wakes it as it was: same scroll (the page's and every scrolled panel's),
+  filled-in fields, focus and text selection, sessionStorage, video position, back/forward history,
+  and the agent's snapshot refs. Cookies, localStorage and IndexedDB are shared by every tab, so it's
+  still signed in. A page that loaded more as it was scrolled loads it again.
 - A tab where the agent typed something it hasn't sent never sleeps. Only real typing counts, not
   fields a site fills in itself.
 - Live tabs don't load ads and trackers, and by default not images, video or fonts either (see
@@ -141,7 +143,7 @@ const repo = await browser.open("https://github.com/microsoft/playwright") // re
 
 docs.state       // "asleep"
 docs.saved       // { url, title, scrollY, text }: readable without waking it
-const page = await docs.page() // a Playwright Page; wakes the tab, scrolled back to where it was
+const page = await docs.page() // a Playwright Page; wakes the tab as it was
 await page.getByRole("link", { name: "Learn" }).click()
 
 browser.tabs     // every tab the agent opened, live or asleep
@@ -202,8 +204,9 @@ Pages and locators have Playwright's methods, plus `tab.text()` and `tab.isAslee
 | `id` | Stable for the tab's whole life, asleep or not |
 | `state` | `"live"` or `"asleep"` |
 | `url` | Where the tab is |
-| `saved` | What the agent last saw: `{ url, title, scrollY, text }`, kept while it sleeps |
+| `saved` | What the agent last saw (`url`, `title`, `text`) and the state it wakes with, kept while it sleeps |
 | `page()` | The tab's Playwright `Page`, waking it first if it's asleep |
+| `goBack()` / `goForward()` | Back and forward through the tab's whole history, including before it slept. Use these rather than the page's own, which only knows where it woke |
 | `livePage` | The page if it's live, `null` if it's asleep: look without waking |
 | `close()` | Closes the tab for good |
 
@@ -279,11 +282,6 @@ async function click(id: string, name: string) {
   their own `AgentBrowser` (or context) and run side by side.
 - **A sleeping page stops.** A page left working in the background (a long export, a live log, a chat
   waiting for a reply) stops when it sleeps. Raise `maxLive` if an agent needs more pages running.
-- **Waking reloads.** Whatever lived only in the running page (an open menu, items an endless list
-  loaded, a half-done multi-step page) is gone after a wake; the URL, scroll position and cookies
-  come back.
-- **Refs don't survive a wake.** Snapshot refs (`e12`) belong to the page as it was; after a tab
-  wakes, take a new snapshot. Role, text and CSS locators keep working.
 - **No MCP server yet.** The CLI and the library work today; an MCP server is next.
 
 ## Benchmarks

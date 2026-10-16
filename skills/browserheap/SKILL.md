@@ -64,13 +64,15 @@ Only the 2 tabs you used most recently are live; the rest sleep. You don't manag
   Locators made with `getByRole`, `getByText`, `getByLabel` or CSS keep working the same way.
 - **Read without waking.** `await tab.text()` and `await tab.title()` answer from what the tab
   showed when it went to sleep. Use them to look back at sources; wake a tab only to act on it.
-- **Refs don't survive a wake.** Refs (`e12`) belong to the page as it was when you took the
-  snapshot. After a tab wakes, take a new snapshot before using refs; an old ref fails with
+- **Refs keep working.** A ref (`e12`) from before a tab slept still means the same element
+  after it wakes. If the page itself changed and the element is gone, the ref fails with
   "Take a new snapshot and use its refs".
 - **`tab.isAsleep()`** says whether a tab is sleeping. `npx browserheap tabs` lists them all.
 
-Waking takes a fraction of a second and brings the page back where it was (same URL, scroll
-position, still signed in). Things that lived only in the running page, like an open menu, are gone.
+Waking takes a fraction of a second and brings the tab back as it was: same URL, scroll (the page's
+and every scrolled panel's), filled-in fields, focus, sessionStorage, back/forward history, still
+signed in. `page.goBack()` goes where it went before the tab slept. A menu you opened by clicking
+is closed again: open it again if you need it.
 
 ## Other commands
 

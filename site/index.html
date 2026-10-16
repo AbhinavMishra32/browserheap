@@ -393,12 +393,12 @@
         <div class="fact"><h3><span class="n" id="f-bu"></span>BU Bench tasks</h3><p id="f-bu-note">Same pi agent and model, on headless Chrome and on Browserheap.</p></div>
         <div class="fact"><h3><span class="n" id="f-wake"></span>To wake</h3><p>From the agent's click on a sleeping tab to the page being ready to use.</p></div>
       </div>
-      <p class="fact-label">What sleeping costs</p>
+      <p class="fact-label">What a tab wakes up with</p>
       <div class="fact-grid">
-        <div class="fact"><h3>Refs reset on wake</h3><p>Snapshot refs like <code>e12</code> belong to the page as it was. Take a new snapshot after a wake.</p></div>
-        <div class="fact"><h3>Page-only state goes</h3><p>An open menu or a half-played video. URL, scroll, cookies and logins come back.</p></div>
-        <div class="fact"><h3>Live tabs cost Chrome</h3><p>A live tab is a real Chromium page. Keep more awake with <code>--live</code>.</p></div>
-        <div class="fact"><h3>MCP is next</h3><p>Today it's a skill, a CLI and an SDK. An MCP server is on the way.</p></div>
+        <div class="fact"><h3>Where it was</h3><p>The page's scroll and every scrolled panel's, focus and selected text. Feeds load again what they had loaded.</p></div>
+        <div class="fact"><h3>What was filled in</h3><p>Text fields, checkboxes and dropdowns, as the agent left them.</p></div>
+        <div class="fact"><h3>Its history</h3><p>Back and Forward go where they went before the tab slept.</p></div>
+        <div class="fact"><h3>Logins and storage</h3><p>Cookies, localStorage, IndexedDB and the tab's own sessionStorage. Snapshot refs like <code>e12</code> still point at the same element.</p></div>
       </div>
     </div>
   </section>
@@ -438,7 +438,7 @@
       <div class="copy">
         <p class="eyebrow">Sleeping tabs</p>
         <h2 class="g">Two tabs awake, the rest asleep</h2>
-        <p class="body">The two tabs your agent used last are live Chromium pages. Every other tab sleeps: it keeps its URL, scroll, text and cookies, and gives back its memory. Touch it and it wakes where it was, in about a quarter of a second.</p>
+        <p class="body">The two tabs your agent used last are live Chromium pages. Every other tab sleeps: it gives back its memory and keeps everything else, from scroll and fields to history and logins. Touch it and it wakes as it was, in about a quarter of a second.</p>
         <a class="button" href="research.html#waking">How waking works <span class="arrow">→</span></a>
       </div>
       <div class="visual">
@@ -451,7 +451,7 @@
         </div>
         <div class="float-card" style="bottom: 8px; left: -16px; width: 250px">
           <div class="head"><span>wake</span><span class="chip cyan" style="height: 20px; font-size: 11px" id="wake-chip">274 ms</span></div>
-          <div class="row"><span>Same URL and scroll</span><b>✓</b></div>
+          <div class="row"><span>Same scroll, fields, history</span><b>✓</b></div>
           <div class="row"><span>Still signed in</span><b>✓</b></div>
           <div class="foot">Hover a tab to wake it.</div>
         </div>

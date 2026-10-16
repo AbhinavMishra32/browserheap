@@ -6,7 +6,7 @@
  *   const tab = await browser.open("https://en.wikipedia.org/wiki/Web_browser")
  *   const page = await tab.page()      a Playwright page; wakes the tab if it was asleep
  *   tab.state                          "live" or "asleep"
- *   tab.saved                          what the agent last saw: url, title, scroll, text
+ *   tab.saved                          what the agent last saw (url, title, text), and everything it brings back on wake
  *   await browser.close()
  *
  * Or a whole session for an agent tool: the browser and a JavaScript REPL
