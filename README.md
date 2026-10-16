@@ -58,7 +58,7 @@ The agent writes Playwright-style JavaScript into a REPL that stays alive betwee
 command can do many steps and variables carry over. Give your agent the skill in
 [`skills/browserheap/SKILL.md`](skills/browserheap/SKILL.md): `npx browserheap skill claude` adds it
 to Claude Code and `npx browserheap skill codex` to Codex (both also download the browser), or paste
-it into `AGENTS.md`. An MCP server is next.
+it into `AGENTS.md`.
 
 ## Numbers
 
@@ -292,7 +292,6 @@ async function click(id: string, name: string) {
   their own `AgentBrowser` (or context) and run side by side.
 - **A sleeping page stops.** A page left working in the background (a long export, a live log, a chat
   waiting for a reply) stops when it sleeps. Raise `maxLive` if an agent needs more pages running.
-- **No MCP server yet.** The CLI and the library work today; an MCP server is next.
 
 ## Benchmarks
 
