@@ -60,6 +60,13 @@ command can do many steps and variables carry over. Give your agent the skill in
 to Claude Code and `npx browserheap skill codex` to Codex (both also download the browser), or paste
 it into `AGENTS.md`.
 
+The browser is Chromium's full build in headless mode, not the stripped-down headless shell, and it
+doesn't announce itself as automated, so sites that check for bots let it in far more often (on 22
+sites that check, 0 turned it away from a home connection; the headless shell was turned away by
+12). Cookies and site storage are kept between sessions in `~/.browserheap/`, so a site that let it
+in once still knows it. For the few that still say no, `--headed` opens a window, and
+`--connect http://127.0.0.1:9222` drives your own Chrome with your sign-ins.
+
 ## Numbers
 
 **30 real websites opened as tabs, one after another, never closed.** Same E2B machine for every
@@ -178,7 +185,7 @@ Pages and locators have Playwright's methods, plus `tab.text()` and `tab.isAslee
 |---|---|---|
 | `maxLive` | How many tabs run at once | `2` |
 | `block` | What to block: `{ ads, media }`, or `false` for nothing | ads, trackers, images, video and fonts |
-| `engine` | `{ kind: "chromium" }` Playwright's headless Chromium · `{ kind: "cdp", url }` a running browser · `{ kind: "browser", browser }` a Playwright browser you started (closing only closes the tabs) | `{ kind: "chromium" }` |
+| `engine` | `{ kind: "chromium" }` Playwright's Chromium, headless (`headed: true` for a window) · `{ kind: "cdp", url }` a running browser · `{ kind: "browser", browser }` a Playwright browser you started (closing only closes the tabs) | `{ kind: "chromium" }` |
 | `context` | More Playwright context options, like `userAgent` | viewport 1280×800 |
 | `onNewTab(tab)` | Called when a page opens a tab itself | — |
 
