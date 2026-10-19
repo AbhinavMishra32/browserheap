@@ -14,7 +14,7 @@
 .hero { position: relative; isolation: isolate; padding-top: 80px; text-align: center; overflow-x: clip; }
 .hero-copy { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 20px; max-width: 900px; margin: 0 auto; }
 .hero-copy .lede { max-width: 46rem; }
-/* Over a long run: three cards, each Browserheap's number and a bar per browser beside it. */
+/* Long research tasks: three cards, each Browserheap's number and a bar per browser beside it. */
 .long-run { padding-top: 96px; }
 .long-run-head { max-width: 40rem; margin-bottom: 40px; }
 .long-run-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -366,8 +366,8 @@
   <section class="long-run">
     <div class="wrap">
       <div class="long-run-head">
-        <p class="eyebrow">Over a long run</p>
-        <h2 class="g">Built for the part where others fall over</h2>
+        <p class="eyebrow">Long research tasks</p>
+        <h2 class="g">Let your agent open as many pages as it wants</h2>
         <p class="body">Same real websites, same 8 GB machine, every popular agent browser.</p>
       </div>
       <div class="long-run-grid" id="long-run-grid"></div>
@@ -756,7 +756,7 @@ tabsCanvas.addEventListener("pointermove", (event) => {
 // Everything on the page that shows Browserheap's numbers, drawn again when
 // the switch changes browser (Chromium or --headless-shell).
 /**
- * Over a long run: for each measure, Browserheap's number, the best of the
+ * Long research tasks: for each measure, Browserheap's number, the best of the
  * others under it, and one bar per browser, best first.
  */
 function drawLongRun() {
